@@ -36,10 +36,21 @@ func (o *Office) AddPlayer(name string) {
 	o.SortPlayers()
 }
 
+func (o *Office) FindPlayer(name string) *Player {
+	for _, p := range o.Players {
+		if p.Name == name {
+			return p
+		}
+	}
+
+	return nil
+}
+
 func newOffice(name string) *Office {
 	office := &Office{
 		Name: name,
 		Players: []*Player{
+			newPlayer("Rowan"),
 			newPlayer("John"),
 			newPlayer("Jane"),
 			newPlayer("Jack"),
@@ -54,15 +65,21 @@ func newOffice(name string) *Office {
 var office = newOffice("Office")
 
 func main() {
-	pageHandlerFunc := http.HandlerFunc(pageHandler)
-	http.Handle("/", authMiddleware(pageHandlerFunc))
+	http.Handle("/", authMiddleware(http.HandlerFunc(pageHandler)))
+	http.Handle("/play", authMiddleware(http.HandlerFunc(playHandler)))
 	http.Handle("/sign-in", http.HandlerFunc(signInHandler))
 	fmt.Println("Server is running on port 8080")
 	http.ListenAndServe(":8080", nil)
 }
 
 func pageHandler(w http.ResponseWriter, r *http.Request) {
-	mainPageContent := mainPage(*office)
+	user := userFromContext(r.Context())
+	if user == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	mainPageContent := mainPage(*office, *user)
 	page(mainPageContent).Render(context.Background(), w)
 }
 
@@ -105,18 +122,75 @@ func signInHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("HX-Redirect", "/")
 }
 
+func playHandler(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	player := userFromContext(r.Context())
+	if player == nil {
+		http.Error(w, "Unauthorized", http.StatusUnauthorized)
+		return
+	}
+
+	r.ParseForm()
+	opponentName := r.Form.Get("opponent")
+	if opponentName == "" {
+		http.Error(w, "Opponent name is required", http.StatusBadRequest)
+		return
+	}
+
+	opponent := office.FindPlayer(opponentName)
+	if opponent == nil {
+		http.Error(w, "Opponent not found", http.StatusNotFound)
+		return
+	}
+
+	didWin := r.Form.Get("win") == "on"
+	if didWin {
+		player.Points += 10
+		opponent.Points -= 10
+	} else {
+		player.Points -= 10
+		opponent.Points += 10
+	}
+
+	office.SortPlayers()
+	w.Header().Set("HX-Redirect", "/")
+}
+
+type contextKey string
+
+const userContextKey = contextKey("user")
+
+func userFromContext(ctx context.Context) *Player {
+	user, ok := ctx.Value(userContextKey).(*Player)
+	if !ok {
+		return nil
+	}
+	return user
+}
+
 func authMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		_, err := r.Cookie("auth")
+		authCookie, err := r.Cookie("auth")
 		if err != nil {
 			if err != http.ErrNoCookie {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
-			} else {
-				http.Redirect(w, r, "/sign-in", http.StatusFound)
 			}
+			http.Redirect(w, r, "/sign-in", http.StatusFound)
+			return
 		}
 
-		next.ServeHTTP(w, r)
+		player := office.FindPlayer(authCookie.Value)
+		if player == nil {
+			http.Redirect(w, r, "/sign-in", http.StatusFound)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), userContextKey, player)
+		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

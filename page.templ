@@ -3,6 +3,7 @@ package main
 import "strconv"
 
 templ page(contents templ.Component) {
+	<!DOCTYPE html>
 	<html lang="en">
 		<head>
 			<meta charset="UTF-8"/>
@@ -11,34 +12,56 @@ templ page(contents templ.Component) {
 			<script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
 			<title>Office Tournaments</title>
 		</head>
-		<body class="bg-slate-700 text-white w-4/5 mx-auto">
+		<body class="bg-slate-700 text-white w-4/5 mx-auto h-svh">
 			@contents
 		</body>
 	</html>
 }
 
-templ mainPage(office Office) {
-	<header>
+templ mainPage(office Office, currentPlayer Player) {
+	<header class="flex justify-between items-center">
 		<h1 class="my-4 text-5xl">{ office.Name }</h1>
+		<div class="w-16 h-16 my-4 grid place-items-center border-white rounded-full border-2">
+			<p>{ currentPlayer.Name }</p>
+		</div>
 	</header>
 	<hr/>
-	<main class=" mx-auto my-4">
-		<table class="w-full">
-			<thead class="">
-				<tr class="[&>th]:text-left">
-					<th class="py-4">Player</th>
-					<th class="py-4">Points</th>
-				</tr>
-			</thead>
-			<tbody>
-				for _, player := range office.Players {
-					<tr>
-						<td>{ player.Name }</td>
-						<td>{ strconv.Itoa(player.Points) }</td>
+	<main class="mx-auto my-4 flex flex-col gap-4">
+		<section>
+			<h2 class="text-3xl mb-4">Play Match</h2>
+			<form hx-post="/play" hx-swap="outerHTML">
+				<label for="opponent" class="block">Your opponent</label>
+				<select id="opponent" name="opponent" class="text-black w-full">
+					for _, player := range office.Players {
+						if player.Name != currentPlayer.Name {
+							<option value={ player.Name }>{ player.Name }</option>
+						}
+					}
+				</select>
+				<label for="win">Did you win?</label>
+				<input id="win" name="win" type="checkbox" checked class="text-black"/>
+				<button type="submit" class="bg-blue-500 text-white block mx-auto mt-4 px-4 py-1">Play</button>
+			</form>
+		</section>
+		<section>
+			<h2 class="text-3xl">Rankings</h2>
+			<table class="w-full">
+				<thead class="">
+					<tr class="[&>th]:text-left">
+						<th class="py-4">Player</th>
+						<th class="py-4">Points</th>
 					</tr>
-				}
-			</tbody>
-		</table>
+				</thead>
+				<tbody>
+					for _, player := range office.Players {
+						<tr>
+							<td>{ player.Name }</td>
+							<td>{ strconv.Itoa(player.Points) }</td>
+						</tr>
+					}
+				</tbody>
+			</table>
+		</section>
 	</main>
 }
 
