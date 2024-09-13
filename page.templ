@@ -1,0 +1,38 @@
+package main
+
+import "strconv"
+
+templ page(office Office) {
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<script src="https://cdn.tailwindcss.com"></script>
+			<title>Office Tournaments</title>
+		</head>
+		<body class="bg-slate-700 text-white w-4/5 mx-auto">
+			<header>
+				<h1 class="my-4 text-5xl">{ office.Name }</h1>
+			</header>
+			<hr/>
+			<main class=" mx-auto my-4">
+				<table class="w-full">
+					<thead class="">
+						<tr class="[&>th]:text-left">
+							<th class="py-4">Player</th>
+							<th class="py-4">Points</th>
+						</tr>
+					</thead>
+					<tbody>
+						for _, player := range office.Players {
+							<tr>
+								<td>{ player.Name }</td>
+								<td>{ strconv.Itoa(player.Points) }</td>
+							</tr>
+						}
+					</tbody>
+				</table>
+			</main>
+		</body>
+	</html>
+}
