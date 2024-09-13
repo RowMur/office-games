@@ -2,37 +2,59 @@ package main
 
 import "strconv"
 
-templ page(office Office) {
+templ page(contents templ.Component) {
 	<html lang="en">
 		<head>
 			<meta charset="UTF-8"/>
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<script src="https://cdn.tailwindcss.com"></script>
+			<script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
 			<title>Office Tournaments</title>
 		</head>
 		<body class="bg-slate-700 text-white w-4/5 mx-auto">
-			<header>
-				<h1 class="my-4 text-5xl">{ office.Name }</h1>
-			</header>
-			<hr/>
-			<main class=" mx-auto my-4">
-				<table class="w-full">
-					<thead class="">
-						<tr class="[&>th]:text-left">
-							<th class="py-4">Player</th>
-							<th class="py-4">Points</th>
-						</tr>
-					</thead>
-					<tbody>
-						for _, player := range office.Players {
-							<tr>
-								<td>{ player.Name }</td>
-								<td>{ strconv.Itoa(player.Points) }</td>
-							</tr>
-						}
-					</tbody>
-				</table>
-			</main>
+			@contents
 		</body>
 	</html>
+}
+
+templ mainPage(office Office) {
+	<header>
+		<h1 class="my-4 text-5xl">{ office.Name }</h1>
+	</header>
+	<hr/>
+	<main class=" mx-auto my-4">
+		<table class="w-full">
+			<thead class="">
+				<tr class="[&>th]:text-left">
+					<th class="py-4">Player</th>
+					<th class="py-4">Points</th>
+				</tr>
+			</thead>
+			<tbody>
+				for _, player := range office.Players {
+					<tr>
+						<td>{ player.Name }</td>
+						<td>{ strconv.Itoa(player.Points) }</td>
+					</tr>
+				}
+			</tbody>
+		</table>
+	</main>
+}
+
+templ signInPage() {
+	<main class="grid place-items-center h-full">
+		@signInForm(FormErrors{})
+	</main>
+}
+
+templ signInForm(errors FormErrors) {
+	<form hx-post="/sign-in" hx-swap="outerHTML">
+		<label for="name" class="block">Name</label>
+		<input id="name" name="name" type="text" class="text-black"/>
+		if errors["name"] != "" {
+			<p class="text-red-500">{ errors["name"] }</p>
+		}
+		<button type="submit" class="bg-blue-500 text-white block mx-auto mt-4">Sign In</button>
+	</form>
 }
