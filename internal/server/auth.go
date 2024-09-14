@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/RowMur/office-games/database"
+	"github.com/RowMur/office-games/internal/database"
 )
 
 type contextKey string

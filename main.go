@@ -1,19 +1,12 @@
 package main
 
 import (
-	"log"
-
-	"github.com/RowMur/office-games/database"
-	"github.com/RowMur/office-games/server"
-	"github.com/joho/godotenv"
+	"github.com/RowMur/office-games/internal/database"
+	"github.com/RowMur/office-games/internal/server"
+	_ "github.com/joho/godotenv/autoload"
 )
 
 func main() {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatalf("Error loading .env file")
-	}
-
 	database.Init()
 	server.NewServer().Run()
 }

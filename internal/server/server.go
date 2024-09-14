@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/RowMur/office-games/database"
-	"github.com/RowMur/office-games/views"
+	"github.com/RowMur/office-games/internal/database"
+	"github.com/RowMur/office-games/internal/views"
 	"gorm.io/gorm"
 )
 
