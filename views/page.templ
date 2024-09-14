@@ -2,7 +2,7 @@ package views
 
 import (
 	"fmt"
-	"github.com/RowMur/office-tournaments/models"
+	"github.com/RowMur/office-games/models"
 	"strconv"
 )
 
@@ -14,7 +14,7 @@ templ Page(contents templ.Component) {
 			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
 			<script src="https://cdn.tailwindcss.com"></script>
 			<script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
-			<title>Office Tournaments</title>
+			<title>Office Games</title>
 		</head>
 		<body class="bg-slate-700 text-white w-4/5 mx-auto h-svh">
 			@contents
@@ -24,7 +24,7 @@ templ Page(contents templ.Component) {
 
 templ Header(currentUser models.User) {
 	<header class="flex justify-between items-center gap-4">
-		<h1 class="my-4 text-3xl"><a href="/">Office Tournaments</a></h1>
+		<h1 class="my-4 text-3xl"><a href="/">Office Games</a></h1>
 		<div class="w-12 h-12 my-4 grid place-items-center border-white rounded-full border-2">
 			<a href="/me">{ string(currentUser.Username[0]) }</a>
 		</div>

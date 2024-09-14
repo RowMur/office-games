@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/RowMur/office-tournaments/models"
-	"github.com/RowMur/office-tournaments/views"
+	"github.com/RowMur/office-games/models"
+	"github.com/RowMur/office-games/views"
 )
 
 type Server struct{}

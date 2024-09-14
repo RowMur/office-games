@@ -1,4 +1,4 @@
-module github.com/RowMur/office-tournaments
+module github.com/RowMur/office-games
 
 go 1.22.3
 

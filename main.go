@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/RowMur/office-tournaments/server"
+	"github.com/RowMur/office-games/server"
 )
 
 func main() {

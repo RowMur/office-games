@@ -10,7 +10,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"fmt"
-	"github.com/RowMur/office-tournaments/models"
+	"github.com/RowMur/office-games/models"
 	"strconv"
 )
 
@@ -35,7 +35,7 @@ func Page(contents templ.Component) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><script src=\"https://cdn.tailwindcss.com\"></script><script src=\"https://unpkg.com/htmx.org@2.0.2\" integrity=\"sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ\" crossorigin=\"anonymous\"></script><title>Office Tournaments</title></head><body class=\"bg-slate-700 text-white w-4/5 mx-auto h-svh\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><script src=\"https://cdn.tailwindcss.com\"></script><script src=\"https://unpkg.com/htmx.org@2.0.2\" integrity=\"sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ\" crossorigin=\"anonymous\"></script><title>Office Games</title></head><body class=\"bg-slate-700 text-white w-4/5 mx-auto h-svh\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -72,7 +72,7 @@ func Header(currentUser models.User) templ.Component {
 			templ_7745c5c3_Var2 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<header class=\"flex justify-between items-center gap-4\"><h1 class=\"my-4 text-3xl\"><a href=\"/\">Office Tournaments</a></h1><div class=\"w-12 h-12 my-4 grid place-items-center border-white rounded-full border-2\"><a href=\"/me\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<header class=\"flex justify-between items-center gap-4\"><h1 class=\"my-4 text-3xl\"><a href=\"/\">Office Games</a></h1><div class=\"w-12 h-12 my-4 grid place-items-center border-white rounded-full border-2\"><a href=\"/me\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
