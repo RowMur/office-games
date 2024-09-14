@@ -1,0 +1,220 @@
+package views
+
+import (
+	"fmt"
+	"github.com/RowMur/office-tournaments/models"
+	"strconv"
+)
+
+templ Page(contents templ.Component) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<script src="https://cdn.tailwindcss.com"></script>
+			<script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
+			<title>Office Tournaments</title>
+		</head>
+		<body class="bg-slate-700 text-white w-4/5 mx-auto h-svh">
+			@contents
+		</body>
+	</html>
+}
+
+templ Header(currentUser models.User) {
+	<header class="flex justify-between items-center gap-4">
+		<h1 class="my-4 text-3xl"><a href="/">Office Tournaments</a></h1>
+		<div class="w-12 h-12 my-4 grid place-items-center border-white rounded-full border-2">
+			<a href="/me">{ string(currentUser.Username[0]) }</a>
+		</div>
+	</header>
+	<hr/>
+}
+
+templ MainPage(currentUser models.User, hasOffice bool, offices []*models.Office) {
+	@Header(currentUser)
+	<main class="mt-4">
+		if hasOffice {
+			<section>
+				<h2 class="text-xl">Your Offices:</h2>
+				<ul class="list-disc list-inside">
+					for _, office := range offices {
+						<li>
+							<a href={ templ.SafeURL("/office/" + office.Code) }>{ office.Name }</a>
+						</li>
+					}
+				</ul>
+			</section>
+		}
+		<div class="w-full grid place-items-center my-8">
+			<section class="w-full">
+				<h2 class="text-center text-xl">Create new Office</h2>
+				@CreateOfficeForm(FormData{}, FormErrors{})
+			</section>
+			<p class="text-center my-6">or</p>
+			<section class="w-full">
+				<h2 class="text-center text-xl">Join an existing Office</h2>
+				@JoinOfficeForm(FormData{}, FormErrors{})
+			</section>
+		</div>
+	</main>
+}
+
+templ CreateOfficeForm(data FormData, errors FormErrors) {
+	<form hx-post="/create-office" hx-swap="outerHTML">
+		<label for="office" class="block">Name:</label>
+		<div class="flex gap-4">
+			<input id="office" name="office" type="text" value={ data["office"] } class="text-black grow" placeholder="The office..."/>
+			<button type="submit" class="bg-blue-500 text-white block w-16">Create</button>
+		</div>
+		if errors["office"] != "" {
+			<p class="text-red-500">{ errors["office"] }</p>
+		}
+	</form>
+}
+
+templ JoinOfficeForm(data FormData, errors FormErrors) {
+	<form hx-post="/join-office" hx-swap="outerHTML">
+		<label for="office" class="block">Code:</label>
+		<div class="flex gap-4">
+			<input id="office" name="office" type="text" value={ data["office"] } class="text-black grow" placeholder="ABCDEF"/>
+			<button type="submit" class="bg-blue-500 text-white block w-16">Join</button>
+		</div>
+		if errors["office"] != "" {
+			<p class="text-red-500">{ errors["office"] }</p>
+		}
+	</form>
+}
+
+templ OfficePage(office models.Office, currentUser models.User) {
+	@Header(currentUser)
+	<main class="mx-auto my-4 flex flex-col gap-4">
+		<h2 class="text-2xl font-semibold">Office: { office.Name }</h2>
+		<section>
+			<h3 class="text-xl mb-4">Play Match</h3>
+			<form hx-post={ fmt.Sprintf("/play?office=%s", office.Code) } hx-swap="outerHTML" hx-target="#office-ranking">
+				<label for="opponent" class="block">Your opponent</label>
+				<select id="opponent" name="opponent" class="text-black w-full">
+					for _, player := range office.Players {
+						if player.Name != currentUser.Username {
+							<option value={ player.Name }>{ player.Name }</option>
+						}
+					}
+				</select>
+				<label for="win">Did you win?</label>
+				<input id="win" name="win" type="checkbox" checked class="text-black"/>
+				<button type="submit" class="bg-blue-500 text-white block mx-auto mt-4 px-4 py-1">Play</button>
+			</form>
+		</section>
+		<section>
+			<h3 class="text-xl">Rankings</h3>
+			@OfficeRankings(office.Players)
+		</section>
+		<section>
+			<h3 class="text-xl mb-4">Invite players</h3>
+			<p>Share this code to invite others to join the office:</p>
+			<script>
+				function copyCode() {
+					const btn = document.getElementById("copy-code");
+					const code = btn.getAttribute("data-code");
+					navigator.clipboard.writeText(code);
+					alert("Copied code: " + code);
+				}
+			</script>
+			<button
+				id="copy-code"
+				onclick="copyCode()"
+				class="bg-blue-500 text-white block mx-auto mt-4 px-4 py-1"
+				data-code={ office.Code }
+			>{ office.Code }</button>
+		</section>
+	</main>
+}
+
+templ OfficeRankings(players []*models.Player) {
+	<table id="office-ranking" class="w-full">
+		<thead class="">
+			<tr class="[&>th]:text-left">
+				<th class="py-4">Player</th>
+				<th class="py-4">Points</th>
+			</tr>
+		</thead>
+		<tbody>
+			for _, player := range players {
+				<tr>
+					<td>{ player.Name }</td>
+					<td>{ strconv.Itoa(player.Points) }</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+
+type FormErrors map[string]string
+type FormData map[string]string
+
+templ SignInPage() {
+	<main class="grid place-items-center h-full">
+		<div class="flex flex-col gap-4">
+			@SignInForm(FormData{}, FormErrors{})
+			<hr/>
+			<p class="text-center">
+				Don&apos;t have an account?
+				<br/>
+				<a href="/create-account" class="underline">Create account</a>
+			</p>
+		</div>
+	</main>
+}
+
+templ SignInForm(data FormData, errors FormErrors) {
+	<form hx-post="/sign-in" hx-swap="outerHTML">
+		<label for="username" class="block">Username:</label>
+		<input id="username" name="username" type="text" value={ data["username"] } class="text-black w-full"/>
+		if errors["username"] != "" {
+			<p class="text-red-500">{ errors["username"] }</p>
+		}
+		<button type="submit" class="bg-blue-500 text-white block mx-auto mt-4 px-4 py-1">Sign In</button>
+	</form>
+}
+
+templ CreateAccountPage() {
+	<main class="grid place-items-center h-full">
+		<div class="flex flex-col gap-4">
+			@CreateAccountForm(FormData{}, FormErrors{})
+			<hr/>
+			<p class="text-center">
+				Already have an account?
+				<br/>
+				<a href="/sign-in" class="underline">Sign in</a>
+			</p>
+		</div>
+	</main>
+}
+
+templ CreateAccountForm(data FormData, errors FormErrors) {
+	<form hx-post="/create-account" hx-swap="outerHTML">
+		<label for="username" class="block">Username:</label>
+		<input id="username" name="username" type="text" value={ data["username"] } class="text-black w-full"/>
+		if errors["username"] != "" {
+			<p class="text-red-500">{ errors["username"] }</p>
+		}
+		<button type="submit" class="bg-blue-500 text-white block mx-auto mt-4 px-4 py-1">Create Account</button>
+	</form>
+}
+
+templ MePage(currentUser models.User) {
+	<main class="grid place-items-center h-full">
+		<div class="flex flex-col gap-4">
+			<h1 class="text-3xl">Welcome, { currentUser.Username }</h1>
+			<hr/>
+			<p class="text-center">
+				<a href="/" class="underline">Home</a>
+			</p>
+			<p class="text-center">
+				<a href="/sign-out" class="underline">Sign out</a>
+			</p>
+		</div>
+	</main>
+}
