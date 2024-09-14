@@ -170,11 +170,8 @@ templ SignInPage() {
 
 templ SignInForm(data FormData, errors FormErrors) {
 	<form hx-post="/sign-in" hx-swap="outerHTML">
-		<label for="username" class="block">Username:</label>
-		<input id="username" name="username" type="text" value={ data["username"] } class="text-black w-full"/>
-		if errors["username"] != "" {
-			<p class="text-red-500">{ errors["username"] }</p>
-		}
+		@formField("username", "Username", "text", data, errors)
+		@formField("password", "Password", "password", data, errors)
 		<button type="submit" class="bg-blue-500 text-white block mx-auto mt-4 px-4 py-1">Sign In</button>
 	</form>
 }
@@ -195,13 +192,29 @@ templ CreateAccountPage() {
 
 templ CreateAccountForm(data FormData, errors FormErrors) {
 	<form hx-post="/create-account" hx-swap="outerHTML">
-		<label for="username" class="block">Username:</label>
-		<input id="username" name="username" type="text" value={ data["username"] } class="text-black w-full"/>
-		if errors["username"] != "" {
-			<p class="text-red-500">{ errors["username"] }</p>
-		}
+		@formField("username", "Username", "text", data, errors)
+		@formField("password", "Password", "password", data, errors)
+		@formField("confirm", "Confirm Password", "password", data, errors)
 		<button type="submit" class="bg-blue-500 text-white block mx-auto mt-4 px-4 py-1">Create Account</button>
 	</form>
+}
+
+templ formField(name string, display string, inputType string, data FormData, errors FormErrors) {
+	<label for={ name } class="block">{ display }:</label>
+	<input
+		id={ name }
+		name={ name }
+		if inputType == "password" {
+			type="password"
+		} else {
+			type="text"
+		}
+		value={ data[name] }
+		class="text-black w-full"
+	/>
+	if errors[name] != "" {
+		<p class="text-red-500">{ errors[name] }</p>
+	}
 }
 
 templ MePage(currentUser database.User) {

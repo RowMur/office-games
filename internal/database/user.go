@@ -9,11 +9,13 @@ import (
 type User struct {
 	gorm.Model
 	Username string
+	Password string
 }
 
-func CreateUser(username string) (*User, error) {
+func CreateUser(username string, hashedPassword string) (*User, error) {
 	user := &User{
 		Username: username,
+		Password: hashedPassword,
 	}
 
 	result := GetDB().Create(user)

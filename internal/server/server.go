@@ -8,6 +8,7 @@ import (
 
 	"github.com/RowMur/office-games/internal/database"
 	"github.com/RowMur/office-games/internal/views"
+	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 )
 
@@ -75,9 +76,17 @@ func signInHandler(w http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
 	username := r.Form.Get("username")
-	if username == "" {
-		errs := views.FormErrors{"username": "Username is required"}
-		views.SignInForm(views.FormData{}, errs).Render(context.Background(), w)
+	password := r.Form.Get("password")
+	if username == "" || password == "" {
+		data := views.FormData{"username": username}
+		errs := views.FormErrors{}
+		if username == "" {
+			errs["username"] = "Username is required"
+		}
+		if password == "" {
+			errs["password"] = "Password is required"
+		}
+		views.SignInForm(data, errs).Render(context.Background(), w)
 		return
 	}
 
@@ -93,7 +102,20 @@ func signInHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	cookie := fmt.Sprintf("auth=%s", username)
+	err = bcrypt.CompareHashAndPassword([]byte(user.Password), []byte(password))
+	if err != nil {
+		data := views.FormData{"username": username}
+		errs := views.FormErrors{"password": "Invalid password"}
+		views.SignInForm(data, errs).Render(context.Background(), w)
+		return
+	}
+
+	token, err := generateToken(int(user.ID))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	cookie := fmt.Sprintf("auth=%s", token)
 	w.Header().Set("Set-Cookie", cookie)
 	w.Header().Set("HX-Redirect", "/")
 }
@@ -118,9 +140,21 @@ func createAccountHandler(w http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
 	username := r.Form.Get("username")
-	if username == "" {
-		errs := views.FormErrors{"username": "Username is required"}
-		views.SignInForm(views.FormData{}, errs).Render(context.Background(), w)
+	password := r.Form.Get("password")
+	confirm := r.Form.Get("confirm")
+	if username == "" || password == "" || confirm == "" {
+		data := views.FormData{"username": username, "password": password, "confirm": confirm}
+		errs := views.FormErrors{}
+		if username == "" {
+			errs["username"] = "Username is required"
+		}
+		if password == "" {
+			errs["password"] = "Password is required"
+		}
+		if confirm == "" {
+			errs["confirm"] = "Confirm password is required"
+		}
+		views.CreateAccountForm(data, errs).Render(context.Background(), w)
 		return
 	}
 
@@ -132,16 +166,33 @@ func createAccountHandler(w http.ResponseWriter, r *http.Request) {
 	if user != nil {
 		data := views.FormData{"username": username}
 		errs := views.FormErrors{"username": "Username is taken"}
-		views.SignInForm(data, errs).Render(context.Background(), w)
+		views.CreateAccountForm(data, errs).Render(context.Background(), w)
 		return
 	}
 
-	_, err = database.CreateUser(username)
+	if password != confirm {
+		data := views.FormData{"username": username}
+		errs := views.FormErrors{"confirm": "Passwords do not match"}
+		views.CreateAccountForm(data, errs).Render(context.Background(), w)
+		return
+	}
+
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	cookie := fmt.Sprintf("auth=%s", username)
+	user, err = database.CreateUser(username, string(hashedPassword))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	token, err := generateToken(int(user.ID))
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	cookie := fmt.Sprintf("auth=%s", token)
 	w.Header().Set("Set-Cookie", cookie)
 	w.Header().Set("HX-Redirect", "/")
 }
