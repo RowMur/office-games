@@ -4,15 +4,15 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/RowMur/office-games/models"
+	"github.com/RowMur/office-games/database"
 )
 
 type contextKey string
 
 const userContextKey = contextKey("user")
 
-func userFromContext(ctx context.Context) *models.User {
-	user, ok := ctx.Value(userContextKey).(*models.User)
+func userFromContext(ctx context.Context) *database.User {
+	user, ok := ctx.Value(userContextKey).(*database.User)
 	if !ok {
 		return nil
 	}
@@ -36,7 +36,11 @@ func authMiddleware(next http.Handler) http.Handler {
 			return
 		}
 
-		user := data.GetUser(authCookie.Value)
+		user, err := database.GetUser(authCookie.Value)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		if user == nil {
 			w.Header().Set("Set-Cookie", "auth=; Max-Age=0")
 			http.Redirect(w, r, "/sign-in", http.StatusFound)

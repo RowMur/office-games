@@ -10,7 +10,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"fmt"
-	"github.com/RowMur/office-games/models"
+	"github.com/RowMur/office-games/database"
 	"strconv"
 )
 
@@ -35,7 +35,7 @@ func Page(contents templ.Component) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><script src=\"https://cdn.tailwindcss.com\"></script><script src=\"https://unpkg.com/htmx.org@2.0.2\" integrity=\"sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ\" crossorigin=\"anonymous\"></script><title>Office Games</title></head><body class=\"bg-slate-700 text-white w-4/5 mx-auto h-svh\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><script src=\"https://cdn.tailwindcss.com\"></script><script src=\"https://unpkg.com/htmx.org@2.0.2\" integrity=\"sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ\" crossorigin=\"anonymous\"></script><title>Office Games</title></head><body class=\"bg-slate-700 text-white w-4/5 max-w-lg mx-auto h-svh\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -51,7 +51,7 @@ func Page(contents templ.Component) templ.Component {
 	})
 }
 
-func Header(currentUser models.User) templ.Component {
+func Header(currentUser database.User) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -93,7 +93,7 @@ func Header(currentUser models.User) templ.Component {
 	})
 }
 
-func MainPage(currentUser models.User, hasOffice bool, offices []*models.Office) templ.Component {
+func MainPage(currentUser database.User, hasOffice bool, offices []*database.Office) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -314,7 +314,7 @@ func JoinOfficeForm(data FormData, errors FormErrors) templ.Component {
 	})
 }
 
-func OfficePage(office models.Office, currentUser models.User) templ.Component {
+func OfficePage(office database.Office, players []*database.Player, currentUser database.User) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -369,16 +369,16 @@ func OfficePage(office models.Office, currentUser models.User) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		for _, player := range office.Players {
-			if player.Name != currentUser.Username {
+		for _, player := range players {
+			if player.User.Username != currentUser.Username {
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<option value=\"")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var16 string
-				templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(player.Name)
+				templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(player.User.Username)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/page.templ`, Line: 101, Col: 34}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/page.templ`, Line: 101, Col: 43}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 				if templ_7745c5c3_Err != nil {
@@ -389,9 +389,9 @@ func OfficePage(office models.Office, currentUser models.User) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var17 string
-				templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(player.Name)
+				templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(player.User.Username)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/page.templ`, Line: 101, Col: 50}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/page.templ`, Line: 101, Col: 68}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 				if templ_7745c5c3_Err != nil {
@@ -407,7 +407,7 @@ func OfficePage(office models.Office, currentUser models.User) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = OfficeRankings(office.Players).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = OfficeRankings(players).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -445,7 +445,7 @@ func OfficePage(office models.Office, currentUser models.User) templ.Component {
 	})
 }
 
-func OfficeRankings(players []*models.Player) templ.Component {
+func OfficeRankings(players []*database.Player) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -476,9 +476,9 @@ func OfficeRankings(players []*models.Player) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var21 string
-			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(player.Name)
+			templ_7745c5c3_Var21, templ_7745c5c3_Err = templ.JoinStringErrs(player.User.Username)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/page.templ`, Line: 146, Col: 22}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `views/page.templ`, Line: 146, Col: 31}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var21))
 			if templ_7745c5c3_Err != nil {
@@ -717,7 +717,7 @@ func CreateAccountForm(data FormData, errors FormErrors) templ.Component {
 	})
 }
 
-func MePage(currentUser models.User) templ.Component {
+func MePage(currentUser database.User) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {

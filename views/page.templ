@@ -2,7 +2,7 @@ package views
 
 import (
 	"fmt"
-	"github.com/RowMur/office-games/models"
+	"github.com/RowMur/office-games/database"
 	"strconv"
 )
 
@@ -16,13 +16,13 @@ templ Page(contents templ.Component) {
 			<script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
 			<title>Office Games</title>
 		</head>
-		<body class="bg-slate-700 text-white w-4/5 mx-auto h-svh">
+		<body class="bg-slate-700 text-white w-4/5 max-w-lg mx-auto h-svh">
 			@contents
 		</body>
 	</html>
 }
 
-templ Header(currentUser models.User) {
+templ Header(currentUser database.User) {
 	<header class="flex justify-between items-center gap-4">
 		<h1 class="my-4 text-3xl"><a href="/">Office Games</a></h1>
 		<div class="w-12 h-12 my-4 grid place-items-center border-white rounded-full border-2">
@@ -32,7 +32,7 @@ templ Header(currentUser models.User) {
 	<hr/>
 }
 
-templ MainPage(currentUser models.User, hasOffice bool, offices []*models.Office) {
+templ MainPage(currentUser database.User, hasOffice bool, offices []*database.Office) {
 	@Header(currentUser)
 	<main class="mt-4">
 		if hasOffice {
@@ -87,7 +87,7 @@ templ JoinOfficeForm(data FormData, errors FormErrors) {
 	</form>
 }
 
-templ OfficePage(office models.Office, currentUser models.User) {
+templ OfficePage(office database.Office, players []*database.Player, currentUser database.User) {
 	@Header(currentUser)
 	<main class="mx-auto my-4 flex flex-col gap-4">
 		<h2 class="text-2xl font-semibold">Office: { office.Name }</h2>
@@ -96,9 +96,9 @@ templ OfficePage(office models.Office, currentUser models.User) {
 			<form hx-post={ fmt.Sprintf("/play?office=%s", office.Code) } hx-swap="outerHTML" hx-target="#office-ranking">
 				<label for="opponent" class="block">Your opponent</label>
 				<select id="opponent" name="opponent" class="text-black w-full">
-					for _, player := range office.Players {
-						if player.Name != currentUser.Username {
-							<option value={ player.Name }>{ player.Name }</option>
+					for _, player := range players {
+						if player.User.Username != currentUser.Username {
+							<option value={ player.User.Username }>{ player.User.Username }</option>
 						}
 					}
 				</select>
@@ -109,7 +109,7 @@ templ OfficePage(office models.Office, currentUser models.User) {
 		</section>
 		<section>
 			<h3 class="text-xl">Rankings</h3>
-			@OfficeRankings(office.Players)
+			@OfficeRankings(players)
 		</section>
 		<section>
 			<h3 class="text-xl mb-4">Invite players</h3>
@@ -132,7 +132,7 @@ templ OfficePage(office models.Office, currentUser models.User) {
 	</main>
 }
 
-templ OfficeRankings(players []*models.Player) {
+templ OfficeRankings(players []*database.Player) {
 	<table id="office-ranking" class="w-full">
 		<thead class="">
 			<tr class="[&>th]:text-left">
@@ -143,7 +143,7 @@ templ OfficeRankings(players []*models.Player) {
 		<tbody>
 			for _, player := range players {
 				<tr>
-					<td>{ player.Name }</td>
+					<td>{ player.User.Username }</td>
 					<td>{ strconv.Itoa(player.Points) }</td>
 				</tr>
 			}
@@ -204,7 +204,7 @@ templ CreateAccountForm(data FormData, errors FormErrors) {
 	</form>
 }
 
-templ MePage(currentUser models.User) {
+templ MePage(currentUser database.User) {
 	<main class="grid place-items-center h-full">
 		<div class="flex flex-col gap-4">
 			<h1 class="text-3xl">Welcome, { currentUser.Username }</h1>

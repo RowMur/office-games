@@ -6,8 +6,9 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/RowMur/office-games/models"
+	"github.com/RowMur/office-games/database"
 	"github.com/RowMur/office-games/views"
+	"gorm.io/gorm"
 )
 
 type Server struct{}
@@ -16,9 +17,8 @@ func NewServer() *Server {
 	return &Server{}
 }
 
-var data = models.NewData()
-
 func (s *Server) Run() {
+	http.Handle("/favicon.ico", http.NotFoundHandler())
 	http.Handle("/", authMiddleware(http.HandlerFunc(pageHandler)))
 	http.Handle("/play", authMiddleware(http.HandlerFunc(playHandler)))
 	http.Handle("/sign-in", http.HandlerFunc(signInHandler))
@@ -39,7 +39,11 @@ func pageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userOffices := data.GetUserOffices(user)
+	userOffices, err := user.GetOffices()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	userHasOffices := len(userOffices) > 0
 
 	mainPageContent := views.MainPage(*user, userHasOffices, userOffices)
@@ -77,7 +81,12 @@ func signInHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if u := data.GetUser(username); u == nil {
+	user, err := database.GetUser(username)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if user == nil {
 		data := views.FormData{"username": username}
 		errs := views.FormErrors{"username": "User not found"}
 		views.SignInForm(data, errs).Render(context.Background(), w)
@@ -115,14 +124,23 @@ func createAccountHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if u := data.GetUser(username); u != nil {
+	user, err := database.GetUser(username)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	if user != nil {
 		data := views.FormData{"username": username}
 		errs := views.FormErrors{"username": "Username is taken"}
 		views.SignInForm(data, errs).Render(context.Background(), w)
 		return
 	}
 
-	data.CreateUser(username)
+	_, err = database.CreateUser(username)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	cookie := fmt.Sprintf("auth=%s", username)
 	w.Header().Set("Set-Cookie", cookie)
 	w.Header().Set("HX-Redirect", "/")
@@ -152,15 +170,27 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Office code is required", http.StatusBadRequest)
 		return
 	}
-	office := *data.FindOfficeByCode(officeCode)
+	office, err := database.GetOfficeByCode(officeCode)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 
-	opponent := office.FindPlayer(opponentName)
+	opponent, err := office.FindPlayer(opponentName)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	if opponent == nil {
 		http.Error(w, "Opponent not found", http.StatusNotFound)
 		return
 	}
 
-	player := office.FindPlayer(user.Username)
+	player, err := office.FindPlayer(user.Username)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	if player == nil {
 		http.Error(w, "Player not found", http.StatusNotFound)
 		return
@@ -174,8 +204,16 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
 		opponent.Points += 10
 	}
 
-	office.SortPlayers()
-	views.OfficeRankings(office.Players).Render(context.Background(), w)
+	database.GetDB().Save(&player)
+	database.GetDB().Save(&opponent)
+
+	players, err := office.GetPlayers()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	views.OfficeRankings(players).Render(context.Background(), w)
 }
 
 func mePageHandler(w http.ResponseWriter, r *http.Request) {
@@ -214,7 +252,7 @@ func createOfficeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	data.CreateOffice(officeName, user)
+	user.CreateOffice(officeName)
 	w.Header().Set("HX-Redirect", "/")
 }
 
@@ -228,7 +266,11 @@ func officeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	officeCodeFromPath := strings.TrimPrefix(path, "office/")
-	office := data.FindOfficeByCode(officeCodeFromPath)
+	office, err := database.GetOfficeByCode(officeCodeFromPath)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	if office == nil {
 		http.Error(w, "Office not found", http.StatusNotFound)
 		return
@@ -240,7 +282,13 @@ func officeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	officePageContent := views.OfficePage(*office, *user)
+	players, err := office.GetPlayers()
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	officePageContent := views.OfficePage(*office, players, *user)
 	views.Page(officePageContent).Render(context.Background(), w)
 }
 
@@ -264,19 +312,35 @@ func joinOfficeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	office := data.FindOfficeByCode(officeCode)
+	office, err := database.GetOfficeByCode(officeCode)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	if office == nil {
+		data := views.FormData{"office": officeCode}
 		errs := views.FormErrors{"office": "Office not found"}
-		views.JoinOfficeForm(views.FormData{}, errs).Render(context.Background(), w)
+		views.JoinOfficeForm(data, errs).Render(context.Background(), w)
 		return
 	}
 
-	if player := office.FindPlayer(user.Username); player != nil {
+	player, err := office.FindPlayer(user.Username)
+	if err != nil && err != gorm.ErrRecordNotFound {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	if player != nil {
+		data := views.FormData{"office": officeCode}
 		errs := views.FormErrors{"office": "Already in the office"}
-		views.JoinOfficeForm(views.FormData{}, errs).Render(context.Background(), w)
+		views.JoinOfficeForm(data, errs).Render(context.Background(), w)
 		return
 	}
 
-	office.AddPlayer(user.Username)
+	_, err = office.AddPlayer(user)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
 	w.Header().Set("HX-Redirect", fmt.Sprintf("/office/%s", office.Code))
 }
