@@ -2,7 +2,7 @@ package views
 
 import (
 	"fmt"
-	"github.com/RowMur/office-games/internal/database"
+	"github.com/RowMur/office-games/internal/db"
 	"strconv"
 )
 
@@ -22,7 +22,7 @@ templ Page(contents templ.Component) {
 	</html>
 }
 
-templ Header(currentUser database.User) {
+templ Header(currentUser db.User) {
 	<header class="flex justify-between items-center gap-4">
 		<h1 class="my-4 text-3xl"><a href="/">Office Games</a></h1>
 		<div class="w-12 h-12 my-4 grid place-items-center border-white rounded-full border-2">
@@ -32,7 +32,7 @@ templ Header(currentUser database.User) {
 	<hr/>
 }
 
-templ MainPage(currentUser database.User, hasOffice bool, offices []*database.Office) {
+templ MainPage(currentUser db.User, hasOffice bool, offices []db.Office) {
 	@Header(currentUser)
 	<main class="mt-4">
 		if hasOffice {
@@ -87,29 +87,29 @@ templ JoinOfficeForm(data FormData, errors FormErrors) {
 	</form>
 }
 
-templ OfficePage(office database.Office, players []*database.Player, currentUser database.User) {
+templ OfficePage(office db.Office, currentUser db.User) {
 	@Header(currentUser)
 	<main class="mx-auto my-4 flex flex-col gap-4">
 		<h2 class="text-2xl font-semibold">Office: { office.Name }</h2>
 		<section>
-			<h3 class="text-xl mb-4">Play Match</h3>
-			<form hx-post={ fmt.Sprintf("/play?office=%s", office.Code) } hx-swap="outerHTML" hx-target="#office-ranking">
-				<label for="opponent" class="block">Your opponent</label>
-				<select id="opponent" name="opponent" class="text-black w-full">
-					for _, player := range players {
-						if player.User.Username != currentUser.Username {
-							<option value={ player.User.Username }>{ player.User.Username }</option>
+			for _, game := range office.Games {
+				<h3 class="text-xl mb-4">Play Match</h3>
+				<form hx-post={ fmt.Sprintf("/play?game=%s", strconv.Itoa(int(game.ID))) } hx-swap="outerHTML" hx-target="#office-ranking">
+					<label for="opponent" class="block">Your opponent</label>
+					<select id="opponent" name="opponent" class="text-black w-full">
+						for _, player := range office.Players {
+							if player.Username != currentUser.Username {
+								<option value={ strconv.Itoa(int(player.ID)) }>{ player.Username }</option>
+							}
 						}
-					}
-				</select>
-				<label for="win">Did you win?</label>
-				<input id="win" name="win" type="checkbox" checked class="text-black"/>
-				<button type="submit" class="bg-blue-500 text-white block mx-auto mt-4 px-4 py-1">Play</button>
-			</form>
-		</section>
-		<section>
-			<h3 class="text-xl">Rankings</h3>
-			@OfficeRankings(players)
+					</select>
+					<label for="win">Did you win?</label>
+					<input id="win" name="win" type="checkbox" checked class="text-black"/>
+					<button type="submit" class="bg-blue-500 text-white block mx-auto mt-4 px-4 py-1">Play</button>
+				</form>
+				<h3 class="text-xl">Rankings</h3>
+				@OfficeRankings(game.Rankings)
+			}
 		</section>
 		<section>
 			<h3 class="text-xl mb-4">Invite players</h3>
@@ -132,7 +132,20 @@ templ OfficePage(office database.Office, players []*database.Player, currentUser
 	</main>
 }
 
-templ OfficeRankings(players []*database.Player) {
+templ CreateGameForm(data FormData, errors FormErrors) {
+	<form hx-post="/create-game" hx-swap="outerHTML">
+		<label for="game" class="block">Name:</label>
+		<div class="flex gap-4">
+			<input id="game" name="game" type="text" value={ data["game"] } class="text-black grow" placeholder="The game..."/>
+			<button type="submit" class="bg-blue-500 text-white block w-16">Create</button>
+		</div>
+		if errors["game"] != "" {
+			<p class="text-red-500">{ errors["game"] }</p>
+		}
+	</form>
+}
+
+templ OfficeRankings(rankings []db.Ranking) {
 	<table id="office-ranking" class="w-full">
 		<thead class="">
 			<tr class="[&>th]:text-left">
@@ -141,10 +154,10 @@ templ OfficeRankings(players []*database.Player) {
 			</tr>
 		</thead>
 		<tbody>
-			for _, player := range players {
+			for _, ranking := range rankings {
 				<tr>
-					<td>{ player.User.Username }</td>
-					<td>{ strconv.Itoa(player.Points) }</td>
+					<td>{ ranking.User.Username }</td>
+					<td>{ strconv.Itoa(ranking.Points) }</td>
 				</tr>
 			}
 		</tbody>
@@ -217,7 +230,7 @@ templ formField(name string, display string, inputType string, data FormData, er
 	}
 }
 
-templ MePage(currentUser database.User) {
+templ MePage(currentUser db.User) {
 	<main class="grid place-items-center h-full">
 		<div class="flex flex-col gap-4">
 			<h1 class="text-3xl">Welcome, { currentUser.Username }</h1>

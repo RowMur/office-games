@@ -2,15 +2,17 @@ package server
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 
-	"github.com/RowMur/office-games/internal/database"
-	"github.com/RowMur/office-games/internal/elo"
+	"github.com/RowMur/office-games/internal/db"
 	"github.com/RowMur/office-games/internal/views"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type Server struct{}
@@ -41,14 +43,9 @@ func pageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userOffices, err := user.GetOffices()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	userHasOffices := len(userOffices) > 0
+	userHasOffices := len(user.Offices) > 0
 
-	mainPageContent := views.MainPage(*user, userHasOffices, userOffices)
+	mainPageContent := views.MainPage(*user, userHasOffices, user.Offices)
 	views.Page(mainPageContent).Render(context.Background(), w)
 }
 
@@ -91,15 +88,15 @@ func signInHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := database.GetUser(username)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	if user == nil {
+	user := &db.User{}
+	err = db.GetDB().Where("username = ?", username).First(user).Error
+	if errors.Is(err, gorm.ErrRecordNotFound) {
 		data := views.FormData{"username": username}
 		errs := views.FormErrors{"username": "User not found"}
 		views.SignInForm(data, errs).Render(context.Background(), w)
+		return
+	} else if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
@@ -159,18 +156,6 @@ func createAccountHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := database.GetUser(username)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	if user != nil {
-		data := views.FormData{"username": username}
-		errs := views.FormErrors{"username": "Username is taken"}
-		views.CreateAccountForm(data, errs).Render(context.Background(), w)
-		return
-	}
-
 	if password != confirm {
 		data := views.FormData{"username": username}
 		errs := views.FormErrors{"confirm": "Passwords do not match"}
@@ -183,11 +168,21 @@ func createAccountHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	user, err = database.CreateUser(username, string(hashedPassword))
+
+	user := &db.User{Username: username, Password: string(hashedPassword)}
+	err = db.GetDB().Create(user).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrDuplicatedKey) {
+			data := views.FormData{"username": username}
+			errs := views.FormErrors{"username": "Username is taken"}
+			views.CreateAccountForm(data, errs).Render(context.Background(), w)
+			return
+		}
+
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	token, err := generateToken(int(user.ID))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -211,59 +206,56 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	r.ParseForm()
-	opponentName := r.Form.Get("opponent")
-	if opponentName == "" {
-		http.Error(w, "Opponent name is required", http.StatusBadRequest)
+	opponentID, err := strconv.Atoi(r.Form.Get("opponent"))
+	if err != nil {
+		http.Error(w, "Invalid opponent", http.StatusBadRequest)
 		return
 	}
 
-	officeCode := r.URL.Query().Get("office")
-	if officeCode == "" {
-		http.Error(w, "Office code is required", http.StatusBadRequest)
-		return
-	}
-	office, err := database.GetOfficeByCode(officeCode)
+	gameID, err := strconv.Atoi(r.URL.Query().Get("game"))
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, "Invalid game", http.StatusBadRequest)
 		return
 	}
 
-	opponent, err := office.FindPlayer(opponentName)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	if opponent == nil {
-		http.Error(w, "Opponent not found", http.StatusNotFound)
-		return
-	}
+	opponentIDUint := uint(opponentID)
 
-	player, err := office.FindPlayer(user.Username)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	if player == nil {
-		http.Error(w, "Player not found", http.StatusNotFound)
-		return
-	}
-	didWin := r.Form.Get("win") == "on"
-	if didWin {
-		player.Points, opponent.Points = elo.CalculateNewElos(player.Points, opponent.Points)
+	var winnerID uint
+	var loserID uint
+	if r.Form.Get("win") == "on" {
+		winnerID = user.ID
+		loserID = opponentIDUint
 	} else {
-		opponent.Points, player.Points = elo.CalculateNewElos(opponent.Points, player.Points)
+		winnerID = opponentIDUint
+		loserID = user.ID
 	}
 
-	database.GetDB().Save(&player)
-	database.GetDB().Save(&opponent)
+	match := &db.Match{
+		GameID:   uint(gameID),
+		WinnerID: winnerID,
+		LoserID:  loserID,
+	}
 
-	players, err := office.GetPlayers()
+	dbc := db.GetDB()
+
+	err = dbc.Create(match).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrForeignKeyViolated) {
+			http.Error(w, "Invalid game or opponent", http.StatusBadRequest)
+			return
+		}
+
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	views.OfficeRankings(players).Render(context.Background(), w)
+	var rankings []db.Ranking
+	err = dbc.Where("game_id = ?", gameID).Preload("User").Order("Points desc").Find(&rankings).Error
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	views.OfficeRankings(rankings).Render(context.Background(), w)
 }
 
 func mePageHandler(w http.ResponseWriter, r *http.Request) {
@@ -302,7 +294,13 @@ func createOfficeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user.CreateOffice(officeName)
+	newOffice := &db.Office{Name: officeName, AdminRefer: user.ID}
+	err := db.GetDB().Create(newOffice).Error
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
 	w.Header().Set("HX-Redirect", "/")
 }
 
@@ -316,13 +314,21 @@ func officeHandler(w http.ResponseWriter, r *http.Request) {
 	}
 
 	officeCodeFromPath := strings.TrimPrefix(path, "office/")
-	office, err := database.GetOfficeByCode(officeCodeFromPath)
+	office := &db.Office{}
+	err := db.GetDB().Where("code = ?", officeCodeFromPath).
+		Preload(clause.Associations).
+		Preload("Games.Rankings", func(db *gorm.DB) *gorm.DB {
+			return db.Order("Points DESC")
+		}).
+		Preload("Games.Rankings.User").
+		First(office).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			http.Error(w, "Office not found", http.StatusNotFound)
+			return
+		}
+
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	if office == nil {
-		http.Error(w, "Office not found", http.StatusNotFound)
 		return
 	}
 
@@ -332,13 +338,7 @@ func officeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	players, err := office.GetPlayers()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	officePageContent := views.OfficePage(*office, players, *user)
+	officePageContent := views.OfficePage(*office, *user)
 	views.Page(officePageContent).Render(context.Background(), w)
 }
 
@@ -362,35 +362,52 @@ func joinOfficeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	office, err := database.GetOfficeByCode(officeCode)
+	office := &db.Office{}
+	err := db.GetDB().Where("code = ?", officeCode).Preload("Players").Preload("Games").First(office).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			data := views.FormData{"office": officeCode}
+			errs := views.FormErrors{"office": "Office not found"}
+			views.JoinOfficeForm(data, errs).Render(context.Background(), w)
+			return
+		}
+
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	// Check if user is already in the office
+	for _, player := range office.Players {
+		if player.ID == user.ID {
+			data := views.FormData{"office": officeCode}
+			errs := views.FormErrors{"office": "You are already in this office"}
+			views.JoinOfficeForm(data, errs).Render(context.Background(), w)
+			return
+		}
+	}
+
+	err = db.GetDB().Model(office).Association("Players").Append(user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	if office == nil {
-		data := views.FormData{"office": officeCode}
-		errs := views.FormErrors{"office": "Office not found"}
-		views.JoinOfficeForm(data, errs).Render(context.Background(), w)
-		return
-	}
 
-	player, err := office.FindPlayer(user.Username)
-	if err != nil && err != gorm.ErrRecordNotFound {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+	var initRankingsForEachOfficeGame []db.Ranking
+	for _, game := range office.Games {
+		initRankingsForEachOfficeGame = append(initRankingsForEachOfficeGame, db.Ranking{UserID: user.ID, GameID: game.ID})
 	}
-
-	if player != nil {
-		data := views.FormData{"office": officeCode}
-		errs := views.FormErrors{"office": "Already in the office"}
-		views.JoinOfficeForm(data, errs).Render(context.Background(), w)
-		return
+	fmt.Printf("initRankingsForEachOfficeGame: %+v\n", initRankingsForEachOfficeGame)
+	if len(initRankingsForEachOfficeGame) > 0 {
+		err = db.GetDB().Model(user).Association("Rankings").Append(initRankingsForEachOfficeGame)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 	}
-
-	_, err = office.AddPlayer(user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+
 	w.Header().Set("HX-Redirect", fmt.Sprintf("/office/%s", office.Code))
 }

@@ -1,4 +1,4 @@
-package database
+package db
 
 import (
 	"log"
@@ -25,7 +25,7 @@ func Init() {
 		log.Fatalf("Error connecting to database: %v", err)
 	}
 
-	err = db.AutoMigrate(&User{}, &Office{}, &Player{})
+	err = db.AutoMigrate(models...)
 	if err != nil {
 		log.Fatalf("Error migrating models: %v", err)
 	}

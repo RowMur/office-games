@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/RowMur/office-games/internal/database"
+	"github.com/RowMur/office-games/internal/db"
 	"github.com/golang-jwt/jwt/v5"
 )
 
@@ -17,8 +17,8 @@ type contextKey string
 
 const userContextKey = contextKey("user")
 
-func userFromContext(ctx context.Context) *database.User {
-	user, ok := ctx.Value(userContextKey).(*database.User)
+func userFromContext(ctx context.Context) *db.User {
+	user, ok := ctx.Value(userContextKey).(*db.User)
 	if !ok {
 		return nil
 	}
@@ -73,8 +73,8 @@ func authMiddleware(next http.Handler) http.Handler {
 		}
 
 		userId, err := getUserIdFromToken(token)
-		user := database.User{}
-		result := database.GetDB().Where("ID = ?", userId).First(&user)
+		user := db.User{}
+		result := db.GetDB().Where("ID = ?", userId).Preload("Offices").First(&user)
 		if result.Error != nil {
 			w.Header().Set("Set-Cookie", "auth=; Max-Age=0")
 			http.Error(w, "invalid token, could not find user", http.StatusUnauthorized)
