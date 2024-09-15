@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/RowMur/office-games/internal/database"
+	"github.com/RowMur/office-games/internal/elo"
 	"github.com/RowMur/office-games/internal/views"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
@@ -248,11 +249,9 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	didWin := r.Form.Get("win") == "on"
 	if didWin {
-		player.Points += 10
-		opponent.Points -= 10
+		player.Points, opponent.Points = elo.CalculateNewElos(player.Points, opponent.Points)
 	} else {
-		player.Points -= 10
-		opponent.Points += 10
+		opponent.Points, player.Points = elo.CalculateNewElos(opponent.Points, player.Points)
 	}
 
 	database.GetDB().Save(&player)
