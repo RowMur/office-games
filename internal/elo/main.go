@@ -4,23 +4,20 @@ import (
 	"math"
 )
 
-func CalculateNewElos(winnerElo, loserElo int) (int, int) {
+func CalculatePointsGainLoss(winnerElo, loserElo int) (int, float64) {
 	floatWinnerElo := float64(winnerElo)
 	floatLoserElo := float64(loserElo)
 
-	expectedWinnerScore := calculateExpectedScore(floatWinnerElo, floatLoserElo)
-	expectedLoserScore := calculateExpectedScore(floatLoserElo, floatWinnerElo)
+	expectedScore := calculateExpectedScore(floatWinnerElo, floatLoserElo)
+	pointsGainLoss := calculatePointsGainLoss(expectedScore, 1)
 
-	newWinnerElo := calculateNewElo(floatWinnerElo, expectedWinnerScore, 1)
-	newLoserElo := calculateNewElo(floatLoserElo, expectedLoserScore, 0)
-
-	return newWinnerElo, newLoserElo
+	return pointsGainLoss, expectedScore
 }
 
 func calculateExpectedScore(elo1, elo2 float64) float64 {
 	return 1 / (1 + math.Pow(10, ((elo2-elo1)/400)))
 }
 
-func calculateNewElo(prevElo float64, expectedScore float64, actualScore float64) int {
-	return int(prevElo + 32*(actualScore-expectedScore))
+func calculatePointsGainLoss(expectedScore float64, actualScore float64) int {
+	return int(math.Round(32 * (actualScore - expectedScore)))
 }

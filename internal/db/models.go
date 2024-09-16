@@ -93,12 +93,17 @@ type Ranking struct {
 
 type Match struct {
 	gorm.Model
-	GameID   uint
-	Game     Game
-	WinnerID uint
-	Winner   User `gorm:"foreignKey:WinnerID"`
-	LoserID  uint
-	Loser    User `gorm:"foreignKey:LoserID"`
+	GameID               uint
+	Game                 Game
+	WinnerID             uint
+	Winner               User `gorm:"foreignKey:WinnerID"`
+	WinnerStartingPoints int
+	WinnerGainedPoints   int
+	LoserID              uint
+	Loser                User `gorm:"foreignKey:LoserID"`
+	LoserStartingPoints  int
+	LoserLostPoints      int
+	ExpectedScore        float64
 }
 
 func (m *Match) AfterCreate(tx *gorm.DB) (err error) {
@@ -111,11 +116,25 @@ func (m *Match) AfterCreate(tx *gorm.DB) (err error) {
 	tx.Where("game_id = ? AND user_id = ?", m.GameID, m.LoserID).First(&loserRanking)
 
 	// Calculate the new rankings
-	winnerNewPoints, loserNewPoints := elo.CalculateNewElos(winnerRanking.Points, loserRanking.Points)
+	points, expectedScore := elo.CalculatePointsGainLoss(winnerRanking.Points, loserRanking.Points)
+	winnerNewPoints := winnerRanking.Points + points
+	loserNewPoints := loserRanking.Points - points
+	if loserNewPoints < 200 {
+		loserNewPoints = 200
+	}
+
+	// Fill in the match point details
+	tx.Model(&m).
+		Update("WinnerStartingPoints", winnerRanking.Points).
+		Update("WinnerGainedPoints", winnerNewPoints-winnerRanking.Points).
+		Update("LoserStartingPoints", loserRanking.Points).
+		Update("LoserLostPoints", loserRanking.Points-loserNewPoints).
+		Update("ExpectedScore", expectedScore)
 
 	// Update the rankings
 	tx.Model(&winnerRanking).Update("Points", winnerNewPoints)
 	tx.Model(&loserRanking).Update("Points", loserNewPoints)
+
 	return
 }
 
