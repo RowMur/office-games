@@ -19,12 +19,13 @@ var models = []interface{}{
 
 type User struct {
 	gorm.Model
-	Username string `gorm:"unique"`
-	Password string
-	Offices  []Office `gorm:"many2many:user_offices;"`
-	Rankings []Ranking
-	Matches  []Match `gorm:"foreignKey:WinnerID;references:ID;foreignKey:LoserID;references:ID;"`
-	Teams    []Team  `gorm:"many2many:team_players;"`
+	Username        string `gorm:"unique"`
+	Password        string
+	Offices         []Office `gorm:"many2many:user_offices;"`
+	Rankings        []Ranking
+	MatchesAsWinner []Match `gorm:"foreignKey:WinnerID;references:ID;"`
+	MatchesAsLoser  []Match `gorm:"foreignKey:LoserID;references:ID;"`
+	Teams           []Team  `gorm:"many2many:team_players;"`
 }
 
 type Office struct {
@@ -117,8 +118,26 @@ func (m *Match) AfterCreate(tx *gorm.DB) (err error) {
 
 	// Calculate the new rankings
 	points, expectedScore := elo.CalculatePointsGainLoss(winnerRanking.Points, loserRanking.Points)
-	winnerNewPoints := winnerRanking.Points + points
-	loserNewPoints := loserRanking.Points - points
+
+	const matchesWithDoublePoints = 20
+	var winnerMatchCount, loserMatchCount int64
+	tx.Table("matches").Where("winner_id = ? OR loser_id = ?", m.WinnerID, m.WinnerID).Count(&winnerMatchCount)
+	tx.Table("matches").Where("winner_id = ? OR loser_id = ?", m.LoserID, m.LoserID).Count(&loserMatchCount)
+
+	var winnerNewPoints, loserNewPoints int
+
+	if winnerMatchCount > matchesWithDoublePoints {
+		winnerNewPoints = winnerRanking.Points + points
+	} else {
+		winnerNewPoints = winnerRanking.Points + (2 * points)
+	}
+
+	if loserMatchCount > matchesWithDoublePoints {
+		loserNewPoints = loserRanking.Points - points
+	} else {
+		loserNewPoints = loserRanking.Points - (2 * points)
+	}
+
 	if loserNewPoints < 200 {
 		loserNewPoints = 200
 	}
