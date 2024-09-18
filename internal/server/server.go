@@ -10,6 +10,7 @@ import (
 
 	"github.com/RowMur/office-games/internal/db"
 	"github.com/RowMur/office-games/internal/views"
+	"github.com/jackc/pgx/v5/pgconn"
 	"golang.org/x/crypto/bcrypt"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
@@ -138,13 +139,17 @@ func createAccountHandler(w http.ResponseWriter, r *http.Request) {
 
 	r.ParseForm()
 	username := r.Form.Get("username")
+	email := r.Form.Get("email")
 	password := r.Form.Get("password")
 	confirm := r.Form.Get("confirm")
-	if username == "" || password == "" || confirm == "" {
-		data := views.FormData{"username": username, "password": password, "confirm": confirm}
+	if username == "" || email == "" || password == "" || confirm == "" {
+		data := views.FormData{"username": username, "email": email, "password": password, "confirm": confirm}
 		errs := views.FormErrors{}
 		if username == "" {
 			errs["username"] = "Username is required"
+		}
+		if email == "" {
+			errs["email"] = "Email is required"
 		}
 		if password == "" {
 			errs["password"] = "Password is required"
@@ -169,14 +174,33 @@ func createAccountHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := &db.User{Username: username, Password: string(hashedPassword)}
+	user := &db.User{Username: username, Email: email, Password: string(hashedPassword)}
 	err = db.GetDB().Create(user).Error
 	if err != nil {
-		if errors.Is(err, gorm.ErrDuplicatedKey) {
-			data := views.FormData{"username": username}
-			errs := views.FormErrors{"username": "Username is taken"}
-			views.CreateAccountForm(data, errs).Render(context.Background(), w)
+		postgresErr, ok := err.(*pgconn.PgError)
+		if !ok {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
+		}
+
+		formData := views.FormData{"username": username, "email": email}
+
+		// Check if the error is a unique constraint violation
+		if postgresErr.SQLState() == "23505" {
+			constaintArray := strings.Split(postgresErr.ConstraintName, "_")
+			columnName := constaintArray[len(constaintArray)-1]
+
+			if columnName == "username" {
+				errs := views.FormErrors{"username": "Username is taken"}
+				views.CreateAccountForm(formData, errs).Render(context.Background(), w)
+				return
+			}
+
+			if columnName == "email" {
+				errs := views.FormErrors{"email": "Email is taken"}
+				views.CreateAccountForm(formData, errs).Render(context.Background(), w)
+				return
+			}
 		}
 
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -396,7 +420,6 @@ func joinOfficeHandler(w http.ResponseWriter, r *http.Request) {
 	for _, game := range office.Games {
 		initRankingsForEachOfficeGame = append(initRankingsForEachOfficeGame, db.Ranking{UserID: user.ID, GameID: game.ID})
 	}
-	fmt.Printf("initRankingsForEachOfficeGame: %+v\n", initRankingsForEachOfficeGame)
 	if len(initRankingsForEachOfficeGame) > 0 {
 		err = db.GetDB().Model(user).Association("Rankings").Append(initRankingsForEachOfficeGame)
 		if err != nil {

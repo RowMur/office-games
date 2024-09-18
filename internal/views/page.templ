@@ -206,6 +206,7 @@ templ CreateAccountPage() {
 templ CreateAccountForm(data FormData, errors FormErrors) {
 	<form hx-post="/create-account" hx-swap="outerHTML">
 		@formField("username", "Username", "text", data, errors)
+		@formField("email", "Email", "email", data, errors)
 		@formField("password", "Password", "password", data, errors)
 		@formField("confirm", "Confirm Password", "password", data, errors)
 		<button type="submit" class="bg-blue-500 text-white block mx-auto mt-4 px-4 py-1">Create Account</button>
@@ -217,11 +218,7 @@ templ formField(name string, display string, inputType string, data FormData, er
 	<input
 		id={ name }
 		name={ name }
-		if inputType == "password" {
-			type="password"
-		} else {
-			type="text"
-		}
+		type={ inputType }
 		value={ data[name] }
 		class="text-black w-full"
 	/>
