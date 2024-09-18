@@ -289,8 +289,73 @@ func mePageHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	mePageContent := views.MePage(*user)
-	views.Page(mePageContent).Render(context.Background(), w)
+	if r.Method == http.MethodGet {
+		mePageContent := views.MePage(*user, views.FormData{"email": user.Email, "username": user.Username}, nil)
+		views.Page(mePageContent).Render(context.Background(), w)
+		return
+	}
+
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	r.ParseForm()
+	username := r.Form.Get("username")
+	email := r.Form.Get("email")
+
+	if username == "" || email == "" {
+		data := views.FormData{"username": username, "email": email}
+		errs := views.FormErrors{}
+		if username == "" {
+			errs["username"] = "Username is required"
+		}
+		if email == "" {
+			errs["email"] = "Email is required"
+		}
+		falseVar := false
+		views.UserDetails(data, errs, &falseVar).Render(context.Background(), w)
+		return
+	}
+
+	updatedUser := &db.User{}
+	err := db.GetDB().Model(updatedUser).Where("id = ?", user.ID).Updates(map[string]interface{}{"username": username, "email": email}).Error
+	if err != nil {
+		postgresErr, ok := err.(*pgconn.PgError)
+		if !ok {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+
+		formData := views.FormData{"username": username, "email": email}
+		wasSuccessful := false
+
+		// Check if the error is a unique constraint violation
+		if postgresErr.SQLState() == "23505" {
+			constaintArray := strings.Split(postgresErr.ConstraintName, "_")
+			columnName := constaintArray[len(constaintArray)-1]
+
+			if columnName == "username" {
+				errs := views.FormErrors{"username": "Username is taken"}
+				views.UserDetails(formData, errs, &wasSuccessful).Render(context.Background(), w)
+				return
+			}
+
+			if columnName == "email" {
+				errs := views.FormErrors{"email": "Email is taken"}
+				views.UserDetails(formData, errs, &wasSuccessful).Render(context.Background(), w)
+				return
+			}
+		}
+
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	formData := views.FormData{"email": updatedUser.Email, "username": updatedUser.Username}
+	truePtr := true
+	views.UserDetails(formData, views.FormErrors{}, &truePtr).Render(context.Background(), w)
+	return
 }
 
 func signOutHandler(w http.ResponseWriter, r *http.Request) {
