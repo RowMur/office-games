@@ -106,6 +106,7 @@ type Match struct {
 	LoserStartingPoints  int
 	LoserLostPoints      int
 	ExpectedScore        float64
+	State                string `gorm:"default:'pending'"`
 }
 
 func (m *Match) AfterCreate(tx *gorm.DB) (err error) {
@@ -151,9 +152,10 @@ func (m *Match) AfterCreate(tx *gorm.DB) (err error) {
 		Update("LoserLostPoints", loserRanking.Points-loserNewPoints).
 		Update("ExpectedScore", expectedScore)
 
-	// Update the rankings
-	tx.Model(&winnerRanking).Update("Points", winnerNewPoints)
-	tx.Model(&loserRanking).Update("Points", loserNewPoints)
+	// temp disable updating rankings until figure out dispute system
+	// // Update the rankings
+	// tx.Model(&winnerRanking).Update("Points", winnerNewPoints)
+	// tx.Model(&loserRanking).Update("Points", loserNewPoints)
 
 	return
 }
