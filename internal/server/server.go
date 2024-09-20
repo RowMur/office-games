@@ -279,7 +279,27 @@ func playHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	views.OfficeRankings(rankings).Render(context.Background(), w)
+
+	game := &db.Game{}
+	err = dbc.Where("id = ?", gameID).Preload("Matches").First(game).Error
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	userWinLosses := map[uint]views.WinLosses{}
+	for _, match := range game.Matches {
+		userWinLosses[match.WinnerID] = views.WinLosses{
+			Wins:   userWinLosses[match.WinnerID].Wins + 1,
+			Losses: userWinLosses[match.WinnerID].Losses,
+		}
+
+		userWinLosses[match.LoserID] = views.WinLosses{
+			Wins:   userWinLosses[match.LoserID].Wins,
+			Losses: userWinLosses[match.LoserID].Losses + 1,
+		}
+	}
+
+	views.OfficeRankings(rankings, userWinLosses).Render(context.Background(), w)
 }
 
 func mePageHandler(w http.ResponseWriter, r *http.Request) {
@@ -410,6 +430,9 @@ func officeHandler(w http.ResponseWriter, r *http.Request) {
 			return db.Order("Points DESC")
 		}).
 		Preload("Games.Rankings.User").
+		Preload("Games.Matches").
+		Preload("Games.Matches.Winner").
+		Preload("Games.Matches.Loser").
 		First(office).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
@@ -427,7 +450,21 @@ func officeHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	officePageContent := views.OfficePage(*office, *user)
+	selectedGame := office.Games[0]
+
+	userWinLosses := map[uint]views.WinLosses{}
+	for _, match := range selectedGame.Matches {
+		userWinLosses[match.WinnerID] = views.WinLosses{
+			Wins:   userWinLosses[match.WinnerID].Wins + 1,
+			Losses: userWinLosses[match.WinnerID].Losses,
+		}
+
+		userWinLosses[match.LoserID] = views.WinLosses{
+			Wins:   userWinLosses[match.LoserID].Wins,
+			Losses: userWinLosses[match.LoserID].Losses + 1,
+		}
+	}
+	officePageContent := views.OfficePage(*office, *user, selectedGame, userWinLosses)
 	views.Page(officePageContent).Render(context.Background(), w)
 }
 
