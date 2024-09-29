@@ -41,7 +41,7 @@ templ OfficePage(office db.Office, user *db.User, game db.Game, userWinLosses ma
 		for _, game := range office.Games {
 			gamesListItems = append(gamesListItems, ListSectionItem{
 				Name: game.Name,
-				URL:  fmt.Sprintf("/office/%s/games/%s", office.Code, strconv.Itoa(int(game.ID))),
+				URL:  fmt.Sprintf("/offices/%s/games/%s", office.Code, strconv.Itoa(int(game.ID))),
 			})
 		}
 		}}
@@ -66,7 +66,7 @@ templ OfficePage(office db.Office, user *db.User, game db.Game, userWinLosses ma
 		// 			@Game(office, game)
 		// 		}
 		// 		if office.Admin.ID == user.ID {
-		// 			<a class="border-light border-2 px-4 py-1 flex items-center gap-2 rounded" href={ templ.SafeURL(fmt.Sprintf("/office/%s/games/create", office.Code)) }>+</a>
+		// 			<a class="border-light border-2 px-4 py-1 flex items-center gap-2 rounded" href={ templ.SafeURL(fmt.Sprintf("/offices/%s/games/create", office.Code)) }>+</a>
 		// 		}
 		// 	</div>
 		// 	<section class="my-6">

@@ -10,7 +10,7 @@ templ MainPage(currentUser db.User, hasOffice bool, offices []db.Office) {
 				for _, office := range offices {
 					listSections = append(listSections, ListSectionItem{
 						Name: office.Name,
-						URL:  "/office/" + office.Code,
+						URL:  "/offices/" + office.Code,
 					})
 				}
 			}}
@@ -30,7 +30,7 @@ templ MainPage(currentUser db.User, hasOffice bool, offices []db.Office) {
 }
 
 templ CreateOfficeForm(data FormData, errors FormErrors) {
-	<form hx-post="/create-office" hx-swap="outerHTML">
+	<form hx-post="/offices/create" hx-swap="outerHTML">
 		<label for="office" class="block">Name:</label>
 		<div class="flex gap-4">
 			<input id="office" name="office" type="text" value={ data["office"] } class="text-black grow" placeholder="The office..."/>
@@ -43,7 +43,7 @@ templ CreateOfficeForm(data FormData, errors FormErrors) {
 }
 
 templ JoinOfficeForm(data FormData, errors FormErrors) {
-	<form hx-post="/join-office" hx-swap="outerHTML">
+	<form hx-post="/offices/join" hx-swap="outerHTML">
 		<label for="office" class="block">Code:</label>
 		<div class="flex gap-4">
 			<input id="office" name="office" type="text" value={ data["office"] } class="text-black grow" placeholder="ABCDEF"/>

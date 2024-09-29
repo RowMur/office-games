@@ -1,7 +1,6 @@
 package server
 
 import (
-	"context"
 	"errors"
 	"fmt"
 	"net/http"
@@ -11,35 +10,35 @@ import (
 
 	"github.com/RowMur/office-games/internal/db"
 	"github.com/golang-jwt/jwt/v5"
+	"github.com/labstack/echo/v4"
 )
 
-type contextKey string
+type contextWithUser struct {
+	echo.Context
+	user *db.User
+}
 
-const userContextKey = contextKey("user")
-
-func userFromContext(ctx context.Context) *db.User {
-	user, ok := ctx.Value(userContextKey).(*db.User)
+func userFromContext(c echo.Context) *db.User {
+	cc, ok := c.(*contextWithUser)
 	if !ok {
 		return nil
 	}
-	return user
+	return cc.user
 }
 
-func authMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		authCookie, err := r.Cookie("auth")
-		if err != nil {
-			if err != http.ErrNoCookie {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			http.Redirect(w, r, "/sign-in", http.StatusFound)
-			return
+func authMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		authCookie, err := c.Request().Cookie("auth")
+		if err != nil && err != http.ErrNoCookie {
+			fmt.Println("authMiddleware error", err.Error())
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+		if authCookie == nil {
+			return c.Redirect(http.StatusTemporaryRedirect, "/sign-in")
 		}
 
 		if authCookie.Value == "" {
-			http.Redirect(w, r, "/sign-in", http.StatusFound)
-			return
+			return c.Redirect(http.StatusTemporaryRedirect, "/sign-in")
 		}
 
 		secret := os.Getenv("JWT_SECRET")
@@ -47,42 +46,48 @@ func authMiddleware(next http.Handler) http.Handler {
 			return []byte(secret), nil
 		})
 		if err != nil {
-			http.Error(w, "invalid token, could not parse", http.StatusUnauthorized)
-			return
+			return echo.NewHTTPError(http.StatusUnauthorized, "invalid token, could not parse")
 		}
 
 		tokenIssuer, err := token.Claims.GetIssuer()
 		if err != nil {
-			http.Error(w, "invalid token, could not parse", http.StatusUnauthorized)
-			return
+			return echo.NewHTTPError(http.StatusUnauthorized, "invalid token, could not parse")
 		}
 		if tokenIssuer != issuer {
-			http.Error(w, "invalid token, invalid issuer", http.StatusUnauthorized)
-			return
+			return echo.NewHTTPError(http.StatusUnauthorized, "invalid token, invalid issuer")
 		}
 
 		tokenExp, err := token.Claims.GetExpirationTime()
 		if err != nil {
-			http.Error(w, "invalid token, could not parse", http.StatusUnauthorized)
-			return
+			return echo.NewHTTPError(http.StatusUnauthorized, "invalid token, could not parse")
 		}
 		if tokenExp.Time.Unix() < time.Now().UTC().Unix() {
-			w.Header().Set("Set-Cookie", "auth=; Max-Age=0")
-			http.Redirect(w, r, "/sign-in", http.StatusFound)
-			return
+			return signOut(c)
 		}
 
 		userId, err := getUserIdFromToken(token)
 		user := db.User{}
 		result := db.GetDB().Where("ID = ?", userId).Preload("Offices").First(&user)
 		if result.Error != nil {
-			w.Header().Set("Set-Cookie", "auth=; Max-Age=0")
-			http.Error(w, "invalid token, could not find user", http.StatusUnauthorized)
-			return
+			return signOut(c)
 		}
-		ctx := context.WithValue(r.Context(), userContextKey, &user)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
+		cc := &contextWithUser{c, &user}
+		return next(cc)
+	}
+}
+
+func enforceSignedOut(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		authCookie, err := c.Request().Cookie("auth")
+		if err != nil && err != http.ErrNoCookie {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+
+		if authCookie != nil {
+			return c.Redirect(http.StatusFound, "/")
+		}
+		return next(c)
+	}
 }
 
 const issuer = "office-games-access"

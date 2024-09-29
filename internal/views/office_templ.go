@@ -100,7 +100,7 @@ func OfficePage(office db.Office, user *db.User, game db.Game, userWinLosses map
 		for _, game := range office.Games {
 			gamesListItems = append(gamesListItems, ListSectionItem{
 				Name: game.Name,
-				URL:  fmt.Sprintf("/office/%s/games/%s", office.Code, strconv.Itoa(int(game.ID))),
+				URL:  fmt.Sprintf("/offices/%s/games/%s", office.Code, strconv.Itoa(int(game.ID))),
 			})
 		}
 		templ_7745c5c3_Err = ListSection("Games", gamesListItems).Render(ctx, templ_7745c5c3_Buffer)

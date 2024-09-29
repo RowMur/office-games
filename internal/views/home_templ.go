@@ -41,7 +41,7 @@ func MainPage(currentUser db.User, hasOffice bool, offices []db.Office) templ.Co
 			for _, office := range offices {
 				listSections = append(listSections, ListSectionItem{
 					Name: office.Name,
-					URL:  "/office/" + office.Code,
+					URL:  "/offices/" + office.Code,
 				})
 			}
 			templ_7745c5c3_Err = ListSection("Your Offices", listSections).Render(ctx, templ_7745c5c3_Buffer)
@@ -102,7 +102,7 @@ func CreateOfficeForm(data FormData, errors FormErrors) templ.Component {
 			templ_7745c5c3_Var2 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form hx-post=\"/create-office\" hx-swap=\"outerHTML\"><label for=\"office\" class=\"block\">Name:</label><div class=\"flex gap-4\"><input id=\"office\" name=\"office\" type=\"text\" value=\"")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form hx-post=\"/offices/create\" hx-swap=\"outerHTML\"><label for=\"office\" class=\"block\">Name:</label><div class=\"flex gap-4\"><input id=\"office\" name=\"office\" type=\"text\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -167,7 +167,7 @@ func JoinOfficeForm(data FormData, errors FormErrors) templ.Component {
 			templ_7745c5c3_Var5 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form hx-post=\"/join-office\" hx-swap=\"outerHTML\"><label for=\"office\" class=\"block\">Code:</label><div class=\"flex gap-4\"><input id=\"office\" name=\"office\" type=\"text\" value=\"")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form hx-post=\"/offices/join\" hx-swap=\"outerHTML\"><label for=\"office\" class=\"block\">Code:</label><div class=\"flex gap-4\"><input id=\"office\" name=\"office\" type=\"text\" value=\"")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
