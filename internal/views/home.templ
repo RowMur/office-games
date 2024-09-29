@@ -1,0 +1,56 @@
+package views
+
+import "github.com/RowMur/office-games/internal/db"
+
+templ MainPage(currentUser db.User, hasOffice bool, offices []db.Office) {
+	<main class="mt-4 mx-6">
+		if hasOffice {
+			{{
+				listSections := []ListSectionItem{}
+				for _, office := range offices {
+					listSections = append(listSections, ListSectionItem{
+						Name: office.Name,
+						URL:  "/office/" + office.Code,
+					})
+				}
+			}}
+			@ListSection("Your Offices", listSections)
+		}
+		<div class="w-full grid place-items-center my-8 gap-6">
+			<section class="w-full">
+				@SectionHeading("Create new office")
+				@CreateOfficeForm(FormData{}, FormErrors{})
+			</section>
+			<section class="w-full">
+				@SectionHeading("Join an office")
+				@JoinOfficeForm(FormData{}, FormErrors{})
+			</section>
+		</div>
+	</main>
+}
+
+templ CreateOfficeForm(data FormData, errors FormErrors) {
+	<form hx-post="/create-office" hx-swap="outerHTML">
+		<label for="office" class="block">Name:</label>
+		<div class="flex gap-4">
+			<input id="office" name="office" type="text" value={ data["office"] } class="text-black grow" placeholder="The office..."/>
+			<button type="submit" class="bg-accent text-light block w-16">Create</button>
+		</div>
+		if errors["office"] != "" {
+			<p class="text-red-500">{ errors["office"] }</p>
+		}
+	</form>
+}
+
+templ JoinOfficeForm(data FormData, errors FormErrors) {
+	<form hx-post="/join-office" hx-swap="outerHTML">
+		<label for="office" class="block">Code:</label>
+		<div class="flex gap-4">
+			<input id="office" name="office" type="text" value={ data["office"] } class="text-black grow" placeholder="ABCDEF"/>
+			<button type="submit" class="bg-accent text-light block w-16">Join</button>
+		</div>
+		if errors["office"] != "" {
+			<p class="text-red-500">{ errors["office"] }</p>
+		}
+	</form>
+}

@@ -47,7 +47,7 @@ func pageHandler(w http.ResponseWriter, r *http.Request) {
 	userHasOffices := len(user.Offices) > 0
 
 	mainPageContent := views.MainPage(*user, userHasOffices, user.Offices)
-	views.Page(mainPageContent).Render(context.Background(), w)
+	views.Page(mainPageContent, user).Render(context.Background(), w)
 }
 
 func signInHandler(w http.ResponseWriter, r *http.Request) {
@@ -64,7 +64,7 @@ func signInHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodGet {
 		signInPageContent := views.SignInPage()
-		views.Page(signInPageContent).Render(context.Background(), w)
+		views.Page(signInPageContent, nil).Render(context.Background(), w)
 		return
 	}
 
@@ -133,7 +133,7 @@ func createAccountHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodGet {
 		createAccountPageContent := views.CreateAccountPage()
-		views.Page(createAccountPageContent).Render(context.Background(), w)
+		views.Page(createAccountPageContent, nil).Render(context.Background(), w)
 		return
 	}
 
@@ -311,7 +311,7 @@ func mePageHandler(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method == http.MethodGet {
 		mePageContent := views.MePage(*user, views.FormData{"email": user.Email, "username": user.Username}, nil)
-		views.Page(mePageContent).Render(context.Background(), w)
+		views.Page(mePageContent, user).Render(context.Background(), w)
 		return
 	}
 
@@ -464,8 +464,8 @@ func officeHandler(w http.ResponseWriter, r *http.Request) {
 			Losses: userWinLosses[match.LoserID].Losses + 1,
 		}
 	}
-	officePageContent := views.OfficePage(*office, *user, selectedGame, userWinLosses)
-	views.Page(officePageContent).Render(context.Background(), w)
+	officePageContent := views.OfficePage(*office, user, selectedGame, userWinLosses)
+	views.Page(officePageContent, user).Render(context.Background(), w)
 }
 
 func joinOfficeHandler(w http.ResponseWriter, r *http.Request) {

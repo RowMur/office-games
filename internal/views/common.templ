@@ -1,0 +1,105 @@
+package views
+
+import "github.com/RowMur/office-games/internal/db"
+
+templ Page(contents templ.Component, user *db.User) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<script src="https://cdn.tailwindcss.com"></script>
+			<script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
+			<title>Office Games</title>
+			<script>
+				tailwind.config = {
+					theme: {
+						extend: {
+							colors: {
+								back: "#2D3250",
+								light: "#424769",
+								content: "#E2E8F0",
+								accent: "#F6B17A"
+							}
+						}
+					}
+				}
+			</script>
+		</head>
+		<body class="bg-back text-content w-11/12 max-w-lg mx-auto h-svh">
+			@Heading(user)
+			@contents
+			<hr/>
+			<footer class="text-center py-4">
+				<p>
+					Found an issue? <a href="https://github.com/RowMur/office-games/issues" class="underline text-accent">Report</a>
+				</p>
+			</footer>
+		</body>
+	</html>
+}
+
+templ Heading(user *db.User) {
+	<nav class="bg-light p-6 rounded-b-3xl flex justify-between items-center">
+		<h1 class="text-2xl font-bold"><a href="/">Office Games</a></h1>
+		if user != nil {
+			<a href="/me">
+				<div class="w-12 h-12 grid place-items-center border-accent rounded-full border-2">
+					{ string(user.Username[0]) }
+				</div>
+			</a>
+		}
+	</nav>
+}
+
+templ CreateGameForm(data FormData, errors FormErrors) {
+	<form hx-post="/create-game" hx-swap="outerHTML">
+		<label for="game" class="block">Name:</label>
+		<div class="flex gap-4">
+			<input id="game" name="game" type="text" value={ data["game"] } class="text-black grow" placeholder="The game..."/>
+			<button type="submit" class="bg-accent text-content block w-16">Create</button>
+		</div>
+		if errors["game"] != "" {
+			<p class="text-red-500">{ errors["game"] }</p>
+		}
+	</form>
+}
+
+type FormErrors map[string]string
+type FormData map[string]string
+
+templ formField(name string, display string, inputType string, data FormData, errors FormErrors) {
+	<label for={ name } class="block">{ display }:</label>
+	<input
+		id={ name }
+		name={ name }
+		type={ inputType }
+		value={ data[name] }
+		class="text-black w-full"
+	/>
+	if errors[name] != "" {
+		<p class="text-red-500">{ errors[name] }</p>
+	}
+}
+
+type ListSectionItem struct {
+	Name string
+	URL  string
+}
+
+templ ListSection(title string, items []ListSectionItem) {
+	<section>
+		@SectionHeading(title)
+		<ul class="mt-2 flex flex-wrap gap-2">
+			for _, item := range items {
+				<a href={ templ.SafeURL(item.URL) } class="bg-light p-2 pt-6 pr-6 w-fit rounded grow">
+					<li>{ item.Name }</li>
+				</a>
+			}
+		</ul>
+	</section>
+}
+
+templ SectionHeading(title string) {
+	<h3 class="text-lg font-semibold">{ title }</h3>
+}

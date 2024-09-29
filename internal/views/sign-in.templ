@@ -1,0 +1,23 @@
+package views
+
+templ SignInPage() {
+	<main class="grid place-items-center my-8">
+		<div class="flex flex-col gap-4">
+			@SignInForm(FormData{}, FormErrors{})
+			<hr/>
+			<p class="text-center">
+				Don&apos;t have an account?
+				<br/>
+				<a href="/create-account" class="underline">Create account</a>
+			</p>
+		</div>
+	</main>
+}
+
+templ SignInForm(data FormData, errors FormErrors) {
+	<form hx-post="/sign-in" hx-swap="outerHTML">
+		@formField("username", "Username", "text", data, errors)
+		@formField("password", "Password", "password", data, errors)
+		<button type="submit" class="bg-accent text-light block mx-auto mt-4 px-4 py-1">Sign In</button>
+	</form>
+}
