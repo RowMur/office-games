@@ -44,7 +44,7 @@ func MainPage(currentUser db.User, hasOffice bool, offices []db.Office) templ.Co
 					URL:  "/offices/" + office.Code,
 				})
 			}
-			templ_7745c5c3_Err = ListSection("Your Offices", listSections).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = ListSection("Your Offices", listSections, nil).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -53,7 +53,7 @@ func MainPage(currentUser db.User, hasOffice bool, offices []db.Office) templ.Co
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = SectionHeading("Create new office").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = SectionHeading("Create new office", nil).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -65,7 +65,7 @@ func MainPage(currentUser db.User, hasOffice bool, offices []db.Office) templ.Co
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = SectionHeading("Join an office").Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = SectionHeading("Join an office", nil).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

@@ -44,10 +44,18 @@ templ OfficePage(office db.Office, user *db.User, game db.Game, userWinLosses ma
 				URL:  fmt.Sprintf("/offices/%s/games/%s", office.Code, strconv.Itoa(int(game.ID))),
 			})
 		}
+
+		var link *SecondaryLink
+		if office.AdminRefer == user.ID {
+			link = &SecondaryLink{
+				Name: "Create",
+				URL:  fmt.Sprintf("/offices/%s/games/create", office.Code),
+			}
+		}
 		}}
-		@ListSection("Games", gamesListItems)
+		@ListSection("Games", gamesListItems, link)
 		<section class="my-6">
-			@SectionHeading("Members")
+			@SectionHeading("Members", nil)
 			<ul class="mt-2 flex flex-col gap-2">
 				for _, player := range office.Players {
 					<li class="flex justify-between bg-light p-2 rounded">

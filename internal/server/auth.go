@@ -90,6 +90,28 @@ func enforceSignedOut(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
+func enforceAdmin(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		user := userFromContext(c)
+		if user == nil {
+			return echo.NewHTTPError(http.StatusUnauthorized, "unauthorized")
+		}
+
+		officeCode := c.Param("code")
+		office := &db.Office{}
+		err := db.GetDB().Where("code = ?", officeCode).First(office).Error
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+
+		if office.AdminRefer != user.ID {
+			return echo.NewHTTPError(http.StatusForbidden, "You are not the admin of this office")
+		}
+
+		return next(c)
+	}
+}
+
 const issuer = "office-games-access"
 const tokenDuration = time.Hour * 1440
 

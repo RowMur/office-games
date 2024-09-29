@@ -1,0 +1,22 @@
+package views
+
+import "fmt"
+
+templ CreateGamePage(officeCode string) {
+	<main class="grid place-items-center my-8">
+		@CreateGameForm(FormData{}, FormErrors{}, officeCode)
+	</main>
+}
+
+templ CreateGameForm(data FormData, errors FormErrors, officeCode string) {
+	<form hx-post={ fmt.Sprintf("/offices/%s/games/create", officeCode) } hx-swap="outerHTML">
+		<label for="game" class="block">Name:</label>
+		<div class="flex gap-4">
+			<input id="game" name="game" type="text" value={ data["game"] } class="text-black grow" placeholder="The game..."/>
+			<button type="submit" class="bg-accent text-light block w-16">Create</button>
+		</div>
+		if errors["game"] != "" {
+			<p class="text-red-500">{ errors["game"] }</p>
+		}
+	</form>
+}

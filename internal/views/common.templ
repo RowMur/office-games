@@ -25,8 +25,13 @@ templ Page(contents templ.Component, user *db.User) {
 					}
 				}
 			</script>
+			<style>
+				html {
+					scrollbar-gutter: stable;
+				}
+			</style>
 		</head>
-		<body class="bg-back text-content w-11/12 max-w-lg mx-auto h-svh">
+		<body class="bg-back text-content w-11/12 max-w-lg mx-auto h-svh gutte">
 			@Heading(user)
 			@contents
 			<hr/>
@@ -52,19 +57,6 @@ templ Heading(user *db.User) {
 	</nav>
 }
 
-templ CreateGameForm(data FormData, errors FormErrors) {
-	<form hx-post="/create-game" hx-swap="outerHTML">
-		<label for="game" class="block">Name:</label>
-		<div class="flex gap-4">
-			<input id="game" name="game" type="text" value={ data["game"] } class="text-black grow" placeholder="The game..."/>
-			<button type="submit" class="bg-accent text-content block w-16">Create</button>
-		</div>
-		if errors["game"] != "" {
-			<p class="text-red-500">{ errors["game"] }</p>
-		}
-	</form>
-}
-
 type FormErrors map[string]string
 type FormData map[string]string
 
@@ -87,9 +79,14 @@ type ListSectionItem struct {
 	URL  string
 }
 
-templ ListSection(title string, items []ListSectionItem) {
+type SecondaryLink struct {
+	Name string
+	URL  string
+}
+
+templ ListSection(title string, items []ListSectionItem, secondaryLink *SecondaryLink) {
 	<section>
-		@SectionHeading(title)
+		@SectionHeading(title, secondaryLink)
 		<ul class="mt-2 flex flex-wrap gap-2">
 			for _, item := range items {
 				<a href={ templ.SafeURL(item.URL) } class="bg-light p-2 pt-6 pr-6 w-fit rounded grow">
@@ -100,6 +97,11 @@ templ ListSection(title string, items []ListSectionItem) {
 	</section>
 }
 
-templ SectionHeading(title string) {
-	<h3 class="text-lg font-semibold">{ title }</h3>
+templ SectionHeading(title string, secondaryLink *SecondaryLink) {
+	<div class="flex justify-between">
+		<h3 class="text-lg font-semibold">{ title }</h3>
+		if secondaryLink != nil {
+			<a href={ templ.SafeURL(secondaryLink.URL) } class="opacity-70">{ secondaryLink.Name }</a>
+		}
+	</div>
 }

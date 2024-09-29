@@ -35,6 +35,8 @@ func (s *Server) Run() {
 	e.GET("/offices/:code/games/:id", authMiddleware(func(c echo.Context) error {
 		return c.String(http.StatusOK, "Not implemented")
 	}))
+	e.GET("/offices/:code/games/create", authMiddleware(enforceAdmin(createGameHandler)))
+	e.POST("/offices/:code/games/create", authMiddleware(enforceAdmin(createGameFormHandler)))
 
 	e.Logger.Fatal(e.Start(":8080"))
 }

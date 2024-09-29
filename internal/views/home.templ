@@ -14,15 +14,15 @@ templ MainPage(currentUser db.User, hasOffice bool, offices []db.Office) {
 					})
 				}
 			}}
-			@ListSection("Your Offices", listSections)
+			@ListSection("Your Offices", listSections, nil)
 		}
 		<div class="w-full grid place-items-center my-8 gap-6">
 			<section class="w-full">
-				@SectionHeading("Create new office")
+				@SectionHeading("Create new office", nil)
 				@CreateOfficeForm(FormData{}, FormErrors{})
 			</section>
 			<section class="w-full">
-				@SectionHeading("Join an office")
+				@SectionHeading("Join an office", nil)
 				@JoinOfficeForm(FormData{}, FormErrors{})
 			</section>
 		</div>
