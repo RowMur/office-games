@@ -1,8 +1,6 @@
 package server
 
 import (
-	"net/http"
-
 	"github.com/labstack/echo/v4"
 )
 
@@ -16,6 +14,7 @@ func (s *Server) Run() {
 	e := echo.New()
 
 	e.GET("/", authMiddleware(pageHandler))
+	e.Static("/static", "assets")
 
 	e.GET("/me", authMiddleware(mePageHandler))
 	e.POST("/me", authMiddleware(meUpdateHandler))
@@ -32,11 +31,12 @@ func (s *Server) Run() {
 	e.POST("/offices/join", authMiddleware(joinOfficeHandler))
 	e.POST("/offices/create", authMiddleware(createOfficeHandler))
 
-	e.GET("/offices/:code/games/:id", authMiddleware(func(c echo.Context) error {
-		return c.String(http.StatusOK, "Not implemented")
-	}))
+	e.GET("/offices/:code/games/:id", authMiddleware(gamesPageHandler))
 	e.GET("/offices/:code/games/create", authMiddleware(enforceAdmin(createGameHandler)))
 	e.POST("/offices/:code/games/create", authMiddleware(enforceAdmin(createGameFormHandler)))
+
+	e.GET("/offices/:code/games/:id/play", authMiddleware(gamesPlayPageHandler))
+	e.POST("/offices/:code/games/:id/play", authMiddleware(gamesPlayFormHandler))
 
 	e.Logger.Fatal(e.Start(":8080"))
 }

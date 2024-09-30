@@ -1,6 +1,10 @@
 package views
 
-import "fmt"
+import (
+	"fmt"
+	"github.com/RowMur/office-games/internal/db"
+	"strconv"
+)
 
 templ CreateGamePage(officeCode string) {
 	<main class="grid place-items-center my-8">
@@ -19,4 +23,159 @@ templ CreateGameForm(data FormData, errors FormErrors, officeCode string) {
 			<p class="text-red-500">{ errors["game"] }</p>
 		}
 	</form>
+}
+
+templ GamePageHeading(game db.Game, office db.Office) {
+	<h2 class="text-2xl font-semibold my-4">{ game.Name } &#64; { office.Name }</h2>
+}
+
+templ GamePageTabs(currentTab string, officeCode string, gameID uint) {
+	<ul class="flex flex-wrap gap-2">
+		{{
+				baseURL := fmt.Sprintf("/offices/%s/games/%s", officeCode, strconv.Itoa(int(gameID)))
+		}}
+		@GamePageTab(baseURL, "Overview", currentTab)
+		@GamePageTab(baseURL+"/play", "Play", currentTab)
+		@GamePageTab(baseURL+"/pending", "Pending Matches", currentTab)
+	</ul>
+}
+
+templ GamePageTab(href string, text string, currentTab string) {
+	<li>
+		<a
+			href={ templ.SafeURL(href) }
+			if text == currentTab {
+				class="px-2 py-1 rounded bg-accent text-nowrap text-light"
+			} else {
+				class="px-2 py-1 rounded bg-light text-nowrap text-content"
+			}
+		>{ text }</a>
+	</li>
+}
+
+templ GamePage(game db.Game, office db.Office, userWinLosses map[uint]WinLosses) {
+	<main class="mx-6">
+		@GamePageHeading(game, office)
+		@GamePageTabs("Overview", office.Code, game.ID)
+		<section class="my-6">
+			<h4 class="text-lg font-semibold mb-2">Rankings</h4>
+			@OfficeRankings(game.Rankings, userWinLosses)
+		</section>
+		// if len(game.Matches) > 0 {
+		// 	<section class="my-6">
+		// 		<h4 class="text-lg font-semibold mb-2">Recent Matches</h4>
+		// 		<div class="flex flex-col gap-2">
+		// 			for i, match := range game.Matches {
+		// 				if i >= 5 {
+		// 					break
+		// 				}
+		// 				<div class="bg-light rounded">
+		// 					<div class="grid grid-cols-7 p-4 gap-3">
+		// 						<div class="text-center">
+		// 							<p class="font-semibold">W</p>
+		// 						</div>
+		// 						<div class="col-span-3">
+		// 							<p class="font-semibold">{ match.Winner.Username }</p>
+		// 							<p>{ match.Loser.Username }</p>
+		// 						</div>
+		// 						<div class="col-span-3">
+		// 							<p>{ fmt.Sprintf("%d +%d", match.WinnerStartingPoints, match.WinnerGainedPoints) }</p>
+		// 							<p>{ fmt.Sprintf("%d -%d", match.LoserStartingPoints, match.LoserLostPoints) }</p>
+		// 						</div>
+		// 					</div>
+		// 				</div>
+		// 			}
+		// 		</div>
+		// 	</section>
+		// }
+	</main>
+}
+
+type WinLosses struct {
+	Wins   int
+	Losses int
+}
+
+templ OfficeRankings(rankings []db.Ranking, userWinLosses map[uint]WinLosses) {
+	<table id="office-ranking" class="w-full">
+		<thead class="">
+			<tr class="[&>th]:text-left">
+				<th class="py-4">Player</th>
+				<th class="py-4">Wins</th>
+				<th class="py-4">Losses</th>
+				<th class="py-4 hidden sm:block">%</th>
+				<th class="py-4">Points</th>
+			</tr>
+		</thead>
+		<tbody>
+			for _, ranking := range rankings {
+				<tr>
+					<td>{ ranking.User.Username }</td>
+					<td>
+						{ strconv.Itoa(userWinLosses[ranking.User.ID].Wins) }
+					</td>
+					<td>
+						{ strconv.Itoa(userWinLosses[ranking.User.ID].Losses) }
+					</td>
+					<td class="hidden sm:block">
+						{ fmt.Sprintf("%.2f", float32(userWinLosses[ranking.User.ID].Wins) / float32(userWinLosses[ranking.User.ID].Wins + userWinLosses[ranking.User.ID].Losses) * 100) }
+					</td>
+					<td>{ strconv.Itoa(ranking.Points) }</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}
+
+templ PlayGamePage(game db.Game, office db.Office, players []db.User, endpoint string) {
+	<main class="mx-6">
+		@GamePageHeading(game, office)
+		@GamePageTabs("Play", office.Code, game.ID)
+		<section class="my-6">
+			<h4 class="text-lg font-semibold mb-2">Play a Match</h4>
+			@PlayMatchForm(FormErrors{}, players, endpoint)
+		</section>
+	</main>
+}
+
+templ PlayMatchForm(errors FormErrors, players []db.User, endpoint string) {
+	<form hx-post={ endpoint } hx-swap="none">
+		<div class="flex flex-col gap-2">
+			@PlayerSelect(errors, players, "Winners")
+		</div>
+		<div class="flex flex-col gap-2 mt-2">
+			@PlayerSelect(errors, players, "Losers")
+		</div>
+		<div class="flex flex-col items-center">
+			<button type="submit" class="bg-accent text-light px-4 py-1 w-3/5 mx-auto rounded mt-4">Play</button>
+			<div id="errorsubmit"></div>
+		</div>
+	</form>
+}
+
+templ PlayerSelect(errs FormErrors, players []db.User, key string) {
+	<label for={ key } class="block font-semibold">{ key }</label>
+	<select name={ key } class="bg-light px-4 py-1 text-light" multiple>
+		for _, player := range players {
+			<option value={ strconv.Itoa(int(player.ID)) }>{ player.Username }</option>
+		}
+	</select>
+	<div id={ "error" + key }>
+		if errs[key] != "" {
+			<p class="text-red-500">{ errs[key] }</p>
+		}
+	</div>
+}
+
+templ PlayMatchFormErrors(errors FormErrors) {
+	for key, err := range errors {
+		{{
+			id := "error" + key
+		}}
+		<div id={ id } hx-swap-oob="true" hx-select={ id }>
+			if err != "" {
+				<p class="text-red-500">{ err }</p>
+			}
+		</div>
+	}
 }

@@ -2,13 +2,24 @@ package elo
 
 import (
 	"math"
+
+	"github.com/RowMur/office-games/internal/db"
 )
 
-func CalculatePointsGainLoss(winnerElo, loserElo int) (int, float64) {
-	floatWinnerElo := float64(winnerElo)
-	floatLoserElo := float64(loserElo)
+func CalculatePointsGainLoss(winners, losers []db.Ranking) (int, float64) {
+	summedWinnerElo := float64(0)
+	for _, winner := range winners {
+		summedWinnerElo += float64(winner.Points)
+	}
+	avgWinnerElo := summedWinnerElo / float64(len(winners))
 
-	expectedScore := calculateExpectedScore(floatWinnerElo, floatLoserElo)
+	summedLoserElo := float64(0)
+	for _, loser := range losers {
+		summedLoserElo += float64(loser.Points)
+	}
+	avgLoserElo := summedLoserElo / float64(len(losers))
+
+	expectedScore := calculateExpectedScore(avgWinnerElo, avgLoserElo)
 	pointsGainLoss := calculatePointsGainLoss(expectedScore, 1)
 
 	return pointsGainLoss, expectedScore

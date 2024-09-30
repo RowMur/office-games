@@ -3,7 +3,6 @@ package db
 import (
 	"math/rand"
 
-	"github.com/RowMur/office-games/internal/elo"
 	"gorm.io/gorm"
 )
 
@@ -13,8 +12,6 @@ var models = []interface{}{
 	&Game{},
 	&Ranking{},
 	&Match{},
-	&Team{},
-	&TeamMatch{},
 }
 
 type User struct {
@@ -24,9 +21,8 @@ type User struct {
 	Password        string
 	Offices         []Office `gorm:"many2many:user_offices;"`
 	Rankings        []Ranking
-	MatchesAsWinner []Match `gorm:"foreignKey:WinnerID;references:ID;"`
-	MatchesAsLoser  []Match `gorm:"foreignKey:LoserID;references:ID;"`
-	Teams           []Team  `gorm:"many2many:team_players;"`
+	MatchesAsWinner []Match `gorm:"many2many:match_winners;"`
+	MatchesAsLoser  []Match `gorm:"many2many:match_losers;"`
 }
 
 type Office struct {
@@ -95,82 +91,64 @@ type Ranking struct {
 
 type Match struct {
 	gorm.Model
-	GameID               uint
-	Game                 Game
-	WinnerID             uint
-	Winner               User `gorm:"foreignKey:WinnerID"`
-	WinnerStartingPoints int
-	WinnerGainedPoints   int
-	LoserID              uint
-	Loser                User `gorm:"foreignKey:LoserID"`
-	LoserStartingPoints  int
-	LoserLostPoints      int
-	ExpectedScore        float64
-	State                string `gorm:"default:'pending'"`
+	GameID        uint
+	Game          Game
+	CreatorID     uint
+	Creator       User
+	Winners       []User `gorm:"many2many:match_winners;"`
+	Losers        []User `gorm:"many2many:match_losers;"`
+	PointsValue   int
+	ExpectedScore float64
+	State         string `gorm:"default:'pending'"`
 }
 
-func (m *Match) AfterCreate(tx *gorm.DB) (err error) {
-	// Update the rankings of the players
-	game := Game{}
-	tx.Where("id = ?", m.GameID).Preload("Rankings").First(&game)
+// func (m *Match) AfterCreate(tx *gorm.DB) (err error) {
+// 	// Update the rankings of the players
+// 	// game := Game{}
+// 	// tx.Where("id = ?", m.GameID).Preload("Rankings").First(&game)
 
-	var winnerRanking, loserRanking Ranking
-	tx.Where("game_id = ? AND user_id = ?", m.GameID, m.WinnerID).First(&winnerRanking)
-	tx.Where("game_id = ? AND user_id = ?", m.GameID, m.LoserID).First(&loserRanking)
+// 	var winnerRanking, loserRanking Ranking
+// 	tx.Where("game_id = ? AND user_id = ?", m.GameID, m.Winners).First(&winnerRanking)
+// 	tx.Where("game_id = ? AND user_id = ?", m.GameID, m.LoserID).First(&loserRanking)
 
-	// Calculate the new rankings
-	points, expectedScore := elo.CalculatePointsGainLoss(winnerRanking.Points, loserRanking.Points)
+// 	// Calculate the new rankings
+// 	points, expectedScore := elo.CalculatePointsGainLoss(winnerRanking.Points, loserRanking.Points)
 
-	const matchesWithDoublePoints = 20
-	var winnerMatchCount, loserMatchCount int64
-	tx.Table("matches").Where("winner_id = ? OR loser_id = ?", m.WinnerID, m.WinnerID).Count(&winnerMatchCount)
-	tx.Table("matches").Where("winner_id = ? OR loser_id = ?", m.LoserID, m.LoserID).Count(&loserMatchCount)
+// 	// const matchesWithDoublePoints = 20
+// 	// var winnerMatchCount, loserMatchCount int64
+// 	// tx.Table("matches").Where("winner_id = ? OR loser_id = ?", m.WinnerID, m.WinnerID).Count(&winnerMatchCount)
+// 	// tx.Table("matches").Where("winner_id = ? OR loser_id = ?", m.LoserID, m.LoserID).Count(&loserMatchCount)
 
-	var winnerNewPoints, loserNewPoints int
+// 	// var winnerNewPoints, loserNewPoints int
 
-	if winnerMatchCount > matchesWithDoublePoints {
-		winnerNewPoints = winnerRanking.Points + points
-	} else {
-		winnerNewPoints = winnerRanking.Points + (2 * points)
-	}
+// 	// if winnerMatchCount > matchesWithDoublePoints {
+// 	// 	winnerNewPoints = winnerRanking.Points + points
+// 	// } else {
+// 	// 	winnerNewPoints = winnerRanking.Points + (2 * points)
+// 	// }
 
-	if loserMatchCount > matchesWithDoublePoints {
-		loserNewPoints = loserRanking.Points - points
-	} else {
-		loserNewPoints = loserRanking.Points - (2 * points)
-	}
+// 	// if loserMatchCount > matchesWithDoublePoints {
+// 	// 	loserNewPoints = loserRanking.Points - points
+// 	// } else {
+// 	// 	loserNewPoints = loserRanking.Points - (2 * points)
+// 	// }
 
-	if loserNewPoints < 200 {
-		loserNewPoints = 200
-	}
+// 	// if loserNewPoints < 200 {
+// 	// 	loserNewPoints = 200
+// 	// }
 
-	// Fill in the match point details
-	tx.Model(&m).
-		Update("WinnerStartingPoints", winnerRanking.Points).
-		Update("WinnerGainedPoints", winnerNewPoints-winnerRanking.Points).
-		Update("LoserStartingPoints", loserRanking.Points).
-		Update("LoserLostPoints", loserRanking.Points-loserNewPoints).
-		Update("ExpectedScore", expectedScore)
+// 	// Fill in the match point details
+// 	tx.Model(&m).
+// 		Update("WinnerStartingPoints", winnerRanking.Points).
+// 		Update("WinnerGainedPoints", winnerNewPoints-winnerRanking.Points).
+// 		Update("LoserStartingPoints", loserRanking.Points).
+// 		Update("LoserLostPoints", loserRanking.Points-loserNewPoints).
+// 		Update("ExpectedScore", expectedScore)
 
-	// temp disable updating rankings until figure out dispute system
-	// // Update the rankings
-	// tx.Model(&winnerRanking).Update("Points", winnerNewPoints)
-	// tx.Model(&loserRanking).Update("Points", loserNewPoints)
+// 	// temp disable updating rankings until figure out dispute system
+// 	// // Update the rankings
+// 	// tx.Model(&winnerRanking).Update("Points", winnerNewPoints)
+// 	// tx.Model(&loserRanking).Update("Points", loserNewPoints)
 
-	return
-}
-
-type Team struct {
-	gorm.Model
-	Players []User `gorm:"many2many:team_players;"`
-}
-
-type TeamMatch struct {
-	gorm.Model
-	GameID   uint
-	Game     Game
-	WinnerID uint
-	Winner   Team `gorm:"foreignKey:WinnerID"`
-	LoserID  uint
-	Loser    Team `gorm:"foreignKey:LoserID"`
-}
+// 	return
+// }
