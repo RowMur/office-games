@@ -179,14 +179,6 @@ type MatchApproval struct {
 // 	// 	loserNewPoints = 200
 // 	// }
 
-// 	// Fill in the match point details
-// 	tx.Model(&m).
-// 		Update("WinnerStartingPoints", winnerRanking.Points).
-// 		Update("WinnerGainedPoints", winnerNewPoints-winnerRanking.Points).
-// 		Update("LoserStartingPoints", loserRanking.Points).
-// 		Update("LoserLostPoints", loserRanking.Points-loserNewPoints).
-// 		Update("ExpectedScore", expectedScore)
-
 // 	// temp disable updating rankings until figure out dispute system
 // 	// // Update the rankings
 // 	// tx.Model(&winnerRanking).Update("Points", winnerNewPoints)

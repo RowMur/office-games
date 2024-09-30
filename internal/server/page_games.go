@@ -9,6 +9,7 @@ import (
 	"github.com/RowMur/office-games/internal/elo"
 	"github.com/RowMur/office-games/internal/views"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 func gamesPageHandler(c echo.Context) error {
@@ -17,11 +18,34 @@ func gamesPageHandler(c echo.Context) error {
 
 	d := db.GetDB()
 	game := db.Game{}
-	if err := d.Where("id = ?", gameId).Preload("Office").Preload("Rankings.User").First(&game).Error; err != nil {
+	err := d.Where("id = ?", gameId).
+		Preload("Office").
+		Preload("Rankings.User").
+		Preload("Matches", "state NOT IN (?)", "pending").
+		Preload("Matches.Winners").
+		Preload("Matches.Losers").
+		First(&game).Error
+	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	pageContent := views.GamePage(game, game.Office, nil)
+	playerWinLosses := map[uint]views.WinLosses{}
+	for _, match := range game.Matches {
+		for _, winner := range match.Winners {
+			playerWinLosses[winner.ID] = views.WinLosses{
+				Wins:   playerWinLosses[winner.ID].Wins + 1,
+				Losses: playerWinLosses[winner.ID].Losses,
+			}
+		}
+		for _, loser := range match.Losers {
+			playerWinLosses[loser.ID] = views.WinLosses{
+				Wins:   playerWinLosses[loser.ID].Wins,
+				Losses: playerWinLosses[loser.ID].Losses + 1,
+			}
+		}
+	}
+
+	pageContent := views.GamePage(game, game.Office, playerWinLosses)
 	return render(c, http.StatusOK, views.Page(pageContent, user))
 }
 
@@ -145,6 +169,16 @@ func gamesPlayFormHandler(c echo.Context) error {
 	points, expectedScore := elo.CalculatePointsGainLoss(winnersRankings, losersRankings)
 	tx.Model(&match).Update("PointsValue", points).Update("ExpectedScore", expectedScore)
 
+	approval := db.MatchApproval{
+		MatchID: match.ID,
+		UserID:  user.ID,
+	}
+	err = tx.Create(&approval).Error
+	if err != nil {
+		tx.Rollback()
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
 	tx.Commit()
 	gameHome := fmt.Sprintf("/offices/%s/games/%s", game.Office.Code, gameId)
 	c.Response().Header().Set("HX-Redirect", gameHome)
@@ -159,7 +193,9 @@ func gamePendingMatchesPage(c echo.Context) error {
 	game := db.Game{}
 	err := d.Where("id = ?", gameId).
 		Preload("Office").
-		Preload("Matches", "state IN (?)", "pending").
+		Preload("Matches", "state IN (?)", "pending", func(db *gorm.DB) *gorm.DB {
+			return db.Order("Matches.created_at DESC")
+		}).
 		Preload("Matches.Creator").
 		Preload("Matches.Winners").
 		Preload("Matches.Losers").
