@@ -179,3 +179,75 @@ templ PlayMatchFormErrors(errors FormErrors) {
 		</div>
 	}
 }
+
+templ PendingMatchesPage(game db.Game, office db.Office, pendingMatches []db.Match) {
+	<main class="mx-6">
+		@GamePageHeading(game, office)
+		@GamePageTabs("Pending Matches", office.Code, game.ID)
+		<section class="my-6">
+			<h4 class="text-lg font-semibold mb-2">Pending Matches</h4>
+			<ul class="flex flex-col gap-2">
+				for _, match := range pendingMatches {
+					<li class="bg-light rounded">
+						<div class="grid grid-cols-7 p-4 gap-3">
+							<div class="text-center">
+								<p class="font-semibold">W</p>
+							</div>
+							<div class="col-span-3">
+								<p class="font-semibold">
+									for i, winner := range match.Winners {
+										if i > 0 {
+											, 
+										}
+										{ winner.Username }
+									}
+								</p>
+								<p>
+									for i, loser := range match.Losers {
+										if i > 0 {
+											, 
+										}
+										{ loser.Username }
+									}
+								</p>
+							</div>
+							<div class="col-span-3">
+								{{	
+									isApprovedByWinner := false
+									isApprovedByLoser := false
+
+									for _, approval := range match.Approvals {
+										for _, winner := range match.Winners {
+											if approval.UserID == winner.ID {
+												isApprovedByWinner = true
+											}
+										}
+										for _, loser := range match.Losers {
+											if approval.UserID == loser.ID {
+												isApprovedByLoser = true
+											}
+										}
+									}
+								}}
+								<p class="opacity-70">
+									if isApprovedByWinner {
+										Approved
+									} else {
+										Needs Approval
+									}
+								</p>
+								<p class="opacity-70">
+									if isApprovedByLoser {
+										Approved
+									} else {
+										Needs Approval
+									}
+								</p>
+							</div>
+						</div>
+					</li>
+				}
+			</ul>
+		</section>
+	</main>
+}

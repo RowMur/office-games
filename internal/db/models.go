@@ -12,6 +12,7 @@ var models = []interface{}{
 	&Game{},
 	&Ranking{},
 	&Match{},
+	&MatchApproval{},
 }
 
 type User struct {
@@ -23,6 +24,7 @@ type User struct {
 	Rankings        []Ranking
 	MatchesAsWinner []Match `gorm:"many2many:match_winners;"`
 	MatchesAsLoser  []Match `gorm:"many2many:match_losers;"`
+	Approvals       []MatchApproval
 }
 
 type Office struct {
@@ -100,6 +102,15 @@ type Match struct {
 	PointsValue   int
 	ExpectedScore float64
 	State         string `gorm:"default:'pending'"`
+	Approvals     []MatchApproval
+}
+
+type MatchApproval struct {
+	gorm.Model
+	MatchID uint
+	Match   Match `gorm:"foreignKey:MatchID"`
+	UserID  uint
+	User    User
 }
 
 // func (m *Match) AfterCreate(tx *gorm.DB) (err error) {

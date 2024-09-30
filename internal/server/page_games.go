@@ -149,3 +149,25 @@ func gamesPlayFormHandler(c echo.Context) error {
 	c.Response().Header().Set("HX-Redirect", gameHome)
 	return c.NoContent(http.StatusOK)
 }
+
+func gamePendingMatchesPage(c echo.Context) error {
+	user := userFromContext(c)
+	d := db.GetDB()
+
+	gameId := c.Param("id")
+	game := db.Game{}
+	err := d.Where("id = ?", gameId).
+		Preload("Office").
+		Preload("Matches", "state IN (?)", "pending").
+		Preload("Matches.Creator").
+		Preload("Matches.Winners").
+		Preload("Matches.Losers").
+		Preload("Matches.Approvals").
+		First(&game).Error
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	pageContent := views.PendingMatchesPage(game, game.Office, game.Matches)
+	return render(c, http.StatusOK, views.Page(pageContent, user))
+}
