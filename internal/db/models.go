@@ -105,6 +105,37 @@ type Match struct {
 	Approvals     []MatchApproval
 }
 
+func (m *Match) IsApprovedByUser(userID uint) bool {
+	for _, approval := range m.Approvals {
+		if approval.UserID == userID {
+			return true
+		}
+	}
+	return false
+}
+
+func (m *Match) IsApprovedByWinners() bool {
+	for _, winner := range m.Winners {
+		if m.IsApprovedByUser(winner.ID) {
+			return true
+		}
+	}
+	return false
+}
+
+func (m *Match) IsApprovedByLosers() bool {
+	for _, loser := range m.Losers {
+		if m.IsApprovedByUser(loser.ID) {
+			return true
+		}
+	}
+	return false
+}
+
+func (m *Match) IsApproved() bool {
+	return m.IsApprovedByWinners() && m.IsApprovedByLosers()
+}
+
 type MatchApproval struct {
 	gorm.Model
 	MatchID uint

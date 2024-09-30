@@ -39,6 +39,8 @@ func (s *Server) Run() {
 	e.POST("/offices/:code/games/:id/play", authMiddleware(gamesPlayFormHandler))
 
 	e.GET("/offices/:code/games/:id/pending", authMiddleware(gamePendingMatchesPage))
+	e.GET("/offices/:code/games/:id/pending/:matchId", authMiddleware(pendingMatchPage))
+	e.GET("/offices/:code/games/:id/pending/:matchId/approve", authMiddleware(pendingMatchApproveHandler))
 
 	e.Logger.Fatal(e.Start(":8080"))
 }

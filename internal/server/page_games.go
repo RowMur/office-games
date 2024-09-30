@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"net/http"
+	"strconv"
 
 	"github.com/RowMur/office-games/internal/db"
 	"github.com/RowMur/office-games/internal/elo"
@@ -170,4 +171,73 @@ func gamePendingMatchesPage(c echo.Context) error {
 
 	pageContent := views.PendingMatchesPage(game, game.Office, game.Matches)
 	return render(c, http.StatusOK, views.Page(pageContent, user))
+}
+
+func pendingMatchPage(c echo.Context) error {
+	user := userFromContext(c)
+	d := db.GetDB()
+
+	matchId := c.Param("matchId")
+	match := db.Match{}
+	err := d.Where("id = ?", matchId).
+		Preload("Game").
+		Preload("Game.Office").
+		Preload("Creator").
+		Preload("Winners").
+		Preload("Losers").
+		Preload("Approvals").
+		First(&match).Error
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	pageContent := views.PendingMatchPage(match.Game, match.Game.Office, match)
+	return render(c, http.StatusOK, views.Page(pageContent, user))
+}
+
+func pendingMatchApproveHandler(c echo.Context) error {
+	user := userFromContext(c)
+	d := db.GetDB()
+
+	matchId, err := strconv.Atoi(c.Param("matchId"))
+	if err != nil {
+		return c.String(http.StatusBadRequest, "Invalid match ID")
+	}
+
+	approval := db.MatchApproval{
+		MatchID: uint(matchId),
+		UserID:  user.ID,
+	}
+
+	var count int64
+	err = d.Model(approval).Where("match_id = ? AND user_id = ?", matchId, user.ID).Count(&count).Error
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+	if count > 0 {
+		return c.String(http.StatusBadRequest, "You have already approved this match")
+	}
+
+	err = d.Create(&approval).Error
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	err = d.Preload("Match.Game.Office").Preload("Match.Winners").Preload("Match.Losers").Preload("Match.Approvals").Find(&approval, "id = ?", approval.ID).Error
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	if !approval.Match.IsApproved() {
+		c.Response().Header().Set("HX-Refresh", "true")
+		return c.NoContent(http.StatusOK)
+	}
+
+	err = d.Model(&db.Match{}).Where("id = ?", approval.Match.ID).Update("State", "approved").Error
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	c.Response().Header().Set("HX-Redirect", fmt.Sprintf("/offices/%s/games/%d/pending", approval.Match.Game.Office.Code, approval.Match.GameID))
+	return c.NoContent(http.StatusOK)
 }
