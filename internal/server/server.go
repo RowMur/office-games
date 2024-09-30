@@ -14,7 +14,7 @@ func (s *Server) Run() {
 	e := echo.New()
 
 	e.GET("/", authMiddleware(pageHandler))
-	e.Static("/static", "assets")
+	e.Static("/static", "internal/assets")
 
 	e.GET("/me", authMiddleware(mePageHandler))
 	e.POST("/me", authMiddleware(meUpdateHandler))
