@@ -26,7 +26,7 @@ templ CreateGameForm(data FormData, errors FormErrors, officeCode string) {
 }
 
 templ GamePageHeading(game db.Game, office db.Office) {
-	<h2 class="text-2xl font-semibold my-4">{ game.Name } &#64; { office.Name }</h2>
+	<h2 class="text-2xl font-semibold my-2">{ game.Name } &#64; { office.Name }</h2>
 }
 
 templ GamePageTabs(currentTab string, officeCode string, gameID uint) {
@@ -54,7 +54,8 @@ templ GamePageTab(href string, text string, currentTab string) {
 }
 
 templ GamePage(game db.Game, office db.Office, userWinLosses map[uint]WinLosses) {
-	<main class="mx-6">
+	<main class="mx-6 my-8">
+		@GamePageBreadcrumb(game, office)
 		@GamePageHeading(game, office)
 		@GamePageTabs("Overview", office.Code, game.ID)
 		<section class="my-6">
@@ -128,7 +129,8 @@ templ OfficeRankings(rankings []db.Ranking, userWinLosses map[uint]WinLosses) {
 }
 
 templ PlayGamePage(game db.Game, office db.Office, players []db.User, endpoint string) {
-	<main class="mx-6">
+	<main class="mx-6 my-8">
+		@GamePageBreadcrumb(game, office)
 		@GamePageHeading(game, office)
 		@GamePageTabs("Play", office.Code, game.ID)
 		<section class="my-6">
@@ -181,7 +183,8 @@ templ PlayMatchFormErrors(errors FormErrors) {
 }
 
 templ PendingMatchesPage(game db.Game, office db.Office, pendingMatches []db.Match) {
-	<main class="mx-6">
+	<main class="mx-6 my-8">
+		@GamePageBreadcrumb(game, office)
 		@GamePageHeading(game, office)
 		@GamePageTabs("Pending Matches", office.Code, game.ID)
 		<section class="my-6">
@@ -237,8 +240,26 @@ templ PendingMatchesPage(game db.Game, office db.Office, pendingMatches []db.Mat
 	</main>
 }
 
+templ GamePageBreadcrumb(game db.Game, office db.Office) {
+	{{
+		crumbs := []Crumb{
+			{Name: office.Name, URL: fmt.Sprintf("/offices/%s", office.Code)},
+			{Name: game.Name, URL: fmt.Sprintf("/offices/%s/games/%s", office.Code, strconv.Itoa(int(game.ID)))},
+		}
+	}}
+	@Breadcrumbs(crumbs)
+}
+
 templ PendingMatchPage(game db.Game, office db.Office, match db.Match) {
-	<main class="mx-6">
+	<main class="mx-6 my-8">
+		{{
+			crumbs := []Crumb{
+				{Name: office.Name, URL: fmt.Sprintf("/offices/%s", office.Code)},
+				{Name: game.Name, URL: fmt.Sprintf("/offices/%s/games/%s", office.Code, strconv.Itoa(int(game.ID)))},
+				{Name: "Pending Match", URL: fmt.Sprintf("/offices/%s/games/%s/pending/%s", office.Code, strconv.Itoa(int(game.ID)), strconv.Itoa(int(match.ID)))},
+			}
+		}}
+		@Breadcrumbs(crumbs)
 		<h2 class="text-2xl font-semibold mt-4">Match of { game.Name } &#64; { office.Name }</h2>
 		<p class="opacity-70">Created by { match.Creator.Username }</p>
 		<div class="flex justify-evenly my-4 gap-4">
