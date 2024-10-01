@@ -48,7 +48,7 @@ func gamesPageHandler(c echo.Context) error {
 		}
 	}
 
-	pageContent := views.GamePage(game, game.Office, playerWinLosses)
+	pageContent := views.GamePage(game, game.Office, playerWinLosses, *user)
 	return render(c, http.StatusOK, views.Page(pageContent, user))
 }
 
@@ -63,7 +63,7 @@ func gamesPlayPageHandler(c echo.Context) error {
 	}
 
 	endpoint := fmt.Sprintf("/offices/%s/games/%s/play", game.Office.Code, gameId)
-	pageContent := views.PlayGamePage(game, game.Office, game.Office.Players, endpoint)
+	pageContent := views.PlayGamePage(game, game.Office, game.Office.Players, endpoint, *user)
 	return render(c, http.StatusOK, views.Page(pageContent, user))
 }
 
@@ -208,7 +208,7 @@ func gamePendingMatchesPage(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	pageContent := views.PendingMatchesPage(game, game.Office, game.Matches)
+	pageContent := views.PendingMatchesPage(game, game.Office, game.Matches, *user)
 	return render(c, http.StatusOK, views.Page(pageContent, user))
 }
 
@@ -358,5 +358,59 @@ func pendingMatchApproveHandler(c echo.Context) error {
 
 	tx.Commit()
 	c.Response().Header().Set("HX-Redirect", fmt.Sprintf("/offices/%s/games/%d/pending", approval.Match.Game.Office.Code, approval.Match.GameID))
+	return c.NoContent(http.StatusOK)
+}
+
+func gameAdminPage(c echo.Context) error {
+	user := userFromContext(c)
+	gameId := c.Param("id")
+
+	d := db.GetDB()
+	game := db.Game{}
+	err := d.Where("id = ?", gameId).
+		Preload("Office").
+		First(&game).Error
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+	return render(c, http.StatusOK, views.Page(views.GameAdminPage(game, game.Office, *user), user))
+}
+
+func deleteGameHandler(c echo.Context) error {
+	gameId := c.Param("id")
+	office := c.Param("code")
+
+	d := db.GetDB()
+	err := d.Delete(&db.Game{}, gameId).Error
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	c.Response().Header().Set("HX-Redirect", fmt.Sprintf("/offices/%s", office))
+	return c.NoContent(http.StatusOK)
+}
+
+func editGameHandler(c echo.Context) error {
+	d := db.GetDB()
+
+	gameId := c.Param("id")
+	game := db.Game{}
+	err := d.Where("id = ?", gameId).First(&game).Error
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	office := c.Param("code")
+	newName := c.FormValue("name")
+	if newName == "" {
+		errs := views.FormErrors{"name": "Name is required"}
+		return render(c, http.StatusOK, views.EditGameForm(views.FormData{}, errs, office, game))
+	}
+	err = d.Model(&game).Where("id = ?", game.ID).Updates(map[string]interface{}{"name": newName}).Error
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	c.Response().Header().Set("HX-Redirect", fmt.Sprintf("/offices/%s/games/%s", office, gameId))
 	return c.NoContent(http.StatusOK)
 }

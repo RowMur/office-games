@@ -6,9 +6,18 @@ import (
 	"strconv"
 )
 
-templ CreateGamePage(officeCode string) {
-	<main class="grid place-items-center my-8">
-		@CreateGameForm(FormData{}, FormErrors{}, officeCode)
+templ CreateGamePage(office db.Office) {
+	<main class="mx-6 my-8">
+		{{
+			crumbs := []Crumb{
+				{Name: office.Name, URL: fmt.Sprintf("/offices/%s", office.Code)},
+				{Name: "Create Game", URL: fmt.Sprintf("/offices/%s/games/create", office.Code)},
+			}
+		}}
+		@Breadcrumbs(crumbs)
+		<section class="grid place-items-center my-8">
+			@CreateGameForm(FormData{}, FormErrors{}, office.Code)
+		</section>
 	</main>
 }
 
@@ -26,17 +35,20 @@ templ CreateGameForm(data FormData, errors FormErrors, officeCode string) {
 }
 
 templ GamePageHeading(game db.Game, office db.Office) {
-	<h2 class="text-2xl font-semibold my-2">{ game.Name } &#64; { office.Name }</h2>
+	<h2 class="text-2xl font-semibold my-2 inline-block">{ game.Name } &#64; { office.Name }</h2>
 }
 
-templ GamePageTabs(currentTab string, officeCode string, gameID uint) {
+templ GamePageTabs(currentTab string, office db.Office, game db.Game, user db.User) {
 	<ul class="flex flex-wrap gap-2">
 		{{
-				baseURL := fmt.Sprintf("/offices/%s/games/%s", officeCode, strconv.Itoa(int(gameID)))
+				baseURL := fmt.Sprintf("/offices/%s/games/%s", office.Code, strconv.Itoa(int(game.ID)))
 		}}
 		@GamePageTab(baseURL, "Overview", currentTab)
 		@GamePageTab(baseURL+"/play", "Play", currentTab)
 		@GamePageTab(baseURL+"/pending", "Pending Matches", currentTab)
+		if user.ID == office.AdminRefer {
+			@GamePageTab(baseURL+"/admin", "Admin", currentTab)
+		}
 	</ul>
 }
 
@@ -53,11 +65,11 @@ templ GamePageTab(href string, text string, currentTab string) {
 	</li>
 }
 
-templ GamePage(game db.Game, office db.Office, userWinLosses map[uint]WinLosses) {
+templ GamePage(game db.Game, office db.Office, userWinLosses map[uint]WinLosses, user db.User) {
 	<main class="mx-6 my-8">
 		@GamePageBreadcrumb(game, office)
 		@GamePageHeading(game, office)
-		@GamePageTabs("Overview", office.Code, game.ID)
+		@GamePageTabs("Overview", office, game, user)
 		<section class="my-6">
 			<h4 class="text-lg font-semibold mb-2">Rankings</h4>
 			@OfficeRankings(game.Rankings, userWinLosses)
@@ -128,11 +140,11 @@ templ OfficeRankings(rankings []db.Ranking, userWinLosses map[uint]WinLosses) {
 	</table>
 }
 
-templ PlayGamePage(game db.Game, office db.Office, players []db.User, endpoint string) {
+templ PlayGamePage(game db.Game, office db.Office, players []db.User, endpoint string, user db.User) {
 	<main class="mx-6 my-8">
 		@GamePageBreadcrumb(game, office)
 		@GamePageHeading(game, office)
-		@GamePageTabs("Play", office.Code, game.ID)
+		@GamePageTabs("Play", office, game, user)
 		<section class="my-6">
 			<h4 class="text-lg font-semibold mb-2">Play a Match</h4>
 			@PlayMatchForm(FormErrors{}, players, endpoint)
@@ -182,11 +194,11 @@ templ PlayMatchFormErrors(errors FormErrors) {
 	}
 }
 
-templ PendingMatchesPage(game db.Game, office db.Office, pendingMatches []db.Match) {
+templ PendingMatchesPage(game db.Game, office db.Office, pendingMatches []db.Match, user db.User) {
 	<main class="mx-6 my-8">
 		@GamePageBreadcrumb(game, office)
 		@GamePageHeading(game, office)
-		@GamePageTabs("Pending Matches", office.Code, game.ID)
+		@GamePageTabs("Pending Matches", office, game, user)
 		<section class="my-6">
 			<h4 class="text-lg font-semibold mb-2">Pending Matches</h4>
 			<ul class="flex flex-col gap-2">
@@ -303,4 +315,33 @@ templ PendingMatchPage(game db.Game, office db.Office, match db.Match) {
 			<button hx-get={ url } class="bg-accent text-light px-4 py-1 w-3/5 rounded my-4">Approve</button>
 		</div>
 	</main>
+}
+
+templ GameAdminPage(game db.Game, office db.Office, user db.User) {
+	<main class="mx-6 my-8">
+		@GamePageBreadcrumb(game, office)
+		<div class="flex gap-2 items-center">
+			@GamePageHeading(game, office)
+			<button hx-delete={ fmt.Sprintf("/offices/%s/games/%s", office.Code, strconv.Itoa(int(game.ID))) } class="bg-red-500 text-content h-fit rounded w-16">Delete</button>
+		</div>
+		@GamePageTabs("Admin", office, game, user)
+		<section class="my-8 grid place-items-center">
+			@EditGameForm(FormData{
+				"name": game.Name,
+			}, FormErrors{}, office.Code, game)
+		</section>
+	</main>
+}
+
+templ EditGameForm(data FormData, errors FormErrors, officeCode string, game db.Game) {
+	<form hx-post={ fmt.Sprintf("/offices/%s/games/%s", officeCode, strconv.Itoa(int(game.ID))) } hx-swap="outerHTML">
+		<label for="name" class="block">Name:</label>
+		<div class="flex gap-4">
+			<input id="name" name="name" type="text" value={ data["name"] } class="text-black grow" placeholder="The game..."/>
+		</div>
+		if errors["name"] != "" {
+			<p class="text-red-500">{ errors["name"] }</p>
+		}
+		<button type="submit" class="bg-accent text-light block mx-auto mt-2 w-16">Save</button>
+	</form>
 }

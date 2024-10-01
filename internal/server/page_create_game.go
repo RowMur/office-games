@@ -11,7 +11,13 @@ import (
 func createGameHandler(c echo.Context) error {
 	user := userFromContext(c)
 	officeCode := c.Param("code")
-	pageContent := views.CreateGamePage(officeCode)
+
+	office := db.Office{}
+	if err := db.GetDB().Where("code = ?", officeCode).First(&office).Error; err != nil {
+		return c.String(http.StatusNotFound, "Office not found")
+	}
+
+	pageContent := views.CreateGamePage(office)
 	return render(c, http.StatusOK, views.Page(pageContent, user))
 }
 

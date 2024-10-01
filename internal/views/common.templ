@@ -102,7 +102,7 @@ templ SectionHeading(title string, secondaryLink *SecondaryLink) {
 	<div class="flex justify-between">
 		<h3 class="text-lg font-semibold">{ title }</h3>
 		if secondaryLink != nil {
-			<a href={ templ.SafeURL(secondaryLink.URL) } class="opacity-70">{ secondaryLink.Name }</a>
+			<a href={ templ.SafeURL(secondaryLink.URL) } class="opacity-70 hover:underline">{ secondaryLink.Name }</a>
 		}
 	</div>
 }
