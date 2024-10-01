@@ -20,6 +20,9 @@ func gamesPageHandler(c echo.Context) error {
 	game := db.Game{}
 	err := d.Where("id = ?", gameId).
 		Preload("Office").
+		Preload("Rankings", func(db *gorm.DB) *gorm.DB {
+			return db.Order("Rankings.points DESC")
+		}).
 		Preload("Rankings.User").
 		Preload("Matches", "state NOT IN (?)", "pending").
 		Preload("Matches.Winners").
@@ -233,12 +236,14 @@ func pendingMatchPage(c echo.Context) error {
 
 func pendingMatchApproveHandler(c echo.Context) error {
 	user := userFromContext(c)
-	d := db.GetDB()
 
 	matchId, err := strconv.Atoi(c.Param("matchId"))
 	if err != nil {
 		return c.String(http.StatusBadRequest, "Invalid match ID")
 	}
+
+	d := db.GetDB()
+	tx := d.Begin()
 
 	approval := db.MatchApproval{
 		MatchID: uint(matchId),
@@ -246,34 +251,112 @@ func pendingMatchApproveHandler(c echo.Context) error {
 	}
 
 	var count int64
-	err = d.Model(approval).Where("match_id = ? AND user_id = ?", matchId, user.ID).Count(&count).Error
+	err = tx.Model(approval).Where("match_id = ? AND user_id = ?", matchId, user.ID).Count(&count).Error
 	if err != nil {
+		tx.Rollback()
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 	if count > 0 {
+		tx.Rollback()
 		return c.String(http.StatusBadRequest, "You have already approved this match")
 	}
 
-	err = d.Create(&approval).Error
+	err = tx.Create(&approval).Error
 	if err != nil {
+		tx.Rollback()
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	err = d.Preload("Match.Game.Office").Preload("Match.Winners").Preload("Match.Losers").Preload("Match.Approvals").Find(&approval, "id = ?", approval.ID).Error
+	err = tx.Preload("Match.Game.Office").
+		Preload("Match.Game.Rankings").
+		Preload("Match.Winners").
+		Preload("Match.Losers").
+		Preload("Match.Approvals").
+		Find(&approval, "id = ?", approval.ID).Error
 	if err != nil {
+		tx.Rollback()
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
 	if !approval.Match.IsApproved() {
+		tx.Commit()
 		c.Response().Header().Set("HX-Refresh", "true")
 		return c.NoContent(http.StatusOK)
 	}
 
-	err = d.Model(&db.Match{}).Where("id = ?", approval.Match.ID).Update("State", "approved").Error
+	err = tx.Model(&db.Match{}).Where("id = ?", approval.Match.ID).Update("State", "approved").Error
 	if err != nil {
+		tx.Rollback()
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
+	// Update the rankings of the players
+	const matchesWithDoublePoints = 20
+	queryForGameMatches := tx.Select("id").Where("game_id = ?", approval.Match.GameID).Table("matches")
+
+	for _, winner := range approval.Match.Winners {
+		var winCount, lossCount int64
+		tx.Table("match_winners").Where("user_id = ? AND match_id IN (?)", winner.ID, queryForGameMatches).Count(&winCount)
+		tx.Table("match_losers").Where("user_id = ? AND match_id IN (?)", winner.ID, queryForGameMatches).Count(&lossCount)
+
+		matchesPlayed := winCount + lossCount
+
+		var ranking db.Ranking
+		for _, r := range approval.Match.Game.Rankings {
+			if r.UserID == winner.ID {
+				ranking = r
+				break
+			}
+		}
+		if ranking.ID == 0 {
+			tx.Rollback()
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+
+		var newElo int
+		if matchesPlayed >= matchesWithDoublePoints {
+			newElo = ranking.Points + approval.Match.PointsValue
+		} else {
+			newElo = ranking.Points + (2 * approval.Match.PointsValue)
+		}
+
+		tx.Model(&ranking).Update("Points", newElo)
+	}
+
+	for _, loser := range approval.Match.Losers {
+		var winCount, lossCount int64
+		tx.Table("match_winners").Where("user_id = ? AND match_id IN (?)", loser.ID, queryForGameMatches).Count(&winCount)
+		tx.Table("match_losers").Where("user_id = ? AND match_id IN (?)", loser.ID, queryForGameMatches).Count(&lossCount)
+
+		matchesPlayed := winCount + lossCount
+
+		var ranking db.Ranking
+		for _, r := range approval.Match.Game.Rankings {
+			if r.UserID == loser.ID {
+				ranking = r
+				break
+			}
+		}
+		if ranking.ID == 0 {
+			tx.Rollback()
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+
+		var newElo int
+		if matchesPlayed >= matchesWithDoublePoints {
+			newElo = ranking.Points - approval.Match.PointsValue
+		} else {
+			newElo = ranking.Points - (2 * approval.Match.PointsValue)
+		}
+
+		if newElo < 200 {
+			newElo = 200
+		}
+
+		tx.Model(&ranking).Update("Points", newElo)
+	}
+
+	tx.Commit()
 	c.Response().Header().Set("HX-Redirect", fmt.Sprintf("/offices/%s/games/%d/pending", approval.Match.Game.Office.Code, approval.Match.GameID))
 	return c.NoContent(http.StatusOK)
 }
