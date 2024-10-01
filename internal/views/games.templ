@@ -320,12 +320,9 @@ templ PendingMatchPage(game db.Game, office db.Office, match db.Match) {
 templ GameAdminPage(game db.Game, office db.Office, user db.User) {
 	<main class="mx-6 my-8">
 		@GamePageBreadcrumb(game, office)
-		<div class="flex gap-2 items-center">
-			@GamePageHeading(game, office)
-			<button hx-delete={ fmt.Sprintf("/offices/%s/games/%s", office.Code, strconv.Itoa(int(game.ID))) } class="bg-red-500 text-content h-fit rounded w-16">Delete</button>
-		</div>
+		@GamePageHeading(game, office)
 		@GamePageTabs("Admin", office, game, user)
-		<section class="my-8 grid place-items-center">
+		<section class="my-8">
 			@EditGameForm(FormData{
 				"name": game.Name,
 			}, FormErrors{}, office.Code, game)
@@ -342,6 +339,9 @@ templ EditGameForm(data FormData, errors FormErrors, officeCode string, game db.
 		if errors["name"] != "" {
 			<p class="text-red-500">{ errors["name"] }</p>
 		}
-		<button type="submit" class="bg-accent text-light block mx-auto mt-2 w-16">Save</button>
+		<div class="flex justify-between mt-4">
+			<button hx-delete={ fmt.Sprintf("/offices/%s/games/%s", officeCode, strconv.Itoa(int(game.ID))) } class="bg-red-500 text-content h-fit rounded w-16">Delete</button>
+			<button type="submit" class="bg-accent text-light block w-16 rounded">Save</button>
+		</div>
 	</form>
 }
