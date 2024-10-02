@@ -1,14 +1,13 @@
 package server
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/RowMur/office-games/internal/db"
+	"github.com/RowMur/office-games/internal/token"
 	"github.com/RowMur/office-games/internal/views"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
 
 func signInHandler(c echo.Context) error {
@@ -33,7 +32,7 @@ func signInFormHandler(c echo.Context) error {
 
 	user := &db.User{}
 	err := db.GetDB().Where("username = ?", username).First(user).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
+	if db.IsRecordNotFoundError(err) {
 		data := views.FormData{"username": username}
 		errs := views.FormErrors{"username": "User not found"}
 		return render(c, http.StatusOK, views.SignInForm(data, errs))
@@ -48,7 +47,7 @@ func signInFormHandler(c echo.Context) error {
 		return render(c, http.StatusOK, views.SignInForm(data, errs))
 	}
 
-	token, err := generateToken(int(user.ID))
+	token, err := token.GenerateToken(user.ID, token.AuthenticationToken)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}

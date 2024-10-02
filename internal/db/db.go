@@ -1,6 +1,7 @@
 package db
 
 import (
+	"errors"
 	"log"
 	"os"
 
@@ -35,4 +36,8 @@ func Init() {
 
 func GetDB() *gorm.DB {
 	return databaseSingleton.db
+}
+
+func IsRecordNotFoundError(err error) bool {
+	return errors.Is(err, gorm.ErrRecordNotFound)
 }

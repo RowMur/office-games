@@ -1,14 +1,12 @@
 package server
 
 import (
-	"errors"
 	"fmt"
 	"net/http"
 
 	"github.com/RowMur/office-games/internal/db"
 	"github.com/RowMur/office-games/internal/views"
 	"github.com/labstack/echo/v4"
-	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
@@ -20,7 +18,7 @@ func officeHandler(c echo.Context) error {
 		Preload(clause.Associations).
 		First(office).Error
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+		if db.IsRecordNotFoundError(err) {
 			return c.String(http.StatusNotFound, "Office not found")
 		}
 
@@ -53,7 +51,7 @@ func joinOfficeHandler(c echo.Context) error {
 	office := &db.Office{}
 	err := db.GetDB().Where("code = ?", officeCode).Preload("Players").Preload("Games").First(office).Error
 	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
+		if db.IsRecordNotFoundError(err) {
 			data := views.FormData{"office": officeCode}
 			errs := views.FormErrors{"office": "Office not found"}
 			return render(c, http.StatusNotFound, views.JoinOfficeForm(data, errs))
