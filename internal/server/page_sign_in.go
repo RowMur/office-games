@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/RowMur/office-games/internal/db"
+	"github.com/RowMur/office-games/internal/token"
 	"github.com/RowMur/office-games/internal/views"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
@@ -48,7 +49,7 @@ func signInFormHandler(c echo.Context) error {
 		return render(c, http.StatusOK, views.SignInForm(data, errs))
 	}
 
-	token, err := generateToken(int(user.ID))
+	token, err := token.GenerateToken(user.ID, token.AuthenticationToken)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}

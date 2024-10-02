@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/RowMur/office-games/internal/db"
+	"github.com/RowMur/office-games/internal/token"
 	"github.com/RowMur/office-games/internal/views"
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/labstack/echo/v4"
@@ -79,7 +80,7 @@ func createAccountFormHandler(c echo.Context) error {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
 
-	token, err := generateToken(int(user.ID))
+	token, err := token.GenerateToken(user.ID, token.AuthenticationToken)
 	if err != nil {
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 	}
