@@ -1,7 +1,6 @@
 package server
 
 import (
-	"errors"
 	"net/http"
 
 	"github.com/RowMur/office-games/internal/db"
@@ -9,7 +8,6 @@ import (
 	"github.com/RowMur/office-games/internal/views"
 	"github.com/labstack/echo/v4"
 	"golang.org/x/crypto/bcrypt"
-	"gorm.io/gorm"
 )
 
 func signInHandler(c echo.Context) error {
@@ -34,7 +32,7 @@ func signInFormHandler(c echo.Context) error {
 
 	user := &db.User{}
 	err := db.GetDB().Where("username = ?", username).First(user).Error
-	if errors.Is(err, gorm.ErrRecordNotFound) {
+	if db.IsRecordNotFoundError(err) {
 		data := views.FormData{"username": username}
 		errs := views.FormErrors{"username": "User not found"}
 		return render(c, http.StatusOK, views.SignInForm(data, errs))

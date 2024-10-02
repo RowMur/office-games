@@ -90,3 +90,8 @@ func enforceAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 		return next(c)
 	}
 }
+
+func sendForgotPasswordEmail(user *db.User) error {
+	// Send email to user.Email with a link to reset password
+	return nil
+}
