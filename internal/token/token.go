@@ -42,12 +42,13 @@ func GenerateToken(userId uint, tokenKind TokenKind) (string, error) {
 	return token.SignedString([]byte(secret))
 }
 
-type parseTokenResponse struct {
+type Token struct {
+	String     string
 	UserId     uint
 	HasExpired bool
 }
 
-func ParseToken(tokenString string) (*parseTokenResponse, error) {
+func ParseToken(tokenString string) (*Token, error) {
 	secret := os.Getenv("JWT_SECRET")
 	token, err := jwt.ParseWithClaims(tokenString, &jwt.RegisteredClaims{}, func(t *jwt.Token) (interface{}, error) {
 		return []byte(secret), nil
@@ -69,7 +70,7 @@ func ParseToken(tokenString string) (*parseTokenResponse, error) {
 		return nil, errors.New("invalid token, could not parse")
 	}
 	if tokenExp.Time.Unix() < time.Now().UTC().Unix() {
-		return &parseTokenResponse{HasExpired: true}, nil
+		return &Token{HasExpired: true, String: tokenString}, nil
 	}
 
 	userId, err := token.Claims.GetSubject()
@@ -82,5 +83,5 @@ func ParseToken(tokenString string) (*parseTokenResponse, error) {
 		return nil, errors.New("error parsing token")
 	}
 
-	return &parseTokenResponse{UserId: uint(intUserId), HasExpired: false}, nil
+	return &Token{UserId: uint(intUserId), HasExpired: false, String: tokenString}, nil
 }

@@ -30,6 +30,9 @@ func (s *Server) Run() {
 	e.GET("/forgot-password", enforceSignedOut(forgotPasswordPage))
 	e.POST("/forgot-password", enforceSignedOut(forgotPasswordFormHandler))
 
+	e.GET("/reset-password", enforceSignedOut(resetPasswordTokenMiddleware(resetPasswordPage)))
+	e.POST("/reset-password", enforceSignedOut(resetPasswordTokenMiddleware(resetPasswordFormHandler)))
+
 	e.GET("/offices/:code", authMiddleware(officeHandler))
 	e.POST("/offices/join", authMiddleware(joinOfficeHandler))
 	e.POST("/offices/create", authMiddleware(createOfficeHandler))
