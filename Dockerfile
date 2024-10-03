@@ -19,6 +19,8 @@ COPY internal/assets/input.css ./internal/assets/
 COPY internal/views/*.templ ./internal/views/
 RUN npm run build-styles
 
+COPY internal/assets/ ./internal/assets/
+
 FROM golang:1.23-alpine AS go-runner
 
 COPY --from=asset-builder /app/internal/assets/ ./internal/assets/
