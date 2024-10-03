@@ -1,17 +1,15 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
-  content: [],
+  content: ["./internal/views/**/*.templ"],
   theme: {
-    theme: {
       extend: {
         colors: {
           back: "#2D3250",
           light: "#424769",
-          content: "slate-200",
-          accent: "#F6B17A"
+          content: "#E2E8F0",
+          accent: "#F6B17A",
         }
       }
-    }
   },
   plugins: [],
 }

@@ -1,0 +1,8 @@
+{
+  "scripts": {
+    "build-styles": "tailwindcss -i ./internal/assets/input.css -o ./internal/assets/output.css --minify"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.13"
+  }
+}

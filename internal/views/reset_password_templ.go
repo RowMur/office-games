@@ -145,7 +145,7 @@ func ResetPasswordSuccess() templ.Component {
 			templ_7745c5c3_Var5 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<p class=\"text-center\">Password reset successfully</p><a href=\"/sign-in\" class=\"opacity-70 hover:underline text-center\">Sign in</a>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<p class=\"text-center\">Password reset successfully</p><a href=\"/sign-in\" class=\"opacity-70 hover:underline text-center block\">Sign in</a>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
