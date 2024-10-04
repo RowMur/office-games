@@ -436,7 +436,7 @@ func OfficeRankings(rankings []db.Ranking, userWinLosses map[uint]WinLosses) tem
 			templ_7745c5c3_Var15 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<table id=\"office-ranking\" class=\"w-full\"><thead class=\"\"><tr class=\"[&amp;&gt;th]:text-left\"><th class=\"my-4\">Player</th><th class=\"my-4\">Wins</th><th class=\"my-4\">Losses</th><th class=\"my-4 hidden sm:block\">%</th><th class=\"my-4\">Points</th></tr></thead> <tbody>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<table id=\"office-ranking\" class=\"w-full\"><thead class=\"\"><tr class=\"[&amp;&gt;th]:text-left\"><th>Player</th><th>Wins</th><th>Losses</th><th class=\"hidden sm:block\">%</th><th>Points</th></tr></thead> <tbody>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
