@@ -24,7 +24,9 @@ func gamesPageHandler(c echo.Context) error {
 			return db.Order("Rankings.points DESC")
 		}).
 		Preload("Rankings.User").
-		Preload("Matches", "state NOT IN (?)", "pending").
+		Preload("Matches", "state NOT IN (?)", "pending", func(db *gorm.DB) *gorm.DB {
+			return db.Order("created_at DESC")
+		}).
 		Preload("Matches.Winners").
 		Preload("Matches.Losers").
 		First(&game).Error

@@ -74,33 +74,22 @@ templ GamePage(game db.Game, office db.Office, userWinLosses map[uint]WinLosses,
 			<h4 class="text-lg font-semibold mb-2">Rankings</h4>
 			@OfficeRankings(game.Rankings, userWinLosses)
 		</section>
-		// if len(game.Matches) > 0 {
-		// 	<section class="my-6">
-		// 		<h4 class="text-lg font-semibold mb-2">Recent Matches</h4>
-		// 		<div class="flex flex-col gap-2">
-		// 			for i, match := range game.Matches {
-		// 				if i >= 5 {
-		// 					break
-		// 				}
-		// 				<div class="bg-light rounded">
-		// 					<div class="grid grid-cols-7 p-4 gap-3">
-		// 						<div class="text-center">
-		// 							<p class="font-semibold">W</p>
-		// 						</div>
-		// 						<div class="col-span-3">
-		// 							<p class="font-semibold">{ match.Winner.Username }</p>
-		// 							<p>{ match.Loser.Username }</p>
-		// 						</div>
-		// 						<div class="col-span-3">
-		// 							<p>{ fmt.Sprintf("%d +%d", match.WinnerStartingPoints, match.WinnerGainedPoints) }</p>
-		// 							<p>{ fmt.Sprintf("%d -%d", match.LoserStartingPoints, match.LoserLostPoints) }</p>
-		// 						</div>
-		// 					</div>
-		// 				</div>
-		// 			}
-		// 		</div>
-		// 	</section>
-		// }
+		<section class="my-6">
+			<h4 class="text-lg font-semibold mb-2">Recent Matches</h4>
+			if len(game.Matches) == 0 {
+				<p>No matches have been played yet. Go and play some { game.Name }!</p>
+			} else {
+				<ul class="flex flex-col gap-2">
+					{{
+						nOfMatchesToShow := 5
+						matchesToShow := game.Matches[0:nOfMatchesToShow]
+					}}
+					for _, match := range matchesToShow {
+						@Match(match, false)
+					}
+				</ul>
+			}
+		</section>
 	</main>
 }
 
@@ -113,11 +102,11 @@ templ OfficeRankings(rankings []db.Ranking, userWinLosses map[uint]WinLosses) {
 	<table id="office-ranking" class="w-full">
 		<thead class="">
 			<tr class="[&>th]:text-left">
-				<th class="py-4">Player</th>
-				<th class="py-4">Wins</th>
-				<th class="py-4">Losses</th>
-				<th class="py-4 hidden sm:block">%</th>
-				<th class="py-4">Points</th>
+				<th class="my-4">Player</th>
+				<th class="my-4">Wins</th>
+				<th class="my-4">Losses</th>
+				<th class="my-4 hidden sm:block">%</th>
+				<th class="my-4">Points</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -201,53 +190,17 @@ templ PendingMatchesPage(game db.Game, office db.Office, pendingMatches []db.Mat
 		@GamePageTabs("Pending Matches", office, game, user)
 		<section class="my-6">
 			<h4 class="text-lg font-semibold mb-2">Pending Matches</h4>
-			<ul class="flex flex-col gap-2">
-				for _, match := range pendingMatches {
-					<a href={ templ.SafeURL(fmt.Sprintf("/offices/%s/games/%s/pending/%s", office.Code, strconv.Itoa(int(game.ID)), strconv.Itoa(int(match.ID)))) }>
-						<li class="bg-light rounded">
-							<div class="grid grid-cols-7 p-4 gap-3">
-								<div class="text-center">
-									<p class="font-semibold">W</p>
-								</div>
-								<div class="col-span-3">
-									<p class="font-semibold">
-										for i, winner := range match.Winners {
-											if i > 0 {
-												, 
-											}
-											{ winner.Username }
-										}
-									</p>
-									<p>
-										for i, loser := range match.Losers {
-											if i > 0 {
-												, 
-											}
-											{ loser.Username }
-										}
-									</p>
-								</div>
-								<div class="col-span-3">
-									<p class="opacity-70">
-										if match.IsApprovedByWinners() {
-											Approved
-										} else {
-											Needs Approval
-										}
-									</p>
-									<p class="opacity-70">
-										if match.IsApprovedByLosers() {
-											Approved
-										} else {
-											Needs Approval
-										}
-									</p>
-								</div>
-							</div>
-						</li>
-					</a>
-				}
-			</ul>
+			if len(pendingMatches) == 0 {
+				<p>No matches are pending approval. Go and play some { game.Name }!</p>
+			} else {
+				<ul class="flex flex-col gap-2">
+					for _, match := range pendingMatches {
+						<a href={ templ.SafeURL(fmt.Sprintf("/offices/%s/games/%s/pending/%s", office.Code, strconv.Itoa(int(game.ID)), strconv.Itoa(int(match.ID)))) }>
+							@Match(match, true)
+						</a>
+					}
+				</ul>
+			}
 		</section>
 	</main>
 }
@@ -344,4 +297,66 @@ templ EditGameForm(data FormData, errors FormErrors, officeCode string, game db.
 			<button type="submit" class="bg-accent text-light block w-16 rounded">Save</button>
 		</div>
 	</form>
+}
+
+templ ListOfUsers(users []db.User) {
+	for i, user := range users {
+		if i > 0 {
+			, 
+		}
+		{ user.Username }
+	}
+}
+
+templ Match(match db.Match, showApprovalState bool) {
+	<li class="bg-light rounded p-4">
+		<div class="flex gap-3">
+			<div class="text-center">
+				<p class="font-semibold">W</p>
+			</div>
+			<div class="min-w-0 grow">
+				@MatchPlayerList(match.Winners, true)
+				@MatchPlayerList(match.Losers, false)
+			</div>
+			if showApprovalState {
+				<div>
+					@MatchApprovalState(match.IsApprovedByWinners())
+					@MatchApprovalState(match.IsApprovedByLosers())
+				</div>
+			}
+		</div>
+		<p class="opacity-70 mt-2 flex gap-2 text-xs">
+			<span>
+				{ match.CreatedAt.Format("02/01/06") }
+			</span>
+			<span>
+				Exp: { fmt.Sprintf("%.2f", match.ExpectedScore * 100) }%
+			</span>
+			<span>
+				&pm;{ fmt.Sprintf("%d", match.PointsValue) } elo
+			</span>
+		</p>
+	</li>
+}
+
+templ MatchPlayerList(players []db.User, isWinners bool) {
+	{{
+		class := "text-ellipsis text-nowrap overflow-hidden"
+		if isWinners {
+			class += " font-semibold"
+		}
+	}}
+	<p class={ class }>
+		@ListOfUsers(players)
+	</p>
+}
+
+templ MatchApprovalState(isApproved bool) {
+	<p class="text-ellipsis text-nowrap overflow-hidden text-right">
+		if isApproved {
+			Approved
+		} else {
+			Pending
+		}
+	</p>
 }
