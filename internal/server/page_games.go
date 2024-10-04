@@ -185,7 +185,7 @@ func gamesPlayFormHandler(c echo.Context) error {
 	}
 
 	tx.Commit()
-	gameHome := fmt.Sprintf("/offices/%s/games/%s", game.Office.Code, gameId)
+	gameHome := fmt.Sprintf("/offices/%s/games/%s/pending/%d", game.Office.Code, gameId, match.ID)
 	c.Response().Header().Set("HX-Redirect", gameHome)
 	return c.NoContent(http.StatusOK)
 }
@@ -241,7 +241,7 @@ func pendingMatchApproveHandler(c echo.Context) error {
 
 	matchId, err := strconv.Atoi(c.Param("matchId"))
 	if err != nil {
-		return c.String(http.StatusBadRequest, "Invalid match ID")
+		return render(c, http.StatusOK, views.MatchApproveError("Invalid match ID"))
 	}
 
 	d := db.GetDB()
@@ -256,17 +256,17 @@ func pendingMatchApproveHandler(c echo.Context) error {
 	err = tx.Model(approval).Where("match_id = ? AND user_id = ?", matchId, user.ID).Count(&count).Error
 	if err != nil {
 		tx.Rollback()
-		return c.String(http.StatusInternalServerError, err.Error())
+		return render(c, http.StatusOK, views.MatchApproveError(err.Error()))
 	}
 	if count > 0 {
 		tx.Rollback()
-		return c.String(http.StatusBadRequest, "You have already approved this match")
+		return render(c, http.StatusOK, views.MatchApproveError("You have already approved this match"))
 	}
 
 	err = tx.Create(&approval).Error
 	if err != nil {
 		tx.Rollback()
-		return c.String(http.StatusInternalServerError, err.Error())
+		return render(c, http.StatusOK, views.MatchApproveError(err.Error()))
 	}
 
 	err = tx.Preload("Match.Game.Office").
@@ -277,7 +277,7 @@ func pendingMatchApproveHandler(c echo.Context) error {
 		Find(&approval, "id = ?", approval.ID).Error
 	if err != nil {
 		tx.Rollback()
-		return c.String(http.StatusInternalServerError, err.Error())
+		return render(c, http.StatusOK, views.MatchApproveError(err.Error()))
 	}
 
 	if !approval.Match.IsApproved() {
@@ -289,7 +289,7 @@ func pendingMatchApproveHandler(c echo.Context) error {
 	err = tx.Model(&db.Match{}).Where("id = ?", approval.Match.ID).Update("State", "approved").Error
 	if err != nil {
 		tx.Rollback()
-		return c.String(http.StatusInternalServerError, err.Error())
+		return render(c, http.StatusOK, views.MatchApproveError(err.Error()))
 	}
 
 	// Update the rankings of the players
@@ -312,7 +312,7 @@ func pendingMatchApproveHandler(c echo.Context) error {
 		}
 		if ranking.ID == 0 {
 			tx.Rollback()
-			return c.String(http.StatusInternalServerError, err.Error())
+			return render(c, http.StatusOK, views.MatchApproveError("Player not recognised"))
 		}
 
 		var newElo int
@@ -322,7 +322,11 @@ func pendingMatchApproveHandler(c echo.Context) error {
 			newElo = ranking.Points + (2 * approval.Match.PointsValue)
 		}
 
-		tx.Model(&ranking).Update("Points", newElo)
+		err = tx.Model(&ranking).Update("Points", newElo).Error
+		if err != nil {
+			tx.Rollback()
+			return render(c, http.StatusOK, views.MatchApproveError("Error updating rankings"))
+		}
 	}
 
 	for _, loser := range approval.Match.Losers {
@@ -341,7 +345,7 @@ func pendingMatchApproveHandler(c echo.Context) error {
 		}
 		if ranking.ID == 0 {
 			tx.Rollback()
-			return c.String(http.StatusInternalServerError, err.Error())
+			return render(c, http.StatusOK, views.MatchApproveError("Player not recognised"))
 		}
 
 		var newElo int
@@ -355,7 +359,11 @@ func pendingMatchApproveHandler(c echo.Context) error {
 			newElo = 200
 		}
 
-		tx.Model(&ranking).Update("Points", newElo)
+		err = tx.Model(&ranking).Update("Points", newElo).Error
+		if err != nil {
+			tx.Rollback()
+			return render(c, http.StatusOK, views.MatchApproveError("Error updating rankings"))
+		}
 	}
 
 	tx.Commit()

@@ -265,9 +265,21 @@ templ PendingMatchPage(game db.Game, office db.Office, match db.Match) {
 			{{ url := fmt.Sprintf("/offices/%s/games/%s/pending/%s/approve", office.Code, strconv.Itoa(int(game.ID)), strconv.Itoa(int(match.ID))) }}
 		</div>
 		<div class="flex justify-center">
-			<button hx-get={ url } class="bg-accent text-light px-4 py-1 w-3/5 rounded my-4">Approve</button>
+			<button hx-get={ url } hx-swap="none" class="bg-accent text-light px-4 py-1 w-3/5 rounded my-4">Approve</button>
 		</div>
+		@MatchApproveError("")
 	</main>
+}
+
+templ MatchApproveError(err string) {
+	{{
+		id := "approve-error"
+	}}
+	<div id={ id } hx-swap-oob="true" hx-select={ id }>
+		if err != "" {
+			<p class="text-red-500 text-center">{ err }</p>
+		}
+	</div>
 }
 
 templ GameAdminPage(game db.Game, office db.Office, user db.User) {
