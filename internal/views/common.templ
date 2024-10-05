@@ -27,8 +27,9 @@ templ Page(contents templ.Component, user *db.User) {
 			@Heading(user)
 			@contents
 			<hr/>
-			<footer class="text-center py-4">
-				<p>
+			<footer class="py-4 flex justify-center gap-4">
+				<a href="/faqs" class="underline text-accent">FAQs</a>
+				<p class="w-fit">
 					Found an issue? <a href="https://github.com/RowMur/office-games/issues" class="underline text-accent">Report</a>
 				</p>
 			</footer>

@@ -19,6 +19,8 @@ func (s *Server) Run() {
 	officeAdmin := e.Group("", enforceAdmin)
 
 	e.GET("/", pageHandler)
+	e.GET("/faqs", faqPageHandler)
+
 	e.Static("/static", "internal/assets")
 	e.Static("/", "internal/assets/favicon_io")
 
