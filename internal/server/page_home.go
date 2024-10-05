@@ -10,7 +10,8 @@ import (
 func pageHandler(c echo.Context) error {
 	user := userFromContext(c)
 	if user == nil {
-		return c.Redirect(http.StatusTemporaryRedirect, "/sign-in")
+		pageContent := views.LoggedOutHomepage()
+		return render(c, http.StatusOK, views.Page(pageContent, nil))
 	}
 
 	userHasOffices := len(user.Offices) > 0

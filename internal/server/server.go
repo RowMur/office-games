@@ -18,8 +18,9 @@ func (s *Server) Run() {
 	signedOut := e.Group("", enforceSignedOut)
 	officeAdmin := e.Group("", enforceAdmin)
 
-	signedIn.GET("/", pageHandler)
+	e.GET("/", pageHandler)
 	e.Static("/static", "internal/assets")
+	e.Static("/", "internal/assets/favicon_io")
 
 	signedIn.GET("/me", mePageHandler)
 	signedIn.POST("/me", meUpdateHandler)
