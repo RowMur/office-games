@@ -60,13 +60,20 @@ func (o *Office) AfterCreate(tx *gorm.DB) (err error) {
 	return
 }
 
+const (
+	GameTypeHeadToHead = "head_to_head"
+)
+
 type Game struct {
 	gorm.Model
-	Name     string
-	OfficeID uint
-	Office   Office
-	Rankings []Ranking
-	Matches  []Match
+	Name            string
+	OfficeID        uint
+	Office          Office
+	Rankings        []Ranking
+	Matches         []Match
+	Type            string `gorm:"default:'head_to_head'"`
+	MinParticipants int    `gorm:"default:1"`
+	MaxParticipants int    `gorm:"default:2"`
 }
 
 func (g *Game) AfterCreate(tx *gorm.DB) (err error) {

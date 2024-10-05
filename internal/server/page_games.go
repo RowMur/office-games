@@ -82,16 +82,19 @@ func gamesPlayFormHandler(c echo.Context) error {
 	winners := c.Request().Form["Winners"]
 	losers := c.Request().Form["Losers"]
 
-	if len(winners) == 0 || len(losers) == 0 {
+	winnersSatisfiesGameConfig := len(winners) >= game.MinParticipants && len(winners) <= game.MaxParticipants
+	losersSatisfiesGameConfig := len(losers) >= game.MinParticipants && len(losers) <= game.MaxParticipants
+
+	if !(winnersSatisfiesGameConfig && losersSatisfiesGameConfig) {
 		errs := views.FormErrors{
 			"Winners": "",
 			"Losers":  "",
 		}
-		if len(winners) == 0 {
-			errs["Winners"] = "Winners must be selected"
+		if !winnersSatisfiesGameConfig {
+			errs["Winners"] = fmt.Sprintf("There must be between %d and %d winners selected", game.MinParticipants, game.MaxParticipants)
 		}
-		if len(losers) == 0 {
-			errs["Losers"] = "Losers must be selected"
+		if !losersSatisfiesGameConfig {
+			errs["Losers"] = fmt.Sprintf("There must be between %d and %d losers selected", game.MinParticipants, game.MaxParticipants)
 		}
 		return render(c, http.StatusOK, views.PlayMatchFormErrors(errs))
 	}
@@ -412,15 +415,42 @@ func editGameHandler(c echo.Context) error {
 
 	office := c.Param("code")
 	newName := c.FormValue("name")
+	newMinParticipants := c.FormValue("min-participants")
+	newMaxParticipants := c.FormValue("max-participants")
+
+	formData := views.FormData{
+		"name":             newName,
+		"min-participants": newMinParticipants,
+		"max-participants": newMaxParticipants,
+	}
+
 	if newName == "" {
 		errs := views.FormErrors{"name": "Name is required"}
-		return render(c, http.StatusOK, views.EditGameForm(views.FormData{}, errs, office, game))
+		return render(c, http.StatusOK, views.EditGameForm(formData, errs, office, game))
 	}
-	err = d.Model(&game).Where("id = ?", game.ID).Updates(map[string]interface{}{"name": newName}).Error
+
+	minParticipants, err := strconv.Atoi(newMinParticipants)
+	if err != nil {
+		errs := views.FormErrors{"min-participants": "Min participants must be a number"}
+		return render(c, http.StatusOK, views.EditGameForm(formData, errs, office, game))
+	}
+
+	maxParticipants, err := strconv.Atoi(newMaxParticipants)
+	if err != nil {
+		errs := views.FormErrors{"max-participants": "Max participants must be a number"}
+		return render(c, http.StatusOK, views.EditGameForm(formData, errs, office, game))
+	}
+
+	if minParticipants > maxParticipants {
+		errs := views.FormErrors{"min-participants": "Min participants must be less than max participants"}
+		return render(c, http.StatusOK, views.EditGameForm(formData, errs, office, game))
+	}
+
+	err = d.Model(&game).Where("id = ?", game.ID).Updates(map[string]interface{}{"name": newName, "min_participants": minParticipants, "max_participants": maxParticipants}).Error
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	c.Response().Header().Set("HX-Redirect", fmt.Sprintf("/offices/%s/games/%s", office, gameId))
+	c.Response().Header().Set("HX-Refresh", "true")
 	return c.NoContent(http.StatusOK)
 }

@@ -289,7 +289,9 @@ templ GameAdminPage(game db.Game, office db.Office, user db.User) {
 		@GamePageTabs("Admin", office, game, user)
 		<section class="my-8">
 			@EditGameForm(FormData{
-				"name": game.Name,
+				"name":             game.Name,
+				"min-participants": strconv.Itoa(game.MinParticipants),
+				"max-participants": strconv.Itoa(game.MaxParticipants),
 			}, FormErrors{}, office.Code, game)
 		</section>
 	</main>
@@ -304,6 +306,26 @@ templ EditGameForm(data FormData, errors FormErrors, officeCode string, game db.
 		if errors["name"] != "" {
 			<p class="text-red-500">{ errors["name"] }</p>
 		}
+		<div class="flex gap-4">
+			<div class="w-1/2 min-w-0">
+				<label for="min-participants" class="block">Minimum team size:</label>
+				<div class="flex gap-4">
+					<input id="min-participants" name="min-participants" type="number" min="0" max="100" value={ data["min-participants"] } class="text-black min-w-0 grow"/>
+				</div>
+				if errors["min-participants"] != "" {
+					<p class="text-red-500">{ errors["min-participants"] }</p>
+				}
+			</div>
+			<div class="w-1/2 min-w-0">
+				<label for="max-participants" class="block">Maximum team size:</label>
+				<div class="flex gap-4">
+					<input id="max-participants" name="max-participants" type="number" min="0" max="100" value={ data["max-participants"] } class="text-black min-w-0 grow"/>
+				</div>
+				if errors["max-participants"] != "" {
+					<p class="text-red-500">{ errors["max-participants"] }</p>
+				}
+			</div>
+		</div>
 		<div class="flex justify-between mt-4">
 			<button hx-delete={ fmt.Sprintf("/offices/%s/games/%s", officeCode, strconv.Itoa(int(game.ID))) } class="bg-red-500 text-content h-fit rounded w-16">Delete</button>
 			<button type="submit" class="bg-accent text-light block w-16 rounded">Save</button>
