@@ -27,7 +27,7 @@ func officeHandler(c echo.Context) error {
 
 	user := userFromContext(c)
 	if user == nil {
-		return c.Redirect(http.StatusUnauthorized, "/sign-in")
+		return c.Redirect(http.StatusTemporaryRedirect, "/sign-in")
 	}
 
 	selectedGame := office.Games[0]
@@ -39,7 +39,7 @@ func officeHandler(c echo.Context) error {
 func joinOfficeHandler(c echo.Context) error {
 	user := userFromContext(c)
 	if user == nil {
-		return c.Redirect(http.StatusUnauthorized, "/sign-in")
+		return c.Redirect(http.StatusTemporaryRedirect, "/sign-in")
 	}
 
 	officeCode := c.FormValue("office")
@@ -95,7 +95,7 @@ func joinOfficeHandler(c echo.Context) error {
 func createOfficeHandler(c echo.Context) error {
 	user := userFromContext(c)
 	if user == nil {
-		return c.Redirect(http.StatusUnauthorized, "/sign-in")
+		return c.Redirect(http.StatusTemporaryRedirect, "/sign-in")
 	}
 
 	officeName := c.FormValue("office")

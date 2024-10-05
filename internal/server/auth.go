@@ -27,15 +27,14 @@ func authMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		authCookie, err := c.Request().Cookie("auth")
 		if err != nil && err != http.ErrNoCookie {
-			fmt.Println("authMiddleware error", err.Error())
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
 		if authCookie == nil {
-			return c.Redirect(http.StatusTemporaryRedirect, "/sign-in")
+			return next(c)
 		}
 
 		if authCookie.Value == "" {
-			return c.Redirect(http.StatusTemporaryRedirect, "/sign-in")
+			return next(c)
 		}
 
 		token, err := token.ParseToken(authCookie.Value)
@@ -56,15 +55,19 @@ func authMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
+func enforceSignedIn(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		if userFromContext(c) == nil {
+			return c.Redirect(http.StatusTemporaryRedirect, "/sign-in")
+		}
+		return next(c)
+	}
+}
+
 func enforceSignedOut(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		authCookie, err := c.Request().Cookie("auth")
-		if err != nil && err != http.ErrNoCookie {
-			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-		}
-
-		if authCookie != nil {
-			return c.Redirect(http.StatusFound, "/")
+		if userFromContext(c) != nil {
+			return c.Redirect(http.StatusTemporaryRedirect, "/")
 		}
 		return next(c)
 	}

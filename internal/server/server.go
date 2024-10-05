@@ -13,45 +13,50 @@ func NewServer() *Server {
 func (s *Server) Run() {
 	e := echo.New()
 
-	e.GET("/", authMiddleware(pageHandler))
+	e.Use(authMiddleware)
+	signedIn := e.Group("", enforceSignedIn)
+	signedOut := e.Group("", enforceSignedOut)
+	officeAdmin := e.Group("", enforceAdmin)
+
+	signedIn.GET("/", pageHandler)
 	e.Static("/static", "internal/assets")
 
-	e.GET("/me", authMiddleware(mePageHandler))
-	e.POST("/me", authMiddleware(meUpdateHandler))
+	signedIn.GET("/me", mePageHandler)
+	signedIn.POST("/me", meUpdateHandler)
 
-	e.GET("/sign-in", enforceSignedOut(signInHandler))
-	e.POST("/sign-in", enforceSignedOut(signInFormHandler))
+	signedOut.GET("/sign-in", signInHandler)
+	signedOut.POST("/sign-in", signInFormHandler)
 
-	e.GET("/create-account", enforceSignedOut(createAccountPageHandler))
-	e.POST("/create-account", enforceSignedOut(createAccountFormHandler))
+	signedOut.GET("/create-account", createAccountPageHandler)
+	signedOut.POST("/create-account", createAccountFormHandler)
 
 	e.GET("/sign-out", signOut)
 
-	e.GET("/forgot-password", enforceSignedOut(forgotPasswordPage))
-	e.POST("/forgot-password", enforceSignedOut(forgotPasswordFormHandler))
+	signedOut.GET("/forgot-password", forgotPasswordPage)
+	signedOut.POST("/forgot-password", forgotPasswordFormHandler)
 
-	e.GET("/reset-password", enforceSignedOut(resetPasswordTokenMiddleware(resetPasswordPage)))
-	e.POST("/reset-password", enforceSignedOut(resetPasswordTokenMiddleware(resetPasswordFormHandler)))
+	signedOut.GET("/reset-password", resetPasswordTokenMiddleware(resetPasswordPage))
+	signedOut.POST("/reset-password", resetPasswordTokenMiddleware(resetPasswordFormHandler))
 
-	e.GET("/offices/:code", authMiddleware(officeHandler))
-	e.POST("/offices/join", authMiddleware(joinOfficeHandler))
-	e.POST("/offices/create", authMiddleware(createOfficeHandler))
+	signedIn.GET("/offices/:code", officeHandler)
+	signedIn.POST("/offices/join", joinOfficeHandler)
+	signedIn.POST("/offices/create", createOfficeHandler)
 
-	e.GET("/offices/:code/games/:id", authMiddleware(gamesPageHandler))
-	e.GET("/offices/:code/games/create", authMiddleware(enforceAdmin(createGameHandler)))
-	e.POST("/offices/:code/games/create", authMiddleware(enforceAdmin(createGameFormHandler)))
+	signedIn.GET("/offices/:code/games/:id", gamesPageHandler)
+	officeAdmin.GET("/offices/:code/games/create", createGameHandler)
+	officeAdmin.POST("/offices/:code/games/create", createGameFormHandler)
 
-	e.POST("/offices/:code/games/:id", authMiddleware(enforceAdmin(editGameHandler)))
-	e.DELETE("/offices/:code/games/:id", authMiddleware(enforceAdmin(deleteGameHandler)))
+	officeAdmin.POST("/offices/:code/games/:id", editGameHandler)
+	officeAdmin.DELETE("/offices/:code/games/:id", deleteGameHandler)
 
-	e.GET("/offices/:code/games/:id/play", authMiddleware(gamesPlayPageHandler))
-	e.POST("/offices/:code/games/:id/play", authMiddleware(gamesPlayFormHandler))
+	signedIn.GET("/offices/:code/games/:id/play", gamesPlayPageHandler)
+	signedIn.POST("/offices/:code/games/:id/play", gamesPlayFormHandler)
 
-	e.GET("/offices/:code/games/:id/pending", authMiddleware(gamePendingMatchesPage))
-	e.GET("/offices/:code/games/:id/pending/:matchId", authMiddleware(pendingMatchPage))
-	e.GET("/offices/:code/games/:id/pending/:matchId/approve", authMiddleware(pendingMatchApproveHandler))
+	signedIn.GET("/offices/:code/games/:id/pending", gamePendingMatchesPage)
+	signedIn.GET("/offices/:code/games/:id/pending/:matchId", pendingMatchPage)
+	signedIn.GET("/offices/:code/games/:id/pending/:matchId/approve", pendingMatchApproveHandler)
 
-	e.GET("/offices/:code/games/:id/admin", authMiddleware(enforceAdmin(gameAdminPage)))
+	officeAdmin.GET("/offices/:code/games/:id/admin", gameAdminPage)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }

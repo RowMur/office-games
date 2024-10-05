@@ -13,7 +13,7 @@ import (
 func mePageHandler(c echo.Context) error {
 	user := userFromContext(c)
 	if user == nil {
-		return c.Redirect(http.StatusUnauthorized, "/sign-in")
+		return c.Redirect(http.StatusTemporaryRedirect, "/sign-in")
 	}
 
 	mePageContent := views.MePage(*user, views.FormData{"email": user.Email, "username": user.Username}, nil)
@@ -23,7 +23,7 @@ func mePageHandler(c echo.Context) error {
 func meUpdateHandler(c echo.Context) error {
 	user := userFromContext(c)
 	if user == nil {
-		return c.Redirect(http.StatusUnauthorized, "/sign-in")
+		return c.Redirect(http.StatusTemporaryRedirect, "/sign-in")
 	}
 
 	username := c.FormValue("username")
