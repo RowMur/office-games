@@ -298,17 +298,24 @@ templ GameAdminPage(game db.Game, office db.Office, user db.User) {
 		@GamePageHeading(game, office)
 		@GamePageTabs("Admin", office, game, user)
 		<section class="my-8">
+			{{
+				isEqualOn := ""
+				if game.RequireEqualWinnersAndLosers {
+					isEqualOn = "on"
+				}
+			}}
 			@EditGameForm(FormData{
 				"name":             game.Name,
 				"min-participants": strconv.Itoa(game.MinParticipants),
 				"max-participants": strconv.Itoa(game.MaxParticipants),
+				"equal":            isEqualOn,
 			}, FormErrors{}, office.Code, game)
 		</section>
 	</main>
 }
 
 templ EditGameForm(data FormData, errors FormErrors, officeCode string, game db.Game) {
-	<form hx-post={ fmt.Sprintf("/offices/%s/games/%s", officeCode, strconv.Itoa(int(game.ID))) } hx-swap="outerHTML">
+	<form hx-post={ fmt.Sprintf("/offices/%s/games/%s", officeCode, strconv.Itoa(int(game.ID))) } hx-swap="outerHTML" class="flex flex-col gap-2">
 		<label for="name" class="block">Name:</label>
 		<div class="flex gap-4">
 			<input id="name" name="name" type="text" value={ data["name"] } class="text-black grow" placeholder="The game..."/>
@@ -318,7 +325,7 @@ templ EditGameForm(data FormData, errors FormErrors, officeCode string, game db.
 		}
 		<div class="flex gap-4">
 			<div class="w-1/2 min-w-0">
-				<label for="min-participants" class="block">Minimum team size:</label>
+				<label for="min-participants" class="block">Minimum participants:</label>
 				<div class="flex gap-4">
 					<input id="min-participants" name="min-participants" type="number" min="0" max="100" value={ data["min-participants"] } class="text-black min-w-0 grow"/>
 				</div>
@@ -327,7 +334,7 @@ templ EditGameForm(data FormData, errors FormErrors, officeCode string, game db.
 				}
 			</div>
 			<div class="w-1/2 min-w-0">
-				<label for="max-participants" class="block">Maximum team size:</label>
+				<label for="max-participants" class="block">Maximum participants</label>
 				<div class="flex gap-4">
 					<input id="max-participants" name="max-participants" type="number" min="0" max="100" value={ data["max-participants"] } class="text-black min-w-0 grow"/>
 				</div>
@@ -335,6 +342,19 @@ templ EditGameForm(data FormData, errors FormErrors, officeCode string, game db.
 					<p class="text-red-500">{ errors["max-participants"] }</p>
 				}
 			</div>
+		</div>
+		<div>
+			<label for="equal">Equal winners and losers:</label>
+			<input
+				id="equal"
+				name="equal"
+				type="checkbox"
+				value={ "on" }
+				if data["equal"] == "on" {
+					checked
+				}
+				class="text-black grow"
+			/>
 		</div>
 		<div class="flex justify-between mt-4">
 			<button hx-delete={ fmt.Sprintf("/offices/%s/games/%s", officeCode, strconv.Itoa(int(game.ID))) } class="bg-red-500 text-content h-fit rounded w-16">Delete</button>

@@ -66,14 +66,15 @@ const (
 
 type Game struct {
 	gorm.Model
-	Name            string
-	OfficeID        uint
-	Office          Office
-	Rankings        []Ranking
-	Matches         []Match
-	Type            string `gorm:"default:'head_to_head'"`
-	MinParticipants int    `gorm:"default:1"`
-	MaxParticipants int    `gorm:"default:2"`
+	Name                         string
+	OfficeID                     uint
+	Office                       Office
+	Rankings                     []Ranking
+	Matches                      []Match
+	Type                         string `gorm:"default:'head_to_head'"`
+	MinParticipants              int    `gorm:"default:2"`
+	MaxParticipants              int    `gorm:"default:4"`
+	RequireEqualWinnersAndLosers bool   `gorm:"default:true"`
 }
 
 func (g *Game) AfterCreate(tx *gorm.DB) (err error) {

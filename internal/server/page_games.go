@@ -85,24 +85,17 @@ func gamesPlayFormHandler(c echo.Context) error {
 	winners := c.Request().Form["Winners"]
 	losers := c.Request().Form["Losers"]
 
-	winnersSatisfiesGameConfig := len(winners) >= game.MinParticipants && len(winners) <= game.MaxParticipants
-	losersSatisfiesGameConfig := len(losers) >= game.MinParticipants && len(losers) <= game.MaxParticipants
-
-	if !(winnersSatisfiesGameConfig && losersSatisfiesGameConfig) {
+	participantCount := len(winners) + len(losers)
+	if participantCount < game.MinParticipants || participantCount > game.MaxParticipants {
 		errs := views.FormErrors{
 			"Winners": "",
 			"Losers":  "",
-		}
-		if !winnersSatisfiesGameConfig {
-			errs["Winners"] = fmt.Sprintf("There must be between %d and %d winners selected", game.MinParticipants, game.MaxParticipants)
-		}
-		if !losersSatisfiesGameConfig {
-			errs["Losers"] = fmt.Sprintf("There must be between %d and %d losers selected", game.MinParticipants, game.MaxParticipants)
+			"submit":  fmt.Sprintf("There must be between %d and %d players selected", game.MinParticipants, game.MaxParticipants),
 		}
 		return render(c, http.StatusOK, views.PlayMatchFormErrors(errs))
 	}
 
-	if len(winners) != len(losers) {
+	if game.RequireEqualWinnersAndLosers && len(winners) != len(losers) {
 		errs := views.FormErrors{
 			"Winners": "",
 			"Losers":  "",
@@ -186,9 +179,25 @@ func gamesPlayFormHandler(c echo.Context) error {
 		participant.StartingElo = participantRanking.Points
 
 		if participant.Result == "win" {
-			participant.CalculatedElo, _ = elo.CalculatePointsGainLoss([]db.Ranking{participantRanking}, loserRankings)
+			multiplier := 1.0
+			if len(winners) > len(losers) {
+				multiplier = float64(len(losers)) / float64(len(winners))
+			}
+			calcElo := elo.CalculatePointsGainLoss([]db.Ranking{participantRanking}, loserRankings, multiplier)
+			if len(winners) > len(losers) {
+				// When the multiplier is applied to a side, each player on that side gets slightly shortchanged due to the rounding
+				// E.g. 10 points net gain/loss split in a game with 3 winners and 1 loser
+				// The winners earn 3.33 points each (rounded to 3) and the loser loses 10 points
+				// To avoid a system wide net loss of ELO just add one to each of the winners
+				calcElo++
+			}
+			participant.CalculatedElo = calcElo
 		} else {
-			calcElo, _ := elo.CalculatePointsGainLoss(winnerRankings, []db.Ranking{participantRanking})
+			multiplier := 1.0
+			if len(losers) > len(winners) {
+				multiplier = float64(len(winners)) / float64(len(losers))
+			}
+			calcElo := elo.CalculatePointsGainLoss(winnerRankings, []db.Ranking{participantRanking}, multiplier)
 			participant.CalculatedElo = -calcElo
 		}
 
@@ -410,11 +419,13 @@ func editGameHandler(c echo.Context) error {
 	newName := c.FormValue("name")
 	newMinParticipants := c.FormValue("min-participants")
 	newMaxParticipants := c.FormValue("max-participants")
+	equalWinnersAndLosers := c.FormValue("equal") == "on"
 
 	formData := views.FormData{
 		"name":             newName,
 		"min-participants": newMinParticipants,
 		"max-participants": newMaxParticipants,
+		"equal":            c.FormValue("equal"),
 	}
 
 	if newName == "" {
@@ -439,7 +450,7 @@ func editGameHandler(c echo.Context) error {
 		return render(c, http.StatusOK, views.EditGameForm(formData, errs, office, game))
 	}
 
-	err = d.Model(&game).Where("id = ?", game.ID).Updates(map[string]interface{}{"name": newName, "min_participants": minParticipants, "max_participants": maxParticipants}).Error
+	err = d.Model(&game).Where("id = ?", game.ID).Updates(map[string]interface{}{"name": newName, "min_participants": minParticipants, "max_participants": maxParticipants, "require_equal_winners_and_losers": equalWinnersAndLosers}).Error
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
