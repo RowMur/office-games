@@ -61,20 +61,32 @@ func (o *Office) AfterCreate(tx *gorm.DB) (err error) {
 }
 
 const (
-	GameTypeHeadToHead = "head_to_head"
+	GameTypeHeadToHead       = "head_to_head"
+	GameTypeWinnersAndLosers = "winners_and_losers"
+	// Need to add support for this
+	// GameTypeOrderedResult = "ordered_result"
 )
+
+type GameType struct {
+	Value   string
+	Display string
+}
+
+var GameTypes = []GameType{
+	{Value: GameTypeHeadToHead, Display: "Head to Head"},
+	{Value: GameTypeWinnersAndLosers, Display: "Winners and Losers"},
+}
 
 type Game struct {
 	gorm.Model
-	Name                         string
-	OfficeID                     uint
-	Office                       Office
-	Rankings                     []Ranking
-	Matches                      []Match
-	Type                         string `gorm:"default:'head_to_head'"`
-	MinParticipants              int    `gorm:"default:2"`
-	MaxParticipants              int    `gorm:"default:4"`
-	RequireEqualWinnersAndLosers bool   `gorm:"default:true"`
+	Name            string
+	OfficeID        uint
+	Office          Office
+	Rankings        []Ranking
+	Matches         []Match
+	GameType        string `gorm:"default:'head_to_head'"`
+	MinParticipants int    `gorm:"default:2"`
+	MaxParticipants int    `gorm:"default:4"`
 }
 
 func (g *Game) AfterCreate(tx *gorm.DB) (err error) {
@@ -110,6 +122,11 @@ type MatchParticipant struct {
 	CalculatedElo int
 	AppliedElo    int
 }
+
+const (
+	MatchStatePending  = "pending"
+	MatchStateApproved = "approved"
+)
 
 type Match struct {
 	gorm.Model

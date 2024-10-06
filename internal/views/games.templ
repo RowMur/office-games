@@ -298,17 +298,11 @@ templ GameAdminPage(game db.Game, office db.Office, user db.User) {
 		@GamePageHeading(game, office)
 		@GamePageTabs("Admin", office, game, user)
 		<section class="my-8">
-			{{
-				isEqualOn := ""
-				if game.RequireEqualWinnersAndLosers {
-					isEqualOn = "on"
-				}
-			}}
 			@EditGameForm(FormData{
 				"name":             game.Name,
 				"min-participants": strconv.Itoa(game.MinParticipants),
 				"max-participants": strconv.Itoa(game.MaxParticipants),
-				"equal":            isEqualOn,
+				"game-type":        game.GameType,
 			}, FormErrors{}, office.Code, game)
 		</section>
 	</main>
@@ -325,7 +319,7 @@ templ EditGameForm(data FormData, errors FormErrors, officeCode string, game db.
 		}
 		<div class="flex gap-4">
 			<div class="w-1/2 min-w-0">
-				<label for="min-participants" class="block">Minimum participants:</label>
+				<label for="min-participants" class="block">Min players:</label>
 				<div class="flex gap-4">
 					<input id="min-participants" name="min-participants" type="number" min="0" max="100" value={ data["min-participants"] } class="text-black min-w-0 grow"/>
 				</div>
@@ -334,7 +328,7 @@ templ EditGameForm(data FormData, errors FormErrors, officeCode string, game db.
 				}
 			</div>
 			<div class="w-1/2 min-w-0">
-				<label for="max-participants" class="block">Maximum participants</label>
+				<label for="max-participants" class="block">Max players:</label>
 				<div class="flex gap-4">
 					<input id="max-participants" name="max-participants" type="number" min="0" max="100" value={ data["max-participants"] } class="text-black min-w-0 grow"/>
 				</div>
@@ -343,19 +337,23 @@ templ EditGameForm(data FormData, errors FormErrors, officeCode string, game db.
 				}
 			</div>
 		</div>
-		<div>
-			<label for="equal">Equal winners and losers:</label>
-			<input
-				id="equal"
-				name="equal"
-				type="checkbox"
-				value={ "on" }
-				if data["equal"] == "on" {
-					checked
-				}
-				class="text-black grow"
-			/>
-		</div>
+		<fieldset>
+			<legend>Select a game type:</legend>
+			for _, gameType := range db.GameTypes {
+				<div>
+					<input
+						id={ gameType.Value }
+						name="game-type"
+						type="radio"
+						value={ gameType.Value }
+						if data["game-type"] == gameType.Value {
+							checked
+						}
+					/>
+					<label for={ gameType.Value }>{ gameType.Display }</label>
+				</div>
+			}
+		</fieldset>
 		<div class="flex justify-between mt-4">
 			<button hx-delete={ fmt.Sprintf("/offices/%s/games/%s", officeCode, strconv.Itoa(int(game.ID))) } class="bg-red-500 text-content h-fit rounded w-16">Delete</button>
 			<button type="submit" class="bg-accent text-light block w-16 rounded">Save</button>
@@ -396,12 +394,6 @@ templ Match(match db.Match, showApprovalState bool) {
 			<span>
 				Created by: { match.Creator.Username }
 			</span>
-			// <span>
-			// 	Exp: { fmt.Sprintf("%.2f", match.ExpectedScore * 100) }%
-			// </span>
-			// <span>
-			// 	&pm;{ fmt.Sprintf("%d", match.PointsValue) } elo
-			// </span>
 		</p>
 	</li>
 }

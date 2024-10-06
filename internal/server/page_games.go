@@ -24,7 +24,7 @@ func gamesPageHandler(c echo.Context) error {
 			return db.Order("Rankings.points DESC")
 		}).
 		Preload("Rankings.User").
-		Preload("Matches", "state NOT IN (?)", "pending", func(db *gorm.DB) *gorm.DB {
+		Preload("Matches", "state NOT IN (?)", db.MatchStatePending, func(db *gorm.DB) *gorm.DB {
 			return db.Order("created_at DESC")
 		}).
 		Preload("Matches.Participants.User").
@@ -95,7 +95,7 @@ func gamesPlayFormHandler(c echo.Context) error {
 		return render(c, http.StatusOK, views.PlayMatchFormErrors(errs))
 	}
 
-	if game.RequireEqualWinnersAndLosers && len(winners) != len(losers) {
+	if game.GameType == db.GameTypeHeadToHead && len(winners) != len(losers) {
 		errs := views.FormErrors{
 			"Winners": "",
 			"Losers":  "",
@@ -234,7 +234,7 @@ func gamePendingMatchesPage(c echo.Context) error {
 	game := db.Game{}
 	err := d.Where("id = ?", gameId).
 		Preload("Office").
-		Preload("Matches", "state IN (?)", "pending", func(db *gorm.DB) *gorm.DB {
+		Preload("Matches", "state IN (?)", db.MatchStatePending, func(db *gorm.DB) *gorm.DB {
 			return db.Order("Matches.created_at DESC")
 		}).
 		Preload("Matches.Creator").
@@ -319,7 +319,7 @@ func pendingMatchApproveHandler(c echo.Context) error {
 		return c.NoContent(http.StatusOK)
 	}
 
-	err = tx.Model(&db.Match{}).Where("id = ?", approval.Match.ID).Update("State", "approved").Error
+	err = tx.Model(&db.Match{}).Where("id = ?", approval.Match.ID).Update("State", db.MatchStateApproved).Error
 	if err != nil {
 		tx.Rollback()
 		return render(c, http.StatusOK, views.MatchApproveError(err.Error()))
@@ -419,13 +419,13 @@ func editGameHandler(c echo.Context) error {
 	newName := c.FormValue("name")
 	newMinParticipants := c.FormValue("min-participants")
 	newMaxParticipants := c.FormValue("max-participants")
-	equalWinnersAndLosers := c.FormValue("equal") == "on"
+	gameType := c.FormValue("game-type")
 
 	formData := views.FormData{
 		"name":             newName,
 		"min-participants": newMinParticipants,
 		"max-participants": newMaxParticipants,
-		"equal":            c.FormValue("equal"),
+		"game-type":        gameType,
 	}
 
 	if newName == "" {
@@ -450,7 +450,18 @@ func editGameHandler(c echo.Context) error {
 		return render(c, http.StatusOK, views.EditGameForm(formData, errs, office, game))
 	}
 
-	err = d.Model(&game).Where("id = ?", game.ID).Updates(map[string]interface{}{"name": newName, "min_participants": minParticipants, "max_participants": maxParticipants, "require_equal_winners_and_losers": equalWinnersAndLosers}).Error
+	for i, gt := range db.GameTypes {
+		if gt.Value == gameType {
+			break
+		}
+
+		if i == len(db.GameTypes)-1 {
+			errs := views.FormErrors{"game-type": "Invalid game type"}
+			return render(c, http.StatusOK, views.EditGameForm(formData, errs, office, game))
+		}
+	}
+
+	err = d.Model(&game).Where("id = ?", game.ID).Updates(map[string]interface{}{"name": newName, "min_participants": minParticipants, "max_participants": maxParticipants, "game_type": gameType}).Error
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
