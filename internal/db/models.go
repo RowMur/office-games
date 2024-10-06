@@ -13,18 +13,18 @@ var models = []interface{}{
 	&Ranking{},
 	&Match{},
 	&MatchApproval{},
+	&MatchParticipant{},
 }
 
 type User struct {
 	gorm.Model
-	Username        string `gorm:"unique"`
-	Email           string `gorm:"unique"`
-	Password        string
-	Offices         []Office `gorm:"many2many:user_offices;"`
-	Rankings        []Ranking
-	MatchesAsWinner []Match `gorm:"many2many:match_winners;"`
-	MatchesAsLoser  []Match `gorm:"many2many:match_losers;"`
-	Approvals       []MatchApproval
+	Username            string `gorm:"unique"`
+	Email               string `gorm:"unique"`
+	Password            string
+	Offices             []Office `gorm:"many2many:user_offices;"`
+	Rankings            []Ranking
+	MatchParticipations []MatchParticipant
+	Approvals           []MatchApproval
 }
 
 type Office struct {
@@ -98,18 +98,27 @@ type Ranking struct {
 	User   User
 }
 
+type MatchParticipant struct {
+	gorm.Model
+	UserID        uint
+	User          User
+	MatchID       uint
+	Match         Match
+	Result        string
+	StartingElo   int
+	CalculatedElo int
+	AppliedElo    int
+}
+
 type Match struct {
 	gorm.Model
-	GameID        uint
-	Game          Game
-	CreatorID     uint
-	Creator       User
-	Winners       []User `gorm:"many2many:match_winners;"`
-	Losers        []User `gorm:"many2many:match_losers;"`
-	PointsValue   int
-	ExpectedScore float64
-	State         string `gorm:"default:'pending'"`
-	Approvals     []MatchApproval
+	GameID       uint
+	Game         Game
+	CreatorID    uint
+	Creator      User
+	Participants []MatchParticipant
+	State        string `gorm:"default:'pending'"`
+	Approvals    []MatchApproval
 }
 
 func (m *Match) IsApprovedByUser(userID uint) bool {
@@ -122,8 +131,8 @@ func (m *Match) IsApprovedByUser(userID uint) bool {
 }
 
 func (m *Match) IsApprovedByWinners() bool {
-	for _, winner := range m.Winners {
-		if m.IsApprovedByUser(winner.ID) {
+	for _, participant := range m.Participants {
+		if participant.Result == "win" && m.IsApprovedByUser(participant.UserID) {
 			return true
 		}
 	}
@@ -131,8 +140,8 @@ func (m *Match) IsApprovedByWinners() bool {
 }
 
 func (m *Match) IsApprovedByLosers() bool {
-	for _, loser := range m.Losers {
-		if m.IsApprovedByUser(loser.ID) {
+	for _, participant := range m.Participants {
+		if participant.Result == "loss" && m.IsApprovedByUser(participant.UserID) {
 			return true
 		}
 	}
@@ -141,6 +150,26 @@ func (m *Match) IsApprovedByLosers() bool {
 
 func (m *Match) IsApproved() bool {
 	return m.IsApprovedByWinners() && m.IsApprovedByLosers()
+}
+
+func (m *Match) Winners() []MatchParticipant {
+	var winners []MatchParticipant
+	for _, participant := range m.Participants {
+		if participant.Result == "win" {
+			winners = append(winners, participant)
+		}
+	}
+	return winners
+}
+
+func (m *Match) Losers() []MatchParticipant {
+	var losers []MatchParticipant
+	for _, participant := range m.Participants {
+		if participant.Result == "loss" {
+			losers = append(losers, participant)
+		}
+	}
+	return losers
 }
 
 type MatchApproval struct {

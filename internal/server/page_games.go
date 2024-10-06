@@ -27,8 +27,8 @@ func gamesPageHandler(c echo.Context) error {
 		Preload("Matches", "state NOT IN (?)", "pending", func(db *gorm.DB) *gorm.DB {
 			return db.Order("created_at DESC")
 		}).
-		Preload("Matches.Winners").
-		Preload("Matches.Losers").
+		Preload("Matches.Participants.User").
+		Preload("Matches.Creator").
 		First(&game).Error
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
@@ -36,16 +36,19 @@ func gamesPageHandler(c echo.Context) error {
 
 	playerWinLosses := map[uint]views.WinLosses{}
 	for _, match := range game.Matches {
-		for _, winner := range match.Winners {
-			playerWinLosses[winner.ID] = views.WinLosses{
-				Wins:   playerWinLosses[winner.ID].Wins + 1,
-				Losses: playerWinLosses[winner.ID].Losses,
+		for _, participant := range match.Participants {
+			winCount := playerWinLosses[participant.UserID].Wins
+			lossCount := playerWinLosses[participant.UserID].Losses
+
+			if participant.Result == "win" {
+				winCount++
+			} else {
+				lossCount++
 			}
-		}
-		for _, loser := range match.Losers {
-			playerWinLosses[loser.ID] = views.WinLosses{
-				Wins:   playerWinLosses[loser.ID].Wins,
-				Losses: playerWinLosses[loser.ID].Losses + 1,
+
+			playerWinLosses[participant.UserID] = views.WinLosses{
+				Wins:   winCount,
+				Losses: lossCount,
 			}
 		}
 	}
@@ -110,7 +113,7 @@ func gamesPlayFormHandler(c echo.Context) error {
 
 	playerMap := map[string]string{}
 	for _, winner := range winners {
-		playerMap[winner] = "winner"
+		playerMap[winner] = "win"
 	}
 	for _, loser := range losers {
 		_, ok := playerMap[loser]
@@ -123,7 +126,7 @@ func gamesPlayFormHandler(c echo.Context) error {
 			return render(c, http.StatusOK, views.PlayMatchFormErrors(errs))
 		}
 
-		playerMap[loser] = "loser"
+		playerMap[loser] = "loss"
 	}
 
 	dbc := db.GetDB()
@@ -138,44 +141,65 @@ func gamesPlayFormHandler(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	winningUsers := []db.User{}
-	err := tx.Model(&db.User{}).Where("id IN (?)", winners).Find(&winningUsers).Error
-	if err != nil {
-		tx.Rollback()
-		return c.String(http.StatusInternalServerError, err.Error())
-	}
-	err = tx.Model(&match).Association("Winners").Append(winningUsers)
+	participantUserIds := []string{}
+	participantUserIds = append(participantUserIds, winners...)
+	participantUserIds = append(participantUserIds, losers...)
+
+	participantRankings := []db.Ranking{}
+	err := tx.Where("game_id = ? AND user_id IN (?)", game.ID, participantUserIds).Find(&participantRankings).Error
 	if err != nil {
 		tx.Rollback()
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	losingUsers := []db.User{}
-	err = tx.Model(&db.User{}).Where("id IN (?)", losers).Find(&losingUsers).Error
-	if err != nil {
-		tx.Rollback()
-		return c.String(http.StatusInternalServerError, err.Error())
-	}
-	err = tx.Model(&match).Association("Losers").Append(losingUsers)
-	if err != nil {
-		tx.Rollback()
-		return c.String(http.StatusInternalServerError, err.Error())
-	}
-
-	var winnersRankings, losersRankings []db.Ranking
-	err = tx.Where("game_id = ? AND user_id IN (?)", game.ID, winners).First(&winnersRankings).Error
-	if err != nil {
-		tx.Rollback()
-		return c.String(http.StatusInternalServerError, err.Error())
-	}
-	err = tx.Where("game_id = ? AND user_id IN (?)", game.ID, losers).First(&losersRankings).Error
-	if err != nil {
-		tx.Rollback()
-		return c.String(http.StatusInternalServerError, err.Error())
+	winnerRankings := []db.Ranking{}
+	loserRankings := []db.Ranking{}
+	for _, ranking := range participantRankings {
+		stringUserId := strconv.Itoa(int(ranking.UserID))
+		if playerMap[stringUserId] == "win" {
+			winnerRankings = append(winnerRankings, ranking)
+		} else {
+			loserRankings = append(loserRankings, ranking)
+		}
 	}
 
-	points, expectedScore := elo.CalculatePointsGainLoss(winnersRankings, losersRankings)
-	tx.Model(&match).Update("PointsValue", points).Update("ExpectedScore", expectedScore)
+	participants := []db.MatchParticipant{}
+	for _, participantUserId := range participantUserIds {
+		intUserId, err := strconv.Atoi(participantUserId)
+		if err != nil {
+			tx.Rollback()
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+		participant := db.MatchParticipant{
+			UserID:  uint(intUserId),
+			MatchID: match.ID,
+			Result:  playerMap[participantUserId],
+		}
+
+		participantRanking := db.Ranking{}
+		for _, ranking := range participantRankings {
+			if ranking.UserID == participant.UserID {
+				participantRanking = ranking
+				break
+			}
+		}
+		participant.StartingElo = participantRanking.Points
+
+		if participant.Result == "win" {
+			participant.CalculatedElo, _ = elo.CalculatePointsGainLoss([]db.Ranking{participantRanking}, loserRankings)
+		} else {
+			calcElo, _ := elo.CalculatePointsGainLoss(winnerRankings, []db.Ranking{participantRanking})
+			participant.CalculatedElo = -calcElo
+		}
+
+		participants = append(participants, participant)
+	}
+
+	err = tx.Create(&participants).Error
+	if err != nil {
+		tx.Rollback()
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
 
 	approval := db.MatchApproval{
 		MatchID: match.ID,
@@ -205,8 +229,7 @@ func gamePendingMatchesPage(c echo.Context) error {
 			return db.Order("Matches.created_at DESC")
 		}).
 		Preload("Matches.Creator").
-		Preload("Matches.Winners").
-		Preload("Matches.Losers").
+		Preload("Matches.Participants.User").
 		Preload("Matches.Approvals").
 		First(&game).Error
 	if err != nil {
@@ -227,8 +250,7 @@ func pendingMatchPage(c echo.Context) error {
 		Preload("Game").
 		Preload("Game.Office").
 		Preload("Creator").
-		Preload("Winners").
-		Preload("Losers").
+		Preload("Participants.User").
 		Preload("Approvals").
 		First(&match).Error
 	if err != nil {
@@ -274,8 +296,7 @@ func pendingMatchApproveHandler(c echo.Context) error {
 
 	err = tx.Preload("Match.Game.Office").
 		Preload("Match.Game.Rankings").
-		Preload("Match.Winners").
-		Preload("Match.Losers").
+		Preload("Match.Participants").
 		Preload("Match.Approvals").
 		Find(&approval, "id = ?", approval.ID).Error
 	if err != nil {
@@ -299,49 +320,17 @@ func pendingMatchApproveHandler(c echo.Context) error {
 	const matchesWithDoublePoints = 20
 	queryForGameMatches := tx.Select("id").Where("game_id = ?", approval.Match.GameID).Table("matches")
 
-	for _, winner := range approval.Match.Winners {
-		var winCount, lossCount int64
-		tx.Table("match_winners").Where("user_id = ? AND match_id IN (?)", winner.ID, queryForGameMatches).Count(&winCount)
-		tx.Table("match_losers").Where("user_id = ? AND match_id IN (?)", winner.ID, queryForGameMatches).Count(&lossCount)
-
-		matchesPlayed := winCount + lossCount
-
-		var ranking db.Ranking
-		for _, r := range approval.Match.Game.Rankings {
-			if r.UserID == winner.ID {
-				ranking = r
-				break
-			}
-		}
-		if ranking.ID == 0 {
-			tx.Rollback()
-			return render(c, http.StatusOK, views.MatchApproveError("Player not recognised"))
-		}
-
-		var newElo int
-		if matchesPlayed >= matchesWithDoublePoints {
-			newElo = ranking.Points + approval.Match.PointsValue
-		} else {
-			newElo = ranking.Points + (2 * approval.Match.PointsValue)
-		}
-
-		err = tx.Model(&ranking).Update("Points", newElo).Error
+	for _, participant := range approval.Match.Participants {
+		var matchesPlayed int64
+		err := tx.Model(&db.MatchParticipant{}).Where("user_id = ? AND match_id IN (?)", participant.UserID, queryForGameMatches).Count(&matchesPlayed).Error
 		if err != nil {
 			tx.Rollback()
-			return render(c, http.StatusOK, views.MatchApproveError("Error updating rankings"))
+			return render(c, http.StatusOK, views.MatchApproveError("Error counting matches"))
 		}
-	}
-
-	for _, loser := range approval.Match.Losers {
-		var winCount, lossCount int64
-		tx.Table("match_winners").Where("user_id = ? AND match_id IN (?)", loser.ID, queryForGameMatches).Count(&winCount)
-		tx.Table("match_losers").Where("user_id = ? AND match_id IN (?)", loser.ID, queryForGameMatches).Count(&lossCount)
-
-		matchesPlayed := winCount + lossCount
 
 		var ranking db.Ranking
 		for _, r := range approval.Match.Game.Rankings {
-			if r.UserID == loser.ID {
+			if r.UserID == participant.UserID {
 				ranking = r
 				break
 			}
@@ -351,17 +340,21 @@ func pendingMatchApproveHandler(c echo.Context) error {
 			return render(c, http.StatusOK, views.MatchApproveError("Player not recognised"))
 		}
 
-		var newElo int
-		if matchesPlayed >= matchesWithDoublePoints {
-			newElo = ranking.Points - approval.Match.PointsValue
-		} else {
-			newElo = ranking.Points - (2 * approval.Match.PointsValue)
+		appliedElo := participant.CalculatedElo
+		if matchesPlayed <= matchesWithDoublePoints {
+			appliedElo *= 2
+		}
+		if ranking.Points+appliedElo < 200 {
+			appliedElo = ranking.Points - 200
 		}
 
-		if newElo < 200 {
-			newElo = 200
+		err = tx.Model(&participant).Update("AppliedElo", appliedElo).Error
+		if err != nil {
+			tx.Rollback()
+			return render(c, http.StatusOK, views.MatchApproveError("Error updating match participant"))
 		}
 
+		newElo := ranking.Points + appliedElo
 		err = tx.Model(&ranking).Update("Points", newElo).Error
 		if err != nil {
 			tx.Rollback()

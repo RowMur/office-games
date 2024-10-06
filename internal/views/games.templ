@@ -120,7 +120,17 @@ templ OfficeRankings(rankings []db.Ranking, userWinLosses map[uint]WinLosses) {
 						{ strconv.Itoa(userWinLosses[ranking.User.ID].Losses) }
 					</td>
 					<td class="hidden sm:block">
-						{ fmt.Sprintf("%.2f", float32(userWinLosses[ranking.User.ID].Wins) / float32(userWinLosses[ranking.User.ID].Wins + userWinLosses[ranking.User.ID].Losses) * 100) }
+						{{
+							wins := userWinLosses[ranking.User.ID].Wins
+							losses := userWinLosses[ranking.User.ID].Losses
+							total := wins + losses
+
+							percentage := 0.0
+							if total > 0 {
+								percentage = float64(wins) / float64(total) * 100
+							}
+						}}
+						{ fmt.Sprintf("%.2f", percentage) }
 					</td>
 					<td>{ strconv.Itoa(ranking.Points) }</td>
 				</tr>
@@ -231,16 +241,16 @@ templ PendingMatchPage(game db.Game, office db.Office, match db.Match) {
 			<div class="grow">
 				<h4 class="text-lg font-semibold mb-2">Winners</h4>
 				<ul class="flex flex-col gap-1">
-					for _, winner := range match.Winners {
+					for _, winner := range match.Winners() {
 						<li class="flex items-center">
 							<div
-								if match.IsApprovedByUser(winner.ID) {
+								if match.IsApprovedByUser(winner.UserID) {
 									class="bg-green-500 size-2 inline-block mr-1 rounded-full"
 								} else {
 									class="bg-accent size-2 inline-block mr-1 rounded-full"
 								}
 							></div>
-							{ winner.Username }
+							{ winner.User.Username }
 						</li>
 					}
 				</ul>
@@ -248,16 +258,16 @@ templ PendingMatchPage(game db.Game, office db.Office, match db.Match) {
 			<div class="grow">
 				<h4 class="text-lg font-semibold mb-2">Losers</h4>
 				<ul class="flex flex-col gap-1">
-					for _, loser := range match.Losers {
+					for _, loser := range match.Losers() {
 						<li class="flex items-center">
 							<div
-								if match.IsApprovedByUser(loser.ID) {
+								if match.IsApprovedByUser(loser.UserID) {
 									class="bg-green-500 size-2 inline-block mr-1 rounded-full"
 								} else {
 									class="bg-accent size-2 inline-block mr-1 rounded-full"
 								}
 							></div>
-							{ loser.Username }
+							{ loser.User.Username }
 						</li>
 					}
 				</ul>
@@ -333,12 +343,12 @@ templ EditGameForm(data FormData, errors FormErrors, officeCode string, game db.
 	</form>
 }
 
-templ ListOfUsers(users []db.User) {
+templ ListOfUsers(users []db.MatchParticipant) {
 	for i, user := range users {
 		if i > 0 {
 			, 
 		}
-		{ user.Username }
+		{ user.User.Username }
 	}
 }
 
@@ -349,8 +359,8 @@ templ Match(match db.Match, showApprovalState bool) {
 				<p class="font-semibold">W</p>
 			</div>
 			<div class="min-w-0 grow">
-				@MatchPlayerList(match.Winners, true)
-				@MatchPlayerList(match.Losers, false)
+				@MatchPlayerList(match.Winners(), true)
+				@MatchPlayerList(match.Losers(), false)
 			</div>
 			if showApprovalState {
 				<div>
@@ -364,16 +374,19 @@ templ Match(match db.Match, showApprovalState bool) {
 				{ match.CreatedAt.Format("02/01/06") }
 			</span>
 			<span>
-				Exp: { fmt.Sprintf("%.2f", match.ExpectedScore * 100) }%
+				Created by: { match.Creator.Username }
 			</span>
-			<span>
-				&pm;{ fmt.Sprintf("%d", match.PointsValue) } elo
-			</span>
+			// <span>
+			// 	Exp: { fmt.Sprintf("%.2f", match.ExpectedScore * 100) }%
+			// </span>
+			// <span>
+			// 	&pm;{ fmt.Sprintf("%d", match.PointsValue) } elo
+			// </span>
 		</p>
 	</li>
 }
 
-templ MatchPlayerList(players []db.User, isWinners bool) {
+templ MatchPlayerList(players []db.MatchParticipant, isWinners bool) {
 	{{
 		class := "text-ellipsis text-nowrap overflow-hidden"
 		if isWinners {
