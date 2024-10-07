@@ -166,8 +166,27 @@ func (m *Match) IsApprovedByLosers() bool {
 	return false
 }
 
+func (m *Match) IsAdminApproved() bool {
+	adminUserId := m.Game.Office.AdminRefer
+
+	// Don't allow admin's to "super" approve their own matches
+	for _, participant := range m.Participants {
+		if participant.UserID == adminUserId {
+			return false
+		}
+	}
+
+	for _, approval := range m.Approvals {
+		if approval.UserID == adminUserId {
+			return true
+		}
+	}
+
+	return false
+}
+
 func (m *Match) IsApproved() bool {
-	return m.IsApprovedByWinners() && m.IsApprovedByLosers()
+	return (m.IsApprovedByWinners() && m.IsApprovedByLosers()) || m.IsAdminApproved()
 }
 
 func (m *Match) Winners() []MatchParticipant {

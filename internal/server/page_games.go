@@ -1,6 +1,7 @@
 package server
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -220,6 +221,30 @@ func gamesPlayFormHandler(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
+	err = tx.Preload("Game.Office").
+		Preload("Game.Rankings").
+		Preload("Participants").
+		Preload("Approvals").
+		Find(&match, "id = ?", approval.MatchID).Error
+	if err != nil {
+		tx.Rollback()
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	if match.IsApproved() {
+		err = handleMatchApproval(tx, match)
+		if err != nil {
+			tx.Rollback()
+			return c.String(http.StatusInternalServerError, err.Error())
+		}
+
+		// At this point, there's no need for any approvals so just send the user to the game page
+		tx.Commit()
+		gameHome := fmt.Sprintf("/offices/%s/games/%s", game.Office.Code, gameId)
+		c.Response().Header().Set("HX-Redirect", gameHome)
+		return c.NoContent(http.StatusOK)
+	}
+
 	tx.Commit()
 	gameHome := fmt.Sprintf("/offices/%s/games/%s/pending/%d", game.Office.Code, gameId, match.ID)
 	c.Response().Header().Set("HX-Redirect", gameHome)
@@ -319,26 +344,37 @@ func pendingMatchApproveHandler(c echo.Context) error {
 		return c.NoContent(http.StatusOK)
 	}
 
-	err = tx.Model(&db.Match{}).Where("id = ?", approval.Match.ID).Update("State", db.MatchStateApproved).Error
+	err = handleMatchApproval(tx, approval.Match)
+	if err != nil {
+		return render(c, http.StatusOK, views.MatchApproveError(err.Error()))
+	}
+
+	tx.Commit()
+	c.Response().Header().Set("HX-Redirect", fmt.Sprintf("/offices/%s/games/%d/pending", approval.Match.Game.Office.Code, approval.Match.GameID))
+	return c.NoContent(http.StatusOK)
+}
+
+func handleMatchApproval(tx *gorm.DB, match db.Match) error {
+	err := tx.Model(&db.Match{}).Where("id = ?", match.ID).Update("State", db.MatchStateApproved).Error
 	if err != nil {
 		tx.Rollback()
-		return render(c, http.StatusOK, views.MatchApproveError(err.Error()))
+		return err
 	}
 
 	// Update the rankings of the players
 	const matchesWithDoublePoints = 20
-	queryForGameMatches := tx.Select("id").Where("game_id = ?", approval.Match.GameID).Table("matches")
+	queryForGameMatches := tx.Select("id").Where("game_id = ?", match.GameID).Table("matches")
 
-	for _, participant := range approval.Match.Participants {
+	for _, participant := range match.Participants {
 		var matchesPlayed int64
 		err := tx.Model(&db.MatchParticipant{}).Where("user_id = ? AND match_id IN (?)", participant.UserID, queryForGameMatches).Count(&matchesPlayed).Error
 		if err != nil {
 			tx.Rollback()
-			return render(c, http.StatusOK, views.MatchApproveError("Error counting matches"))
+			return errors.New("error counting matches played")
 		}
 
 		var ranking db.Ranking
-		for _, r := range approval.Match.Game.Rankings {
+		for _, r := range match.Game.Rankings {
 			if r.UserID == participant.UserID {
 				ranking = r
 				break
@@ -346,7 +382,7 @@ func pendingMatchApproveHandler(c echo.Context) error {
 		}
 		if ranking.ID == 0 {
 			tx.Rollback()
-			return render(c, http.StatusOK, views.MatchApproveError("Player not recognised"))
+			return errors.New("player not recognised")
 		}
 
 		appliedElo := participant.CalculatedElo
@@ -360,20 +396,18 @@ func pendingMatchApproveHandler(c echo.Context) error {
 		err = tx.Model(&participant).Update("AppliedElo", appliedElo).Error
 		if err != nil {
 			tx.Rollback()
-			return render(c, http.StatusOK, views.MatchApproveError("Error updating match participant"))
+			return errors.New("error updating elo")
 		}
 
 		newElo := ranking.Points + appliedElo
 		err = tx.Model(&ranking).Update("Points", newElo).Error
 		if err != nil {
 			tx.Rollback()
-			return render(c, http.StatusOK, views.MatchApproveError("Error updating rankings"))
+			return errors.New("error updating elo")
 		}
 	}
 
-	tx.Commit()
-	c.Response().Header().Set("HX-Redirect", fmt.Sprintf("/offices/%s/games/%d/pending", approval.Match.Game.Office.Code, approval.Match.GameID))
-	return c.NoContent(http.StatusOK)
+	return nil
 }
 
 func gameAdminPage(c echo.Context) error {
