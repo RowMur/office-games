@@ -73,6 +73,30 @@ func enforceSignedOut(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
+func enforceMember(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		user := userFromContext(c)
+		if user == nil {
+			return echo.NewHTTPError(http.StatusUnauthorized, "unauthorized")
+		}
+
+		officeCode := c.Param("code")
+		office := &db.Office{}
+		err := db.GetDB().Where("code = ?", officeCode).Preload("Players").First(office).Error
+		if err != nil {
+			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+
+		for _, u := range office.Players {
+			if u.ID == user.ID {
+				return next(c)
+			}
+		}
+
+		return echo.NewHTTPError(http.StatusForbidden, "You are not a member of this office")
+	}
+}
+
 func enforceAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user := userFromContext(c)

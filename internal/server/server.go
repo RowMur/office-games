@@ -16,6 +16,7 @@ func (s *Server) Run() {
 	e.Use(authMiddleware)
 	signedIn := e.Group("", enforceSignedIn)
 	signedOut := e.Group("", enforceSignedOut)
+	officeMember := e.Group("", enforceMember)
 	officeAdmin := e.Group("", enforceAdmin)
 
 	e.GET("/", pageHandler)
@@ -41,23 +42,23 @@ func (s *Server) Run() {
 	signedOut.GET("/reset-password", resetPasswordTokenMiddleware(resetPasswordPage))
 	signedOut.POST("/reset-password", resetPasswordTokenMiddleware(resetPasswordFormHandler))
 
-	signedIn.GET("/offices/:code", officeHandler)
+	officeMember.GET("/offices/:code", officeHandler)
 	signedIn.POST("/offices/join", joinOfficeHandler)
 	signedIn.POST("/offices/create", createOfficeHandler)
 
-	signedIn.GET("/offices/:code/games/:id", gamesPageHandler)
+	officeMember.GET("/offices/:code/games/:id", gamesPageHandler)
 	officeAdmin.GET("/offices/:code/games/create", createGameHandler)
 	officeAdmin.POST("/offices/:code/games/create", createGameFormHandler)
 
 	officeAdmin.POST("/offices/:code/games/:id", editGameHandler)
 	officeAdmin.DELETE("/offices/:code/games/:id", deleteGameHandler)
 
-	signedIn.GET("/offices/:code/games/:id/play", gamesPlayPageHandler)
-	signedIn.POST("/offices/:code/games/:id/play", gamesPlayFormHandler)
+	officeMember.GET("/offices/:code/games/:id/play", gamesPlayPageHandler)
+	officeMember.POST("/offices/:code/games/:id/play", gamesPlayFormHandler)
 
-	signedIn.GET("/offices/:code/games/:id/pending", gamePendingMatchesPage)
-	signedIn.GET("/offices/:code/games/:id/pending/:matchId", pendingMatchPage)
-	signedIn.GET("/offices/:code/games/:id/pending/:matchId/approve", pendingMatchApproveHandler)
+	officeMember.GET("/offices/:code/games/:id/pending", gamePendingMatchesPage)
+	officeMember.GET("/offices/:code/games/:id/pending/:matchId", pendingMatchPage)
+	officeMember.GET("/offices/:code/games/:id/pending/:matchId/approve", pendingMatchApproveHandler)
 
 	officeAdmin.GET("/offices/:code/games/:id/admin", gameAdminPage)
 
