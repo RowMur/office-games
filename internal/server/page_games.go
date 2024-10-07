@@ -85,6 +85,7 @@ func gamesPlayFormHandler(c echo.Context) error {
 	c.Request().ParseForm()
 	winners := c.Request().Form["Winners"]
 	losers := c.Request().Form["Losers"]
+	note := c.FormValue("note")
 
 	participantCount := len(winners) + len(losers)
 	if participantCount < game.MinParticipants || participantCount > game.MaxParticipants {
@@ -129,6 +130,7 @@ func gamesPlayFormHandler(c echo.Context) error {
 	match := db.Match{
 		GameID:    game.ID,
 		CreatorID: user.ID,
+		Note:      note,
 	}
 	if err := tx.Create(&match).Error; err != nil {
 		tx.Rollback()

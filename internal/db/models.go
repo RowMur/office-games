@@ -137,6 +137,7 @@ type Match struct {
 	Participants []MatchParticipant
 	State        string `gorm:"default:'pending'"`
 	Approvals    []MatchApproval
+	Note         string
 }
 
 func (m *Match) IsApprovedByUser(userID uint) bool {
