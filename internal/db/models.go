@@ -30,7 +30,7 @@ type User struct {
 type Office struct {
 	gorm.Model
 	Name       string
-	Code       string
+	Code       string `gorm:"unique"`
 	AdminRefer uint
 	Admin      User   `gorm:"foreignKey:AdminRefer"`
 	Players    []User `gorm:"many2many:user_offices;"`
