@@ -80,7 +80,16 @@ templ GamePage(game db.Game, office db.Office, userWinLosses map[uint]WinLosses,
 				<p>No matches have been played yet. Go and play some { game.Name }!</p>
 			} else {
 				<ul class="flex flex-col gap-2">
-					for _, match := range game.Matches {
+					{{
+						nOfMatchesToShow := 5
+						matchesToShow := []db.Match{}
+						if len(game.Matches) <= nOfMatchesToShow {
+							matchesToShow = game.Matches
+						} else {
+							matchesToShow = game.Matches[0:nOfMatchesToShow]
+						}
+					}}
+					for _, match := range matchesToShow {
 						@Match(match, false)
 					}
 				</ul>
