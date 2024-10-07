@@ -16,8 +16,8 @@ func (s *Server) Run() {
 	e.Use(authMiddleware)
 	signedIn := e.Group("", enforceSignedIn)
 	signedOut := e.Group("", enforceSignedOut)
-	officeMember := e.Group("", enforceMember)
-	officeAdmin := e.Group("", enforceAdmin)
+	officeMember := signedIn.Group("", enforceMember)
+	officeAdmin := signedIn.Group("", enforceAdmin)
 
 	e.GET("/", pageHandler)
 	e.GET("/faqs", faqPageHandler)
