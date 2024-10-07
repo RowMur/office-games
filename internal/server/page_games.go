@@ -278,6 +278,8 @@ func gamePendingMatchesPage(c echo.Context) error {
 
 func pendingMatchPage(c echo.Context) error {
 	user := userFromContext(c)
+	officeCode := c.Param("code")
+	gameId := c.Param("id")
 	d := db.GetDB()
 
 	matchId := c.Param("matchId")
@@ -293,12 +295,19 @@ func pendingMatchPage(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
+	// Check if this match is still pending
+	if match.State != db.MatchStatePending {
+		return c.Redirect(http.StatusTemporaryRedirect, fmt.Sprintf("/offices/%s/games/%s", officeCode, gameId))
+	}
+
 	pageContent := views.PendingMatchPage(match.Game, match.Game.Office, match)
 	return render(c, http.StatusOK, views.Page(pageContent, user))
 }
 
 func pendingMatchApproveHandler(c echo.Context) error {
 	user := userFromContext(c)
+	officeCode := c.Param("code")
+	gameId := c.Param("id")
 
 	matchId, err := strconv.Atoi(c.Param("matchId"))
 	if err != nil {
@@ -313,6 +322,20 @@ func pendingMatchApproveHandler(c echo.Context) error {
 		UserID:  user.ID,
 	}
 
+	// Check if this match is still pending
+	match := db.Match{}
+	err = tx.Where("id = ?", matchId).First(&match).Error
+	if err != nil {
+		tx.Rollback()
+		return render(c, http.StatusOK, views.MatchApproveError(err.Error()))
+	}
+	if match.State != db.MatchStatePending {
+		tx.Rollback()
+		c.Response().Header().Set("HX-Redirect", fmt.Sprintf("/offices/%s/games/%s", officeCode, gameId))
+		return c.NoContent(http.StatusOK)
+	}
+
+	// Check if the user has already approved this match
 	var count int64
 	err = tx.Model(approval).Where("match_id = ? AND user_id = ?", matchId, user.ID).Count(&count).Error
 	if err != nil {
