@@ -21,8 +21,8 @@ func TestLogin(t *testing.T) {
 			{username: "username", email: "email", password: "password"},
 		}))
 		_, errs := u.Login("username", "wrongpassword")
-		if errs == nil || errs.Password == nil {
-			t.Errorf("expected password error, got nil")
+		if errs == nil || errs.Password == "" {
+			t.Errorf("expected password error")
 		}
 	})
 

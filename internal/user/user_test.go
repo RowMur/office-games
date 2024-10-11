@@ -25,10 +25,10 @@ func NewMockDB(mockUsers []mockUser) *mockDB {
 func (m *mockDB) CreateUser(username, email, password string) *db.CreateUserErrors {
 	for _, u := range m.users {
 		if u.username == username {
-			return &db.CreateUserErrors{Username: errors.New("Username is taken")}
+			return &db.CreateUserErrors{Username: "Username is taken"}
 		}
 		if u.email == email {
-			return &db.CreateUserErrors{Email: errors.New("Email is taken")}
+			return &db.CreateUserErrors{Email: "Email is taken"}
 		}
 	}
 	m.users = append(m.users, mockUser{username: username, email: email, password: password})

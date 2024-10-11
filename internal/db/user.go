@@ -1,7 +1,6 @@
 package db
 
 import (
-	"errors"
 	"strings"
 
 	"github.com/jackc/pgx/v5/pgconn"
@@ -20,8 +19,8 @@ type User struct {
 }
 
 type CreateUserErrors struct {
-	Username error
-	Email    error
+	Username string
+	Email    string
 	Error    error
 }
 
@@ -38,10 +37,10 @@ func (d *database) CreateUser(username, email, password string) *CreateUserError
 			constaintArray := strings.Split(postgresErr.ConstraintName, "_")
 			columnName := constaintArray[len(constaintArray)-1]
 			if columnName == "username" {
-				return &CreateUserErrors{Username: errors.New("Username is taken")}
+				return &CreateUserErrors{Username: "Username is taken"}
 			}
 			if columnName == "email" {
-				return &CreateUserErrors{Email: errors.New("Email is taken")}
+				return &CreateUserErrors{Email: "Email is taken"}
 			}
 		}
 
@@ -55,6 +54,9 @@ func (d *database) GetUserByUsername(username string) (*User, error) {
 	var user User
 	err := d.c.Where("username = ?", username).First(&user).Error
 	if err != nil {
+		if IsRecordNotFoundError(err) {
+			return nil, nil
+		}
 		return nil, err
 	}
 

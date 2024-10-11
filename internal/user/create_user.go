@@ -1,21 +1,19 @@
 package user
 
 import (
-	"errors"
-
 	"golang.org/x/crypto/bcrypt"
 )
 
 type createUserErrors struct {
-	Username error
-	Email    error
-	Password error
-	Confirm  error
+	Username string
+	Email    string
+	Password string
+	Confirm  string
 	Error    error
 }
 
-var errRequired = errors.New("required")
-var errPasswordsDoNotMatch = errors.New("passwords do not match")
+var errRequired = "required"
+var errPasswordsDoNotMatch = "passwords do not match"
 
 func (u *UserService) CreateUser(username, email, password, confirm string) *createUserErrors {
 	if username == "" {

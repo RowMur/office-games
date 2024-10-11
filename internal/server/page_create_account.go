@@ -22,10 +22,10 @@ func (s *Server) createAccountFormHandler(c echo.Context) error {
 	if errs != nil {
 		data := views.FormData{"username": username, "email": email}
 		formErrs := views.FormErrors{
-			"username": errs.Username.Error(),
-			"email":    errs.Email.Error(),
-			"password": errs.Password.Error(),
-			"confirm":  errs.Confirm.Error(),
+			"username": errs.Username,
+			"email":    errs.Email,
+			"password": errs.Password,
+			"confirm":  errs.Confirm,
 		}
 
 		return render(c, http.StatusOK, views.CreateAccountForm(data, formErrs))
@@ -35,8 +35,8 @@ func (s *Server) createAccountFormHandler(c echo.Context) error {
 	if loginErrs != nil {
 		data := views.FormData{"username": username, "email": email}
 		formErrs := views.FormErrors{
-			"username": loginErrs.Username.Error(),
-			"password": loginErrs.Password.Error(),
+			"username": loginErrs.Username,
+			"password": loginErrs.Password,
 		}
 
 		return render(c, http.StatusOK, views.CreateAccountForm(data, formErrs))

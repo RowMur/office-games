@@ -10,16 +10,16 @@ func TestCreateUser(t *testing.T) {
 	t.Run("empty fields", func(t *testing.T) {
 		u := user.NewUserService(NewMockDB(nil))
 		errs := u.CreateUser("", "email", "password", "password")
-		if errs == nil || errs.Username == nil {
-			t.Errorf("expected username error, got nil")
+		if errs == nil || errs.Username == "" {
+			t.Errorf("expected username error")
 		}
 	})
 
 	t.Run("passwords do not match", func(t *testing.T) {
 		u := user.NewUserService(NewMockDB(nil))
 		errs := u.CreateUser("username", "email", "password", "confirm")
-		if errs == nil || errs.Confirm == nil {
-			t.Errorf("expected confirm error, got nil")
+		if errs == nil || errs.Confirm == "" {
+			t.Errorf("expected confirm error")
 		}
 	})
 
@@ -28,8 +28,8 @@ func TestCreateUser(t *testing.T) {
 			{username: "username", email: "email", password: "password"},
 		}))
 		errs := u.CreateUser("username", "email", "password", "password")
-		if errs == nil || errs.Username == nil {
-			t.Errorf("expected username error error, got nil")
+		if errs == nil || errs.Username == "" {
+			t.Errorf("expected username error error")
 		}
 	})
 

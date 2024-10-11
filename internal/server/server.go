@@ -36,7 +36,7 @@ func (s *Server) Run() {
 	signedIn.POST("/me", meUpdateHandler)
 
 	signedOut.GET("/sign-in", signInHandler)
-	signedOut.POST("/sign-in", signInFormHandler)
+	signedOut.POST("/sign-in", s.signInFormHandler)
 
 	signedOut.GET("/create-account", createAccountPageHandler)
 	signedOut.POST("/create-account", s.createAccountFormHandler)
