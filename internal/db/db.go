@@ -10,12 +10,12 @@ import (
 )
 
 type database struct {
-	db *gorm.DB
+	c *gorm.DB
 }
 
 var databaseSingleton = database{}
 
-func Init() {
+func Init() database {
 	dbUrl := os.Getenv("DB_URL")
 	if dbUrl == "" {
 		log.Fatalf("DB_URL is not set")
@@ -31,11 +31,12 @@ func Init() {
 		log.Fatalf("Error migrating models: %v", err)
 	}
 
-	databaseSingleton.db = db
+	databaseSingleton.c = db
+	return databaseSingleton
 }
 
 func GetDB() *gorm.DB {
-	return databaseSingleton.db
+	return databaseSingleton.c
 }
 
 func IsRecordNotFoundError(err error) bool {

@@ -1,13 +1,20 @@
 package server
 
 import (
+	"github.com/RowMur/office-games/internal/db"
+	"github.com/RowMur/office-games/internal/user"
 	"github.com/labstack/echo/v4"
 )
 
-type Server struct{}
+type Server struct {
+	us *user.UserService
+}
 
 func NewServer() *Server {
-	return &Server{}
+	database := db.Init()
+	return &Server{
+		us: user.NewUserService(&database),
+	}
 }
 
 func (s *Server) Run() {
@@ -32,7 +39,7 @@ func (s *Server) Run() {
 	signedOut.POST("/sign-in", signInFormHandler)
 
 	signedOut.GET("/create-account", createAccountPageHandler)
-	signedOut.POST("/create-account", createAccountFormHandler)
+	signedOut.POST("/create-account", s.createAccountFormHandler)
 
 	e.GET("/sign-out", signOut)
 
