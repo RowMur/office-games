@@ -8,11 +8,13 @@ import (
 
 type Server struct {
 	us *user.UserService
+	db *db.Database
 }
 
 func NewServer() *Server {
 	database := db.Init()
 	return &Server{
+		db: &database,
 		us: user.NewUserService(&database),
 	}
 }
@@ -20,7 +22,7 @@ func NewServer() *Server {
 func (s *Server) Run() {
 	e := echo.New()
 
-	e.Use(authMiddleware)
+	e.Use(s.authMiddleware)
 	signedIn := e.Group("", enforceSignedIn)
 	signedOut := e.Group("", enforceSignedOut)
 	officeMember := signedIn.Group("", enforceMember)

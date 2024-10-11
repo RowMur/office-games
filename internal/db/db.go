@@ -9,13 +9,13 @@ import (
 	"gorm.io/gorm"
 )
 
-type database struct {
+type Database struct {
 	c *gorm.DB
 }
 
-var databaseSingleton = database{}
+var databaseSingleton = Database{}
 
-func Init() database {
+func Init() Database {
 	dbUrl := os.Getenv("DB_URL")
 	if dbUrl == "" {
 		log.Fatalf("DB_URL is not set")

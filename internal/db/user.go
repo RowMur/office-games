@@ -24,7 +24,7 @@ type CreateUserErrors struct {
 	Error    error
 }
 
-func (d *database) CreateUser(username, email, password string) *CreateUserErrors {
+func (d *Database) CreateUser(username, email, password string) *CreateUserErrors {
 	user := &User{Username: username, Email: email, Password: password}
 	err := d.c.Create(user).Error
 	if err != nil {
@@ -50,9 +50,22 @@ func (d *database) CreateUser(username, email, password string) *CreateUserError
 	return nil
 }
 
-func (d *database) GetUserByUsername(username string) (*User, error) {
+func (d *Database) GetUserByUsername(username string) (*User, error) {
 	var user User
 	err := d.c.Where("username = ?", username).First(&user).Error
+	if err != nil {
+		if IsRecordNotFoundError(err) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	return &user, nil
+}
+
+func (d *Database) GetUserById(id uint) (*User, error) {
+	var user User
+	err := d.c.Preload("Offices").First(&user, id).Error
 	if err != nil {
 		if IsRecordNotFoundError(err) {
 			return nil, nil

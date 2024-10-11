@@ -23,7 +23,7 @@ func userFromContext(c echo.Context) *db.User {
 	return cc.user
 }
 
-func authMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
+func (s *Server) authMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		authCookie, err := c.Request().Cookie("auth")
 		if err != nil && err != http.ErrNoCookie {
@@ -45,12 +45,11 @@ func authMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 			return signOut(c)
 		}
 
-		user := db.User{}
-		result := db.GetDB().Where("ID = ?", token.UserId).Preload("Offices").First(&user)
-		if result.Error != nil {
+		user, err := s.db.GetUserById(token.UserId)
+		if user == nil || err != nil {
 			return signOut(c)
 		}
-		cc := &contextWithUser{c, &user}
+		cc := &contextWithUser{c, user}
 		return next(cc)
 	}
 }
