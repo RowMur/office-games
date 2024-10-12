@@ -13,13 +13,12 @@ import (
 	"gorm.io/gorm"
 )
 
-func gamesPageHandler(c echo.Context) error {
+func (s *Server) gamesPageHandler(c echo.Context) error {
 	user := userFromContext(c)
 	gameId := c.Param("id")
 
-	d := db.GetDB()
 	game := db.Game{}
-	err := d.Where("id = ?", gameId).
+	err := s.db.C.Where("id = ?", gameId).
 		Preload("Office").
 		Preload("Rankings", func(db *gorm.DB) *gorm.DB {
 			return db.Order("Rankings.points DESC")
@@ -58,13 +57,12 @@ func gamesPageHandler(c echo.Context) error {
 	return render(c, http.StatusOK, views.Page(pageContent, user))
 }
 
-func gamesPlayPageHandler(c echo.Context) error {
+func (s *Server) gamesPlayPageHandler(c echo.Context) error {
 	user := userFromContext(c)
 	gameId := c.Param("id")
 
-	d := db.GetDB()
 	game := db.Game{}
-	if err := d.Where("id = ?", gameId).Preload("Office.Players").First(&game).Error; err != nil {
+	if err := s.db.C.Where("id = ?", gameId).Preload("Office.Players").First(&game).Error; err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
@@ -73,13 +71,12 @@ func gamesPlayPageHandler(c echo.Context) error {
 	return render(c, http.StatusOK, views.Page(pageContent, user))
 }
 
-func gamesPlayFormHandler(c echo.Context) error {
+func (s *Server) gamesPlayFormHandler(c echo.Context) error {
 	user := userFromContext(c)
 	gameId := c.Param("id")
 
-	d := db.GetDB()
 	game := db.Game{}
-	if err := d.Where("id = ?", gameId).Preload("Office.Players").First(&game).Error; err != nil {
+	if err := s.db.C.Where("id = ?", gameId).Preload("Office.Players").First(&game).Error; err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 	c.Request().ParseForm()
@@ -124,8 +121,7 @@ func gamesPlayFormHandler(c echo.Context) error {
 		playerMap[loser] = "loss"
 	}
 
-	dbc := db.GetDB()
-	tx := dbc.Begin()
+	tx := s.db.C.Begin()
 
 	match := db.Match{
 		GameID:    game.ID,
@@ -253,13 +249,12 @@ func gamesPlayFormHandler(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func gamePendingMatchesPage(c echo.Context) error {
+func (s *Server) gamePendingMatchesPage(c echo.Context) error {
 	user := userFromContext(c)
-	d := db.GetDB()
 
 	gameId := c.Param("id")
 	game := db.Game{}
-	err := d.Where("id = ?", gameId).
+	err := s.db.C.Where("id = ?", gameId).
 		Preload("Office").
 		Preload("Matches", "state IN (?)", db.MatchStatePending, func(db *gorm.DB) *gorm.DB {
 			return db.Order("Matches.created_at DESC")
@@ -276,15 +271,14 @@ func gamePendingMatchesPage(c echo.Context) error {
 	return render(c, http.StatusOK, views.Page(pageContent, user))
 }
 
-func pendingMatchPage(c echo.Context) error {
+func (s *Server) pendingMatchPage(c echo.Context) error {
 	user := userFromContext(c)
 	officeCode := c.Param("code")
 	gameId := c.Param("id")
-	d := db.GetDB()
 
 	matchId := c.Param("matchId")
 	match := db.Match{}
-	err := d.Where("id = ?", matchId).
+	err := s.db.C.Where("id = ?", matchId).
 		Preload("Game").
 		Preload("Game.Office").
 		Preload("Creator").
@@ -304,7 +298,7 @@ func pendingMatchPage(c echo.Context) error {
 	return render(c, http.StatusOK, views.Page(pageContent, user))
 }
 
-func pendingMatchApproveHandler(c echo.Context) error {
+func (s *Server) pendingMatchApproveHandler(c echo.Context) error {
 	user := userFromContext(c)
 	officeCode := c.Param("code")
 	gameId := c.Param("id")
@@ -314,8 +308,7 @@ func pendingMatchApproveHandler(c echo.Context) error {
 		return render(c, http.StatusOK, views.MatchApproveError("Invalid match ID"))
 	}
 
-	d := db.GetDB()
-	tx := d.Begin()
+	tx := s.db.C.Begin()
 
 	approval := db.MatchApproval{
 		MatchID: uint(matchId),
@@ -435,13 +428,12 @@ func handleMatchApproval(tx *gorm.DB, match db.Match) error {
 	return nil
 }
 
-func gameAdminPage(c echo.Context) error {
+func (s *Server) gameAdminPage(c echo.Context) error {
 	user := userFromContext(c)
 	gameId := c.Param("id")
 
-	d := db.GetDB()
 	game := db.Game{}
-	err := d.Where("id = ?", gameId).
+	err := s.db.C.Where("id = ?", gameId).
 		Preload("Office").
 		First(&game).Error
 	if err != nil {
@@ -450,12 +442,11 @@ func gameAdminPage(c echo.Context) error {
 	return render(c, http.StatusOK, views.Page(views.GameAdminPage(game, game.Office, *user), user))
 }
 
-func deleteGameHandler(c echo.Context) error {
+func (s *Server) deleteGameHandler(c echo.Context) error {
 	gameId := c.Param("id")
 	office := c.Param("code")
 
-	d := db.GetDB()
-	err := d.Delete(&db.Game{}, gameId).Error
+	err := s.db.C.Delete(&db.Game{}, gameId).Error
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
@@ -464,12 +455,10 @@ func deleteGameHandler(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
-func editGameHandler(c echo.Context) error {
-	d := db.GetDB()
-
+func (s *Server) editGameHandler(c echo.Context) error {
 	gameId := c.Param("id")
 	game := db.Game{}
-	err := d.Where("id = ?", gameId).First(&game).Error
+	err := s.db.C.Where("id = ?", gameId).First(&game).Error
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
@@ -520,7 +509,7 @@ func editGameHandler(c echo.Context) error {
 		}
 	}
 
-	err = d.Model(&game).Where("id = ?", game.ID).Updates(map[string]interface{}{"name": newName, "min_participants": minParticipants, "max_participants": maxParticipants, "game_type": gameType}).Error
+	err = s.db.C.Model(&game).Where("id = ?", game.ID).Updates(map[string]interface{}{"name": newName, "min_participants": minParticipants, "max_participants": maxParticipants, "game_type": gameType}).Error
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}

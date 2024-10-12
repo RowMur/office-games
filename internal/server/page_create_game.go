@@ -25,8 +25,6 @@ func (s *Server) createGameHandler(c echo.Context) error {
 }
 
 func (s *Server) createGameFormHandler(c echo.Context) error {
-	d := db.GetDB()
-
 	officeCode := c.Param("code")
 	office, err := s.app.GetOfficeByCode(officeCode)
 	if err != nil {
@@ -46,7 +44,7 @@ func (s *Server) createGameFormHandler(c echo.Context) error {
 		Name:     gameName,
 		OfficeID: office.ID,
 	}
-	if err := d.Create(&game).Error; err != nil {
+	if err := s.db.C.Create(&game).Error; err != nil {
 		return c.String(http.StatusInternalServerError, "Failed to create game")
 	}
 

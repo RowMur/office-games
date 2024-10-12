@@ -59,21 +59,21 @@ func (s *Server) Run() {
 	signedIn.POST("/offices/join", s.joinOfficeHandler)
 	signedIn.POST("/offices/create", s.createOfficeHandler)
 
-	officeMember.GET("/offices/:code/games/:id", gamesPageHandler)
+	officeMember.GET("/offices/:code/games/:id", s.gamesPageHandler)
 	officeAdmin.GET("/offices/:code/games/create", s.createGameHandler)
 	officeAdmin.POST("/offices/:code/games/create", s.createGameFormHandler)
 
-	officeAdmin.POST("/offices/:code/games/:id", editGameHandler)
-	officeAdmin.DELETE("/offices/:code/games/:id", deleteGameHandler)
+	officeAdmin.POST("/offices/:code/games/:id", s.editGameHandler)
+	officeAdmin.DELETE("/offices/:code/games/:id", s.deleteGameHandler)
 
-	officeMember.GET("/offices/:code/games/:id/play", gamesPlayPageHandler)
-	officeMember.POST("/offices/:code/games/:id/play", gamesPlayFormHandler)
+	officeMember.GET("/offices/:code/games/:id/play", s.gamesPlayPageHandler)
+	officeMember.POST("/offices/:code/games/:id/play", s.gamesPlayFormHandler)
 
-	officeMember.GET("/offices/:code/games/:id/pending", gamePendingMatchesPage)
-	officeMember.GET("/offices/:code/games/:id/pending/:matchId", pendingMatchPage)
-	officeMember.GET("/offices/:code/games/:id/pending/:matchId/approve", pendingMatchApproveHandler)
+	officeMember.GET("/offices/:code/games/:id/pending", s.gamePendingMatchesPage)
+	officeMember.GET("/offices/:code/games/:id/pending/:matchId", s.pendingMatchPage)
+	officeMember.GET("/offices/:code/games/:id/pending/:matchId/approve", s.pendingMatchApproveHandler)
 
-	officeAdmin.GET("/offices/:code/games/:id/admin", gameAdminPage)
+	officeAdmin.GET("/offices/:code/games/:id/admin", s.gameAdminPage)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }

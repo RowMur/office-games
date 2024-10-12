@@ -35,10 +35,6 @@ func Init() Database {
 	return databaseSingleton
 }
 
-func GetDB() *gorm.DB {
-	return databaseSingleton.C
-}
-
 func IsRecordNotFoundError(err error) bool {
 	return errors.Is(err, gorm.ErrRecordNotFound)
 }
