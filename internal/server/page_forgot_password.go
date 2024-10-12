@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/RowMur/office-games/internal/db"
 	"github.com/RowMur/office-games/internal/views"
 	"github.com/labstack/echo/v4"
 )
@@ -14,7 +13,7 @@ func forgotPasswordPage(c echo.Context) error {
 	return render(c, http.StatusOK, views.Page(pageContent, nil))
 }
 
-func forgotPasswordFormHandler(c echo.Context) error {
+func (s *Server) forgotPasswordFormHandler(c echo.Context) error {
 	username := c.FormValue("username")
 	if username == "" {
 		data := views.FormData{"username": username}
@@ -22,17 +21,14 @@ func forgotPasswordFormHandler(c echo.Context) error {
 		return render(c, http.StatusOK, views.ForgotPasswordForm(data, errs))
 	}
 
-	d := db.GetDB()
-	user := &db.User{}
-	err := d.Where("username = ?", username).First(user).Error
+	user, err := s.db.GetUserByUsername(username)
 	if err != nil {
-		if db.IsRecordNotFoundError(err) {
-			data := views.FormData{"username": username}
-			errs := views.FormErrors{"username": "User not found"}
-			return render(c, http.StatusOK, views.ForgotPasswordForm(data, errs))
-		}
-
 		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	if user == nil {
+		data := views.FormData{"username": username}
+		errs := views.FormErrors{"username": "User not found"}
+		return render(c, http.StatusOK, views.ForgotPasswordForm(data, errs))
 	}
 
 	if user.Email == "" {

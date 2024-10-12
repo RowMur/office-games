@@ -75,3 +75,7 @@ func (d *Database) GetUserById(id uint) (*User, error) {
 
 	return &user, nil
 }
+
+func (d *Database) UpdateUser(id uint, updates map[string]interface{}) error {
+	return d.c.Model(&User{}).Where("id = ?", id).Updates(updates).Error
+}

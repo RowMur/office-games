@@ -44,3 +44,7 @@ func (m *mockDB) GetUserByUsername(username string) (*db.User, error) {
 
 	return nil, errors.New("not found")
 }
+
+func (m *mockDB) UpdateUser(id uint, updates map[string]interface{}) error {
+	return nil
+}

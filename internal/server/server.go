@@ -46,10 +46,10 @@ func (s *Server) Run() {
 	e.GET("/sign-out", signOut)
 
 	signedOut.GET("/forgot-password", forgotPasswordPage)
-	signedOut.POST("/forgot-password", forgotPasswordFormHandler)
+	signedOut.POST("/forgot-password", s.forgotPasswordFormHandler)
 
 	signedOut.GET("/reset-password", resetPasswordTokenMiddleware(resetPasswordPage))
-	signedOut.POST("/reset-password", resetPasswordTokenMiddleware(resetPasswordFormHandler))
+	signedOut.POST("/reset-password", resetPasswordTokenMiddleware(s.resetPasswordFormHandler))
 
 	officeMember.GET("/offices/:code", officeHandler)
 	signedIn.POST("/offices/join", joinOfficeHandler)
