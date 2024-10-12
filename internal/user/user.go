@@ -7,7 +7,7 @@ import (
 type database interface {
 	CreateUser(username, email, password string) *db.CreateUserErrors
 	GetUserByUsername(username string) (*db.User, error)
-	UpdateUser(id uint, updates map[string]interface{}) error
+	UpdateUser(id uint, updates map[string]interface{}) (*db.User, db.UpdateErrors, error)
 }
 
 type UserService struct {

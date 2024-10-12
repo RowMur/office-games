@@ -35,7 +35,7 @@ func (s *Server) Run() {
 	e.Static("/", "internal/assets/favicon_io")
 
 	signedIn.GET("/me", mePageHandler)
-	signedIn.POST("/me", meUpdateHandler)
+	signedIn.POST("/me", s.meUpdateHandler)
 
 	signedOut.GET("/sign-in", signInHandler)
 	signedOut.POST("/sign-in", s.signInFormHandler)

@@ -27,7 +27,7 @@ func (u *UserService) ResetPassword(userId uint, password, confirm string) *rese
 		return &resetPasswordsErrors{Error: err}
 	}
 
-	err = u.db.UpdateUser(userId, map[string]interface{}{"password": string(hashedPassword)})
+	_, _, err = u.db.UpdateUser(userId, map[string]interface{}{"password": string(hashedPassword)})
 	if err != nil {
 		return &resetPasswordsErrors{Error: err}
 	}

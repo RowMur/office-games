@@ -1,6 +1,7 @@
 package db
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/jackc/pgx/v5/pgconn"
@@ -33,9 +34,8 @@ func (d *Database) CreateUser(username, email, password string) *CreateUserError
 			return &CreateUserErrors{Error: err}
 		}
 
-		if postgresErr.SQLState() == "23505" {
-			constaintArray := strings.Split(postgresErr.ConstraintName, "_")
-			columnName := constaintArray[len(constaintArray)-1]
+		if postgresErr.SQLState() == ErrPostgresConstraintViolation {
+			columnName := parsePostgresConstraintError(postgresErr)
 			if columnName == "username" {
 				return &CreateUserErrors{Username: "Username is taken"}
 			}
@@ -76,6 +76,34 @@ func (d *Database) GetUserById(id uint) (*User, error) {
 	return &user, nil
 }
 
-func (d *Database) UpdateUser(id uint, updates map[string]interface{}) error {
-	return d.c.Model(&User{}).Where("id = ?", id).Updates(updates).Error
+type UpdateErrors map[string]string
+
+func (d *Database) UpdateUser(id uint, updates map[string]interface{}) (*User, UpdateErrors, error) {
+	user := &User{}
+	err := d.c.Model(user).Where("id = ?", id).Updates(updates).Error
+	if err != nil {
+		postgresErr, ok := err.(*pgconn.PgError)
+		if !ok {
+			return nil, nil, err
+		}
+
+		if postgresErr.SQLState() == ErrPostgresConstraintViolation {
+			columnName := parsePostgresConstraintError(postgresErr)
+			for key := range updates {
+				if key == columnName {
+					return nil, UpdateErrors{columnName: fmt.Sprintf("%s is taken", columnName)}, nil
+				}
+			}
+		}
+	}
+	fmt.Printf("updates: %+v\n", user)
+	return user, nil, nil
+}
+
+var ErrPostgresConstraintViolation = "23505"
+
+func parsePostgresConstraintError(err *pgconn.PgError) string {
+	constaintArray := strings.Split(err.ConstraintName, "_")
+	columnName := constaintArray[len(constaintArray)-1]
+	return columnName
 }
