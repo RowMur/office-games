@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var models = []interface{}{
+var Models = []interface{}{
 	&User{},
 	&Office{},
 	&Game{},

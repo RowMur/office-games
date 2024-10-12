@@ -180,7 +180,7 @@ func JoinOfficeForm(data FormData, errors FormErrors) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" class=\"text-black grow\" placeholder=\"ABCDEF\"> <button type=\"submit\" class=\"bg-accent text-light block w-16\">Join</button></div>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" class=\"text-black grow\" placeholder=\"ABCDEF\" required> <button type=\"submit\" class=\"bg-accent text-light block w-16\">Join</button></div>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

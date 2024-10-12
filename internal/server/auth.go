@@ -72,7 +72,7 @@ func enforceSignedOut(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func enforceMember(next echo.HandlerFunc) echo.HandlerFunc {
+func (s *Server) enforceMember(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user := userFromContext(c)
 		if user == nil {
@@ -80,10 +80,12 @@ func enforceMember(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		officeCode := c.Param("code")
-		office := &db.Office{}
-		err := db.GetDB().Where("code = ?", officeCode).Preload("Players").First(office).Error
+		office, err := s.app.GetOfficeByCode(officeCode)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		}
+		if office == nil {
+			return echo.NewHTTPError(http.StatusNotFound, "Office not found")
 		}
 
 		for _, u := range office.Players {
@@ -96,7 +98,7 @@ func enforceMember(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
-func enforceAdmin(next echo.HandlerFunc) echo.HandlerFunc {
+func (s *Server) enforceAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		user := userFromContext(c)
 		if user == nil {
@@ -104,12 +106,13 @@ func enforceAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		officeCode := c.Param("code")
-		office := &db.Office{}
-		err := db.GetDB().Where("code = ?", officeCode).First(office).Error
+		office, err := s.app.GetOfficeByCode(officeCode)
 		if err != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
 		}
-
+		if office == nil {
+			return echo.NewHTTPError(http.StatusNotFound, "Office not found")
+		}
 		if office.AdminRefer != user.ID {
 			return echo.NewHTTPError(http.StatusForbidden, "You are not the admin of this office")
 		}

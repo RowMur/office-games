@@ -46,7 +46,7 @@ templ JoinOfficeForm(data FormData, errors FormErrors) {
 	<form hx-post="/offices/join" hx-swap="outerHTML">
 		<label for="office" class="block">Code:</label>
 		<div class="flex gap-4">
-			<input id="office" name="office" type="text" value={ data["office"] } class="text-black grow" placeholder="ABCDEF"/>
+			<input id="office" name="office" type="text" value={ data["office"] } class="text-black grow" placeholder="ABCDEF" required/>
 			<button type="submit" class="bg-accent text-light block w-16">Join</button>
 		</div>
 		if errors["office"] != "" {

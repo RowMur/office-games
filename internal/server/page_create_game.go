@@ -8,25 +8,31 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func createGameHandler(c echo.Context) error {
+func (s *Server) createGameHandler(c echo.Context) error {
 	user := userFromContext(c)
 	officeCode := c.Param("code")
 
-	office := db.Office{}
-	if err := db.GetDB().Where("code = ?", officeCode).First(&office).Error; err != nil {
+	office, err := s.app.GetOfficeByCode(officeCode)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+	if office == nil {
 		return c.String(http.StatusNotFound, "Office not found")
 	}
 
-	pageContent := views.CreateGamePage(office)
+	pageContent := views.CreateGamePage(*office)
 	return render(c, http.StatusOK, views.Page(pageContent, user))
 }
 
-func createGameFormHandler(c echo.Context) error {
+func (s *Server) createGameFormHandler(c echo.Context) error {
 	d := db.GetDB()
 
 	officeCode := c.Param("code")
-	office := db.Office{}
-	if err := d.Where("code = ?", officeCode).First(&office).Error; err != nil {
+	office, err := s.app.GetOfficeByCode(officeCode)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+	if office == nil {
 		return c.String(http.StatusNotFound, "Office not found")
 	}
 

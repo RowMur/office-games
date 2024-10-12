@@ -10,7 +10,7 @@ import (
 )
 
 type Database struct {
-	c *gorm.DB
+	C *gorm.DB
 }
 
 var databaseSingleton = Database{}
@@ -26,17 +26,17 @@ func Init() Database {
 		log.Fatalf("Error connecting to database: %v", err)
 	}
 
-	err = db.AutoMigrate(models...)
+	err = db.AutoMigrate(Models...)
 	if err != nil {
 		log.Fatalf("Error migrating models: %v", err)
 	}
 
-	databaseSingleton.c = db
+	databaseSingleton.C = db
 	return databaseSingleton
 }
 
 func GetDB() *gorm.DB {
-	return databaseSingleton.c
+	return databaseSingleton.C
 }
 
 func IsRecordNotFoundError(err error) bool {
