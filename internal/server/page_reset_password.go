@@ -1,11 +1,11 @@
 package server
 
 import (
-	"github.com/RowMur/office-games/internal/db"
+	"net/http"
+
 	t "github.com/RowMur/office-games/internal/token"
 	"github.com/RowMur/office-games/internal/views"
 	"github.com/labstack/echo/v4"
-	"golang.org/x/crypto/bcrypt"
 )
 
 func resetPasswordPage(c echo.Context) error {
@@ -14,43 +14,24 @@ func resetPasswordPage(c echo.Context) error {
 	return render(c, 200, views.Page(pageContent, nil))
 }
 
-func resetPasswordFormHandler(c echo.Context) error {
+func (s *Server) resetPasswordFormHandler(c echo.Context) error {
 	token := tokenFromContext(c)
 
 	password := c.FormValue("password")
 	confirmPassword := c.FormValue("confirm")
-	if password == "" || confirmPassword == "" {
-		data := views.FormData{}
-		errs := views.FormErrors{}
-		if password == "" {
-			errs["password"] = "Password is required"
+
+	errs := s.us.ResetPassword(token.UserId, password, confirmPassword)
+	if errs != nil {
+		if errs.Error != nil {
+			formErrs := views.FormErrors{"submit": "Failed to reset password"}
+			return render(c, http.StatusOK, views.ResetPasswordForm(views.FormData{}, formErrs, token.String))
 		}
-		if confirmPassword == "" {
-			errs["confirm"] = "Confirm password is required"
+
+		formErrs := views.FormErrors{
+			"password": errs.Password,
+			"confirm":  errs.Confirm,
 		}
-		return render(c, 200, views.ResetPasswordForm(data, errs, token.String))
-	}
-
-	if password != confirmPassword {
-		data := views.FormData{}
-		errs := views.FormErrors{"confirm": "Passwords do not match"}
-		return render(c, 200, views.ResetPasswordForm(data, errs, token.String))
-	}
-
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		data := views.FormData{}
-		errs := views.FormErrors{"submit": "Failed to reset password"}
-		return render(c, 200, views.ResetPasswordForm(data, errs, token.String))
-	}
-
-	d := db.GetDB()
-	user := &db.User{}
-	err = d.Model(user).Where("id = ?", token.UserId).Update("password", string(hashedPassword)).Error
-	if err != nil {
-		data := views.FormData{}
-		errs := views.FormErrors{"submit": "Failed to reset password"}
-		return render(c, 200, views.ResetPasswordForm(data, errs, token.String))
+		return render(c, http.StatusOK, views.ResetPasswordForm(views.FormData{}, formErrs, token.String))
 	}
 
 	return render(c, 200, views.ResetPasswordSuccess())

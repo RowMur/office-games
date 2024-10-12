@@ -1,19 +1,28 @@
 package server
 
 import (
+	"github.com/RowMur/office-games/internal/db"
+	"github.com/RowMur/office-games/internal/user"
 	"github.com/labstack/echo/v4"
 )
 
-type Server struct{}
+type Server struct {
+	us *user.UserService
+	db *db.Database
+}
 
 func NewServer() *Server {
-	return &Server{}
+	database := db.Init()
+	return &Server{
+		db: &database,
+		us: user.NewUserService(&database),
+	}
 }
 
 func (s *Server) Run() {
 	e := echo.New()
 
-	e.Use(authMiddleware)
+	e.Use(s.authMiddleware)
 	signedIn := e.Group("", enforceSignedIn)
 	signedOut := e.Group("", enforceSignedOut)
 	officeMember := signedIn.Group("", enforceMember)
@@ -26,21 +35,21 @@ func (s *Server) Run() {
 	e.Static("/", "internal/assets/favicon_io")
 
 	signedIn.GET("/me", mePageHandler)
-	signedIn.POST("/me", meUpdateHandler)
+	signedIn.POST("/me", s.meUpdateHandler)
 
 	signedOut.GET("/sign-in", signInHandler)
-	signedOut.POST("/sign-in", signInFormHandler)
+	signedOut.POST("/sign-in", s.signInFormHandler)
 
 	signedOut.GET("/create-account", createAccountPageHandler)
-	signedOut.POST("/create-account", createAccountFormHandler)
+	signedOut.POST("/create-account", s.createAccountFormHandler)
 
 	e.GET("/sign-out", signOut)
 
 	signedOut.GET("/forgot-password", forgotPasswordPage)
-	signedOut.POST("/forgot-password", forgotPasswordFormHandler)
+	signedOut.POST("/forgot-password", s.forgotPasswordFormHandler)
 
 	signedOut.GET("/reset-password", resetPasswordTokenMiddleware(resetPasswordPage))
-	signedOut.POST("/reset-password", resetPasswordTokenMiddleware(resetPasswordFormHandler))
+	signedOut.POST("/reset-password", resetPasswordTokenMiddleware(s.resetPasswordFormHandler))
 
 	officeMember.GET("/offices/:code", officeHandler)
 	signedIn.POST("/offices/join", joinOfficeHandler)

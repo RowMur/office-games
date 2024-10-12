@@ -16,17 +16,6 @@ var models = []interface{}{
 	&MatchParticipant{},
 }
 
-type User struct {
-	gorm.Model
-	Username            string `gorm:"unique"`
-	Email               string `gorm:"unique"`
-	Password            string
-	Offices             []Office `gorm:"many2many:user_offices;"`
-	Rankings            []Ranking
-	MatchParticipations []MatchParticipant
-	Approvals           []MatchApproval
-}
-
 type Office struct {
 	gorm.Model
 	Name       string
