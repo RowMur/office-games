@@ -27,7 +27,7 @@ type CreateUserErrors struct {
 
 func (d *Database) CreateUser(username, email, password string) *CreateUserErrors {
 	user := &User{Username: username, Email: email, Password: password}
-	err := d.c.Create(user).Error
+	err := d.C.Create(user).Error
 	if err != nil {
 		postgresErr, ok := err.(*pgconn.PgError)
 		if !ok {
@@ -52,7 +52,7 @@ func (d *Database) CreateUser(username, email, password string) *CreateUserError
 
 func (d *Database) GetUserByUsername(username string) (*User, error) {
 	var user User
-	err := d.c.Where("username = ?", username).First(&user).Error
+	err := d.C.Where("username = ?", username).First(&user).Error
 	if err != nil {
 		if IsRecordNotFoundError(err) {
 			return nil, nil
@@ -65,7 +65,7 @@ func (d *Database) GetUserByUsername(username string) (*User, error) {
 
 func (d *Database) GetUserById(id uint) (*User, error) {
 	var user User
-	err := d.c.Preload("Offices").First(&user, id).Error
+	err := d.C.Preload("Offices").First(&user, id).Error
 	if err != nil {
 		if IsRecordNotFoundError(err) {
 			return nil, nil
@@ -80,7 +80,7 @@ type UpdateErrors map[string]string
 
 func (d *Database) UpdateUser(id uint, updates map[string]interface{}) (*User, UpdateErrors, error) {
 	user := &User{}
-	err := d.c.Model(user).Where("id = ?", id).Updates(updates).Error
+	err := d.C.Model(user).Where("id = ?", id).Updates(updates).Error
 	if err != nil {
 		postgresErr, ok := err.(*pgconn.PgError)
 		if !ok {

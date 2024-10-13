@@ -6,7 +6,7 @@ import (
 	"gorm.io/gorm"
 )
 
-var models = []interface{}{
+var Models = []interface{}{
 	&User{},
 	&Office{},
 	&Game{},
@@ -100,6 +100,11 @@ type Ranking struct {
 	User   User
 }
 
+const (
+	MatchResultWin  = "win"
+	MatchResultLoss = "loss"
+)
+
 type MatchParticipant struct {
 	gorm.Model
 	UserID        uint
@@ -140,7 +145,7 @@ func (m *Match) IsApprovedByUser(userID uint) bool {
 
 func (m *Match) IsApprovedByWinners() bool {
 	for _, participant := range m.Participants {
-		if participant.Result == "win" && m.IsApprovedByUser(participant.UserID) {
+		if participant.Result == MatchResultWin && m.IsApprovedByUser(participant.UserID) {
 			return true
 		}
 	}
@@ -149,7 +154,7 @@ func (m *Match) IsApprovedByWinners() bool {
 
 func (m *Match) IsApprovedByLosers() bool {
 	for _, participant := range m.Participants {
-		if participant.Result == "loss" && m.IsApprovedByUser(participant.UserID) {
+		if participant.Result == MatchResultLoss && m.IsApprovedByUser(participant.UserID) {
 			return true
 		}
 	}
@@ -182,7 +187,7 @@ func (m *Match) IsApproved() bool {
 func (m *Match) Winners() []MatchParticipant {
 	var winners []MatchParticipant
 	for _, participant := range m.Participants {
-		if participant.Result == "win" {
+		if participant.Result == MatchResultWin {
 			winners = append(winners, participant)
 		}
 	}
@@ -192,7 +197,7 @@ func (m *Match) Winners() []MatchParticipant {
 func (m *Match) Losers() []MatchParticipant {
 	var losers []MatchParticipant
 	for _, participant := range m.Participants {
-		if participant.Result == "loss" {
+		if participant.Result == MatchResultLoss {
 			losers = append(losers, participant)
 		}
 	}

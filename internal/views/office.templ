@@ -6,7 +6,7 @@ import (
 	"strconv"
 )
 
-templ OfficePage(office db.Office, user *db.User, game db.Game) {
+templ OfficePage(office db.Office, user *db.User) {
 	<main class="mx-6 my-8">
 		{{
 			crumbs := []Crumb{
