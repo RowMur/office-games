@@ -1,6 +1,7 @@
 package views
 
 import (
+	"errors"
 	"fmt"
 	"github.com/RowMur/office-games/internal/db"
 	"strconv"
@@ -154,6 +155,37 @@ templ PlayGamePage(game db.Game, office db.Office, players []db.User, endpoint s
 			@PlayMatchForm(FormErrors{}, players, endpoint)
 		</section>
 	</main>
+}
+
+type PlayMatchFormData struct {
+	Note    string
+	Winners []string
+	Losers  []string
+}
+
+func ValidatePlayMatchForm(game *db.Game, formData PlayMatchFormData) error {
+	participantCount := len(formData.Winners) + len(formData.Losers)
+	if participantCount < game.MinParticipants {
+		return errors.New(fmt.Sprintf("At least %d participants are required", game.MinParticipants))
+	}
+	if participantCount > game.MaxParticipants {
+		return errors.New(fmt.Sprintf("At most %d participants are allowed", game.MaxParticipants))
+	}
+
+	if game.GameType == db.GameTypeHeadToHead && len(formData.Winners) != len(formData.Losers) {
+		return errors.New("The number of winners and losers must be equal")
+	}
+
+	players := append(formData.Winners, formData.Losers...)
+	playersMap := map[string]bool{}
+	for _, player := range players {
+		if playersMap[player] {
+			return errors.New("A player can only be in one team")
+		}
+		playersMap[player] = true
+	}
+
+	return nil
 }
 
 templ PlayMatchForm(errors FormErrors, players []db.User, endpoint string) {
