@@ -10,7 +10,7 @@ func (a *App) GetGameById(id string, pendingMatches bool) (*db.Game, error) {
 
 	query := a.db.Where("id = ?", id).
 		Preload("Office.Players", func(db *gorm.DB) *gorm.DB {
-			return db.Order("username")
+			return db.Order("username NOCASE")
 		}).
 		Preload("Rankings", func(db *gorm.DB) *gorm.DB {
 			return db.Order("Rankings.points DESC")
