@@ -12,7 +12,8 @@ func (a *App) GetOfficeByCode(code string) (*db.Office, error) {
 	office := &db.Office{}
 	err := a.db.Where("code = ?", code).
 		Preload("Players", func(db *gorm.DB) *gorm.DB {
-			return db.Order("username NOCASE")
+
+			return db.Order("LOWER(username)")
 		}).
 		Preload(clause.Associations).
 		First(office).Error
