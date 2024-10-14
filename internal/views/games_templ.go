@@ -442,32 +442,32 @@ func OfficeRankings(rankings []db.Ranking, userWinLosses map[uint]WinLosses) tem
 			templ_7745c5c3_Var15 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<table id=\"office-ranking\" class=\"w-full\"><thead class=\"border-b-[1px] border-accent\"><tr><th></th><th class=\"text-left\">Player</th><th class=\"text-right\">Wins</th><th class=\"text-right\">Losses</th><th class=\"hidden sm:block text-right\">%</th><th class=\"text-right\">Points</th></tr></thead> <tbody>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<table id=\"office-ranking\" class=\"w-full\"><thead class=\"border-b-[1px] border-accent\"><tr><th class=\"w-px\"></th><th class=\"text-left pl-1\">Player</th><th class=\"text-right\">Wins</th><th class=\"text-right\">Losses</th><th class=\"hidden sm:block text-right\">%</th><th class=\"text-right\">Points</th></tr></thead> <tbody>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		for i, ranking := range rankings {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<tr><td>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<tr><td class=\"text-right opacity-70\">#")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var16 string
 			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", i+1))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games.templ`, Line: 122, Col: 35}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games.templ`, Line: 122, Col: 66}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</td><td>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</td><td class=\"pl-1\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
 			var templ_7745c5c3_Var17 string
 			templ_7745c5c3_Var17, templ_7745c5c3_Err = templ.JoinStringErrs(ranking.User.Username)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games.templ`, Line: 123, Col: 32}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games.templ`, Line: 123, Col: 45}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var17))
 			if templ_7745c5c3_Err != nil {

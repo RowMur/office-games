@@ -108,8 +108,8 @@ templ OfficeRankings(rankings []db.Ranking, userWinLosses map[uint]WinLosses) {
 	<table id="office-ranking" class="w-full">
 		<thead class="border-b-[1px] border-accent">
 			<tr>
-				<th></th>
-				<th class="text-left">Player</th>
+				<th class="w-px"></th>
+				<th class="text-left pl-1">Player</th>
 				<th class="text-right">Wins</th>
 				<th class="text-right">Losses</th>
 				<th class="hidden sm:block text-right">%</th>
@@ -119,8 +119,8 @@ templ OfficeRankings(rankings []db.Ranking, userWinLosses map[uint]WinLosses) {
 		<tbody>
 			for i, ranking := range rankings {
 				<tr>
-					<td>{ fmt.Sprintf("%d", i + 1) }</td>
-					<td>{ ranking.User.Username }</td>
+					<td class="text-right opacity-70">#{ fmt.Sprintf("%d", i + 1) }</td>
+					<td class="pl-1">{ ranking.User.Username }</td>
 					<td class="text-right">
 						{ strconv.Itoa(userWinLosses[ranking.User.ID].Wins) }
 					</td>
