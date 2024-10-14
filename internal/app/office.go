@@ -4,12 +4,16 @@ import (
 	"errors"
 
 	"github.com/RowMur/office-games/internal/db"
+	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
 
 func (a *App) GetOfficeByCode(code string) (*db.Office, error) {
 	office := &db.Office{}
 	err := a.db.Where("code = ?", code).
+		Preload("Players", func(db *gorm.DB) *gorm.DB {
+			return db.Order("username")
+		}).
 		Preload(clause.Associations).
 		First(office).Error
 	if err != nil {
