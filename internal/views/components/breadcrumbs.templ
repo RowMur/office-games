@@ -1,0 +1,14 @@
+package components
+
+type Crumb struct {
+	Name string
+	URL  string
+}
+
+templ Breadcrumbs(crumbs []Crumb) {
+	<nav class="opacity-70">
+		for _, crumb := range crumbs {
+			<a href={ templ.SafeURL(crumb.URL) } class="hover:underline">{ crumb.Name } &gt; </a>
+		}
+	</nav>
+}

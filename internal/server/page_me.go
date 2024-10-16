@@ -13,8 +13,7 @@ func mePageHandler(c echo.Context) error {
 		return c.Redirect(http.StatusTemporaryRedirect, "/sign-in")
 	}
 
-	mePageContent := views.MePage(*user, views.FormData{"email": user.Email, "username": user.Username}, nil)
-	return render(c, http.StatusOK, views.Page(mePageContent, user))
+	return render(c, http.StatusOK, views.MePage(user, views.UserDetailsFormData{Email: user.Email, Username: user.Username}, views.UserDetailsFormErrors{}))
 }
 
 func (s *Server) meUpdateHandler(c echo.Context) error {
@@ -27,16 +26,16 @@ func (s *Server) meUpdateHandler(c echo.Context) error {
 	email := c.FormValue("email")
 
 	if username == "" || email == "" {
-		data := views.FormData{"username": username, "email": email}
-		errs := views.FormErrors{}
+		data := views.UserDetailsFormData{Username: username, Email: email}
+		errs := views.UserDetailsFormErrors{}
 		if username == "" {
-			errs["username"] = "Username is required"
+			errs.Username = "Username is required"
 		}
 		if email == "" {
-			errs["email"] = "Email is required"
+			errs.Email = "Email is required"
 		}
 		falseVar := false
-		return render(c, http.StatusOK, views.UserDetails(data, errs, &falseVar))
+		return render(c, http.StatusOK, views.UserDetailsForm(data, errs, &falseVar))
 	}
 
 	user, updateErrs, err := s.db.UpdateUser(user.ID, map[string]interface{}{"username": username, "email": email})
@@ -44,14 +43,14 @@ func (s *Server) meUpdateHandler(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 	if updateErrs != nil {
-		formErrs := views.FormErrors{
-			"username": updateErrs["username"],
-			"email":    updateErrs["email"],
+		formErrs := views.UserDetailsFormErrors{
+			Username: updateErrs["username"],
+			Email:    updateErrs["email"],
 		}
-		return render(c, http.StatusOK, views.UserDetails(views.FormData{"username": username, "email": email}, formErrs, nil))
+		return render(c, http.StatusOK, views.UserDetailsForm(views.UserDetailsFormData{Username: username, Email: email}, formErrs, nil))
 	}
 
-	formData := views.FormData{"email": user.Email, "username": user.Username}
+	formData := views.UserDetailsFormData{Email: user.Email, Username: user.Username}
 	truePtr := true
-	return render(c, http.StatusOK, views.UserDetails(formData, views.FormErrors{}, &truePtr))
+	return render(c, http.StatusOK, views.UserDetailsForm(formData, views.UserDetailsFormErrors{}, &truePtr))
 }

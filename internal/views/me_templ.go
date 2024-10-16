@@ -8,9 +8,13 @@ package views
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/RowMur/office-games/internal/db"
+import (
+	"github.com/RowMur/office-games/internal/db"
+	"github.com/RowMur/office-games/internal/views/components"
+	"github.com/RowMur/office-games/internal/views/layout"
+)
 
-func MePage(user db.User, data FormData, errors FormErrors) templ.Component {
+func MePage(user *db.User, data UserDetailsFormData, errors UserDetailsFormErrors) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -31,15 +35,33 @@ func MePage(user db.User, data FormData, errors FormErrors) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<main class=\"grid place-items-center mt-4\"><div class=\"flex flex-col gap-4\"><section><h2 class=\"text-xl pb-4\">Details</h2>")
-		if templ_7745c5c3_Err != nil {
+		templ_7745c5c3_Var2 := templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
+			templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
+			templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
+			if !templ_7745c5c3_IsBuffer {
+				defer func() {
+					templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
+					if templ_7745c5c3_Err == nil {
+						templ_7745c5c3_Err = templ_7745c5c3_BufErr
+					}
+				}()
+			}
+			ctx = templ.InitializeContext(ctx)
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<main class=\"grid place-items-center mt-4\"><div class=\"flex flex-col gap-4\"><section><h2 class=\"text-xl pb-4\">Details</h2>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			templ_7745c5c3_Err = UserDetailsForm(data, errors, nil).Render(ctx, templ_7745c5c3_Buffer)
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</section><a href=\"/sign-out\" class=\"underline text-center my-4\">Sign out</a></div></main>")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
 			return templ_7745c5c3_Err
-		}
-		templ_7745c5c3_Err = UserDetails(data, errors, nil).Render(ctx, templ_7745c5c3_Buffer)
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</section><a href=\"/sign-out\" class=\"underline text-center my-4\">Sign out</a></div></main>")
+		})
+		templ_7745c5c3_Err = layout.Base(user).Render(templ.WithChildren(ctx, templ_7745c5c3_Var2), templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -47,7 +69,17 @@ func MePage(user db.User, data FormData, errors FormErrors) templ.Component {
 	})
 }
 
-func UserDetails(data FormData, errors FormErrors, didUpdateSuccessfully *bool) templ.Component {
+type UserDetailsFormData struct {
+	Username string
+	Email    string
+}
+
+type UserDetailsFormErrors struct {
+	Username string
+	Email    string
+}
+
+func UserDetailsForm(data UserDetailsFormData, errors UserDetailsFormErrors, didUpdateSuccessfully *bool) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -63,20 +95,32 @@ func UserDetails(data FormData, errors FormErrors, didUpdateSuccessfully *bool) 
 			}()
 		}
 		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var2 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var2 == nil {
-			templ_7745c5c3_Var2 = templ.NopComponent
+		templ_7745c5c3_Var3 := templ.GetChildren(ctx)
+		if templ_7745c5c3_Var3 == nil {
+			templ_7745c5c3_Var3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form hx-post=\"/me\" hx-swap=\"outerHTML\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = formField("username", "Username", "text", data, errors).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = components.FormField(components.FormFieldProps{
+			Name:      "username",
+			Label:     "Username",
+			Value:     data.Username,
+			Error:     errors.Username,
+			InputType: "text",
+		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = formField("email", "Email", "email", data, errors).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = components.FormField(components.FormFieldProps{
+			Name:      "email",
+			Label:     "Email",
+			Value:     data.Email,
+			Error:     errors.Email,
+			InputType: "email",
+		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

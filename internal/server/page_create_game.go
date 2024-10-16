@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/RowMur/office-games/internal/db"
-	"github.com/RowMur/office-games/internal/views"
+	"github.com/RowMur/office-games/internal/views/games"
 	"github.com/labstack/echo/v4"
 )
 
@@ -20,8 +20,7 @@ func (s *Server) createGameHandler(c echo.Context) error {
 		return c.String(http.StatusNotFound, "Office not found")
 	}
 
-	pageContent := views.CreateGamePage(*office)
-	return render(c, http.StatusOK, views.Page(pageContent, user))
+	return render(c, http.StatusOK, games.CreateGamePage(user, *office))
 }
 
 func (s *Server) createGameFormHandler(c echo.Context) error {
@@ -36,8 +35,10 @@ func (s *Server) createGameFormHandler(c echo.Context) error {
 
 	gameName := c.FormValue("game")
 	if gameName == "" {
-		errs := views.FormErrors{"game": "Name is required"}
-		return render(c, http.StatusOK, views.CreateGameForm(views.FormData{}, errs, officeCode))
+		errs := games.CreateGameFormErrors{
+			Game: "Name is required",
+		}
+		return render(c, http.StatusOK, games.CreateGameForm(games.CreateGameFormData{}, errs, officeCode))
 	}
 
 	game := db.Game{

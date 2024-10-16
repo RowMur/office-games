@@ -1,0 +1,104 @@
+package games
+
+import (
+	"fmt"
+	"github.com/RowMur/office-games/internal/db"
+	"github.com/RowMur/office-games/internal/views/layout"
+	"strconv"
+)
+
+templ GameAdminPage(game db.Game, office db.Office, user *db.User) {
+	@layout.Base(user) {
+		<main class="mx-6 my-8">
+			@GamePageBreadcrumb(GamePageBreadcrumbProps{
+				Game:   game,
+				Office: office,
+			})
+			@GamePageHeading(GamePageHeadingProps{
+				Game:   game,
+				Office: office,
+			})
+			@GamePageTabs(GamePageTabsProps{
+				CurrentTab: "Admin",
+				Office:     office,
+				Game:       game,
+				User:       *user,
+			})
+			<section class="my-8">
+				@EditGameForm(EditGameFormData{
+					Name:            game.Name,
+					MinParticipants: strconv.Itoa(game.MinParticipants),
+					MaxParticipants: strconv.Itoa(game.MaxParticipants),
+					GameType:        game.GameType,
+				}, EditGameFormErrors{}, office.Code, game)
+			</section>
+		</main>
+	}
+}
+
+type EditGameFormData struct {
+	Name            string
+	MinParticipants string
+	MaxParticipants string
+	GameType        string
+}
+
+type EditGameFormErrors struct {
+	Name            string
+	MinParticipants string
+	MaxParticipants string
+	GameType        string
+}
+
+templ EditGameForm(data EditGameFormData, errors EditGameFormErrors, officeCode string, game db.Game) {
+	<form hx-post={ fmt.Sprintf("/offices/%s/games/%s", officeCode, strconv.Itoa(int(game.ID))) } hx-swap="outerHTML" class="flex flex-col gap-2">
+		<label for="name" class="block">Name:</label>
+		<div class="flex gap-4">
+			<input id="name" name="name" type="text" value={ data.Name } class="text-black grow" placeholder="The game..."/>
+		</div>
+		if errors.Name != "" {
+			<p class="text-red-500">{ errors.Name }</p>
+		}
+		<div class="flex gap-4">
+			<div class="w-1/2 min-w-0">
+				<label for="min-participants" class="block">Min players:</label>
+				<div class="flex gap-4">
+					<input id="min-participants" name="min-participants" type="number" min="0" max="100" value={ data.MinParticipants } class="text-black min-w-0 grow"/>
+				</div>
+				if errors.MinParticipants != "" {
+					<p class="text-red-500">{ errors.MinParticipants }</p>
+				}
+			</div>
+			<div class="w-1/2 min-w-0">
+				<label for="max-participants" class="block">Max players:</label>
+				<div class="flex gap-4">
+					<input id="max-participants" name="max-participants" type="number" min="0" max="100" value={ data.MaxParticipants } class="text-black min-w-0 grow"/>
+				</div>
+				if errors.MaxParticipants != "" {
+					<p class="text-red-500">{ errors.MaxParticipants }</p>
+				}
+			</div>
+		</div>
+		<fieldset>
+			<legend>Select a game type:</legend>
+			for _, gameType := range db.GameTypes {
+				<div>
+					<input
+						id={ gameType.Value }
+						name="game-type"
+						type="radio"
+						value={ gameType.Value }
+						if data.GameType == gameType.Value {
+							checked
+						}
+					/>
+					<label for={ gameType.Value }>{ gameType.Display }</label>
+				</div>
+			}
+		</fieldset>
+		<div class="flex justify-between mt-4">
+			<button hx-delete={ fmt.Sprintf("/offices/%s/games/%s", officeCode, strconv.Itoa(int(game.ID))) } class="bg-red-500 text-content h-fit rounded w-16">Delete</button>
+			<button type="submit" class="bg-accent text-light block w-16 rounded">Save</button>
+		</div>
+	</form>
+}

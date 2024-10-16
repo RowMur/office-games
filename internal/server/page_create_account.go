@@ -8,8 +8,7 @@ import (
 )
 
 func createAccountPageHandler(c echo.Context) error {
-	createAccountPageContent := views.CreateAccountPage()
-	return render(c, http.StatusOK, views.Page(createAccountPageContent, nil))
+	return render(c, http.StatusOK, views.CreateAccountPage())
 }
 
 func (s *Server) createAccountFormHandler(c echo.Context) error {
@@ -20,12 +19,12 @@ func (s *Server) createAccountFormHandler(c echo.Context) error {
 
 	errs := s.us.CreateUser(username, email, password, confirm)
 	if errs != nil {
-		data := views.FormData{"username": username, "email": email}
-		formErrs := views.FormErrors{
-			"username": errs.Username,
-			"email":    errs.Email,
-			"password": errs.Password,
-			"confirm":  errs.Confirm,
+		data := views.CreateAccountFormData{Username: username, Email: email}
+		formErrs := views.CreateAccountFormErrors{
+			Username: errs.Username,
+			Email:    errs.Email,
+			Password: errs.Password,
+			Confirm:  errs.Confirm,
 		}
 
 		return render(c, http.StatusOK, views.CreateAccountForm(data, formErrs))
@@ -33,10 +32,10 @@ func (s *Server) createAccountFormHandler(c echo.Context) error {
 
 	token, loginErrs := s.us.Login(username, password)
 	if loginErrs != nil {
-		data := views.FormData{"username": username, "email": email}
-		formErrs := views.FormErrors{
-			"username": loginErrs.Username,
-			"password": loginErrs.Password,
+		data := views.CreateAccountFormData{Username: username, Email: email}
+		formErrs := views.CreateAccountFormErrors{
+			Username: loginErrs.Username,
+			Password: loginErrs.Password,
 		}
 
 		return render(c, http.StatusOK, views.CreateAccountForm(data, formErrs))

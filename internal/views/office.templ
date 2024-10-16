@@ -3,77 +3,81 @@ package views
 import (
 	"fmt"
 	"github.com/RowMur/office-games/internal/db"
+	"github.com/RowMur/office-games/internal/views/components"
+	"github.com/RowMur/office-games/internal/views/layout"
 	"strconv"
 )
 
 templ OfficePage(office db.Office, user *db.User) {
-	<main class="mx-6 my-8">
-		{{
-			crumbs := []Crumb{
+	@layout.Base(user) {
+		<main class="mx-6 my-8">
+			{{
+			crumbs := []components.Crumb{
 				{Name: office.Name, URL: fmt.Sprintf("/offices/%s", office.Code)},
 			}
-		}}
-		@Breadcrumbs(crumbs)
-		<section class="flex justify-evenly mb-8 mt-2 text-center items-center">
-			<div>
-				<h2 class="text-3xl font-semibold">{ office.Name }</h2>
-				<p>
-					<i>
-						Admin: { office.Admin.Username }
-					</i>
-				</p>
-			</div>
-			<div>
-				<script>
+			}}
+			@components.Breadcrumbs(crumbs)
+			<section class="flex justify-evenly mb-8 mt-2 text-center items-center">
+				<div>
+					<h2 class="text-3xl font-semibold">{ office.Name }</h2>
+					<p>
+						<i>
+							Admin: { office.Admin.Username }
+						</i>
+					</p>
+				</div>
+				<div>
+					<script>
 				function copyCode() {
 					const btn = document.getElementById("copy-code");
 					const code = btn.getAttribute("data-code");
 					navigator.clipboard.writeText(code);
 				}
 			</script>
-				<button
-					id="copy-code"
-					onclick="copyCode()"
-					class="bg-accent text-light px-4 py-1 flex items-center gap-2 rounded"
-					data-code={ office.Code }
-				>
-					{ office.Code }
-					@copyIcon()
-				</button>
-			</div>
-		</section>
-		{{
-		gamesListItems := []ListSectionItem{}
+					<button
+						id="copy-code"
+						onclick="copyCode()"
+						class="bg-accent text-light px-4 py-1 flex items-center gap-2 rounded"
+						data-code={ office.Code }
+					>
+						{ office.Code }
+						@copyIcon()
+					</button>
+				</div>
+			</section>
+			{{
+		gamesListItems := []components.ListSectionItem{}
 		for _, game := range office.Games {
-			gamesListItems = append(gamesListItems, ListSectionItem{
+			gamesListItems = append(gamesListItems, components.ListSectionItem{
 				Name: game.Name,
 				URL:  fmt.Sprintf("/offices/%s/games/%s", office.Code, strconv.Itoa(int(game.ID))),
 			})
 		}
 
-		var link *SecondaryLink
+		var link *components.SecondaryLinkProps
 		if office.AdminRefer == user.ID {
-			link = &SecondaryLink{
+			link = &components.SecondaryLinkProps{
 				Name: "Create",
 				URL:  fmt.Sprintf("/offices/%s/games/create", office.Code),
 			}
 		}
-		}}
-		@ListSection("Games", gamesListItems, link)
-		<section class="my-6">
-			@SectionHeading("Members", nil)
-			<ul class="mt-2 flex flex-col gap-2">
-				for _, player := range office.Players {
-					<li class="flex justify-between bg-light p-2 rounded">
-						<span>{ player.Username }</span>
-						if office.Admin.ID == player.ID {
-							<span>admin</span>
-						}
-					</li>
-				}
-			</ul>
-		</section>
-	</main>
+			}}
+			@components.ListSection("Games", gamesListItems, link)
+			<section class="my-6">
+				@components.SectionHeading("Members", nil)
+				<ul class="mt-2 flex flex-col gap-2">
+					for _, player := range office.Players {
+						<li class="flex justify-between bg-light p-2 rounded">
+							<span>{ player.Username }</span>
+							if office.Admin.ID == player.ID {
+								<span>admin</span>
+							}
+						</li>
+					}
+				</ul>
+			</section>
+		</main>
+	}
 }
 
 templ copyIcon() {

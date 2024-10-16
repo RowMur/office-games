@@ -1,0 +1,10 @@
+package components
+
+type SecondaryLinkProps struct {
+	Name string
+	URL  string
+}
+
+templ secondaryLink(link SecondaryLinkProps) {
+	<a href={ templ.SafeURL(link.URL) } class="opacity-70 hover:underline">{ link.Name }</a>
+}

@@ -1,0 +1,16 @@
+package layout
+
+import "github.com/RowMur/office-games/internal/db"
+
+templ heading(user *db.User) {
+	<nav class="bg-light p-6 rounded-b-3xl flex justify-between items-center">
+		<h1 class="text-2xl font-bold"><a href="/">Office Games</a></h1>
+		if user != nil {
+			<a href="/me">
+				<div class="w-12 h-12 grid place-items-center border-accent rounded-full border-2">
+					{ string(user.Username[0]) }
+				</div>
+			</a>
+		}
+	</nav>
+}

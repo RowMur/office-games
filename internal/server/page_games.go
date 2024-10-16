@@ -6,7 +6,7 @@ import (
 	"strconv"
 
 	"github.com/RowMur/office-games/internal/db"
-	"github.com/RowMur/office-games/internal/views"
+	"github.com/RowMur/office-games/internal/views/games"
 	"github.com/labstack/echo/v4"
 )
 
@@ -19,7 +19,7 @@ func (s *Server) gamesPageHandler(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	playerWinLosses := map[uint]views.WinLosses{}
+	playerWinLosses := games.UserWinLosses{}
 	for _, match := range game.Matches {
 		for _, participant := range match.Participants {
 			winCount := playerWinLosses[participant.UserID].Wins
@@ -31,15 +31,19 @@ func (s *Server) gamesPageHandler(c echo.Context) error {
 				lossCount++
 			}
 
-			playerWinLosses[participant.UserID] = views.WinLosses{
+			playerWinLosses[participant.UserID] = games.WinLosses{
 				Wins:   winCount,
 				Losses: lossCount,
 			}
 		}
 	}
 
-	pageContent := views.GamePage(*game, game.Office, playerWinLosses, *user)
-	return render(c, http.StatusOK, views.Page(pageContent, user))
+	return render(c, http.StatusOK, games.GamePage(games.GamePageProps{
+		Game:          *game,
+		Office:        game.Office,
+		UserWinLosses: playerWinLosses,
+		User:          user,
+	}))
 }
 
 func (s *Server) gamesPlayPageHandler(c echo.Context) error {
@@ -52,8 +56,7 @@ func (s *Server) gamesPlayPageHandler(c echo.Context) error {
 	}
 
 	endpoint := fmt.Sprintf("/offices/%s/games/%s/play", game.Office.Code, gameId)
-	pageContent := views.PlayGamePage(*game, game.Office, game.Office.Players, endpoint, *user)
-	return render(c, http.StatusOK, views.Page(pageContent, user))
+	return render(c, http.StatusOK, games.PlayGamePage(*game, game.Office, game.Office.Players, endpoint, user))
 }
 
 func (s *Server) gamesPlayFormHandler(c echo.Context) error {
@@ -70,22 +73,18 @@ func (s *Server) gamesPlayFormHandler(c echo.Context) error {
 	losers := c.Request().Form["Losers"]
 	note := c.FormValue("note")
 
-	err = views.ValidatePlayMatchForm(game, views.PlayMatchFormData{
+	err = games.ValidatePlayMatchForm(game, games.PlayMatchFormData{
 		Note:    note,
 		Winners: winners,
 		Losers:  losers,
 	})
 	if err != nil {
-		return render(c, http.StatusOK, views.PlayMatchFormErrors(views.FormErrors{
-			"submit": err.Error(),
-		}))
+		return render(c, http.StatusOK, games.PlayMatchFormErrors(err))
 	}
 
 	match, err := s.app.LogMatch(user, game, note, winners, losers)
 	if err != nil {
-		return render(c, http.StatusOK, views.PlayMatchFormErrors(views.FormErrors{
-			"submit": err.Error(),
-		}))
+		return render(c, http.StatusOK, games.PlayMatchFormErrors(err))
 	}
 
 	// Not the end of the world if the auto approve doesnt work
@@ -110,8 +109,7 @@ func (s *Server) gamePendingMatchesPage(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	pageContent := views.PendingMatchesPage(*game, game.Office, game.Matches, *user)
-	return render(c, http.StatusOK, views.Page(pageContent, user))
+	return render(c, http.StatusOK, games.PendingMatchesPage(*game, game.Office, game.Matches, user))
 }
 
 func (s *Server) pendingMatchPage(c echo.Context) error {
@@ -130,8 +128,7 @@ func (s *Server) pendingMatchPage(c echo.Context) error {
 		return c.Redirect(http.StatusTemporaryRedirect, fmt.Sprintf("/offices/%s/games/%s", officeCode, gameId))
 	}
 
-	pageContent := views.PendingMatchPage(match.Game, match.Game.Office, *match)
-	return render(c, http.StatusOK, views.Page(pageContent, user))
+	return render(c, http.StatusOK, games.PendingMatchPage(match.Game, match.Game.Office, *match, user))
 }
 
 func (s *Server) pendingMatchApproveHandler(c echo.Context) error {
@@ -141,12 +138,12 @@ func (s *Server) pendingMatchApproveHandler(c echo.Context) error {
 
 	match, err := s.app.GetMatchById(c.Param("matchId"))
 	if err != nil {
-		return render(c, http.StatusOK, views.MatchApproveError(err.Error()))
+		return render(c, http.StatusOK, games.MatchApproveError(err.Error()))
 	}
 
 	err = s.app.ApproveMatch(user, match)
 	if err != nil {
-		return render(c, http.StatusOK, views.MatchApproveError(err.Error()))
+		return render(c, http.StatusOK, games.MatchApproveError(err.Error()))
 	}
 
 	isMatchApproved, _ := s.app.IsMatchApproved(s.db.C, match)
@@ -167,7 +164,7 @@ func (s *Server) gameAdminPage(c echo.Context) error {
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
-	return render(c, http.StatusOK, views.Page(views.GameAdminPage(*game, game.Office, *user), user))
+	return render(c, http.StatusOK, games.GameAdminPage(*game, game.Office, user))
 }
 
 func (s *Server) deleteGameHandler(c echo.Context) error {
@@ -196,33 +193,33 @@ func (s *Server) editGameHandler(c echo.Context) error {
 	newMaxParticipants := c.FormValue("max-participants")
 	gameType := c.FormValue("game-type")
 
-	formData := views.FormData{
-		"name":             newName,
-		"min-participants": newMinParticipants,
-		"max-participants": newMaxParticipants,
-		"game-type":        gameType,
+	formData := games.EditGameFormData{
+		Name:            newName,
+		MinParticipants: newMinParticipants,
+		MaxParticipants: newMaxParticipants,
+		GameType:        gameType,
 	}
 
 	if newName == "" {
-		errs := views.FormErrors{"name": "Name is required"}
-		return render(c, http.StatusOK, views.EditGameForm(formData, errs, office, *game))
+		errs := games.EditGameFormErrors{Name: "Name is required"}
+		return render(c, http.StatusOK, games.EditGameForm(formData, errs, office, *game))
 	}
 
 	minParticipants, err := strconv.Atoi(newMinParticipants)
 	if err != nil {
-		errs := views.FormErrors{"min-participants": "Min participants must be a number"}
-		return render(c, http.StatusOK, views.EditGameForm(formData, errs, office, *game))
+		errs := games.EditGameFormErrors{MinParticipants: "Min participants must be a number"}
+		return render(c, http.StatusOK, games.EditGameForm(formData, errs, office, *game))
 	}
 
 	maxParticipants, err := strconv.Atoi(newMaxParticipants)
 	if err != nil {
-		errs := views.FormErrors{"max-participants": "Max participants must be a number"}
-		return render(c, http.StatusOK, views.EditGameForm(formData, errs, office, *game))
+		errs := games.EditGameFormErrors{MaxParticipants: "Max participants must be a number"}
+		return render(c, http.StatusOK, games.EditGameForm(formData, errs, office, *game))
 	}
 
 	if minParticipants > maxParticipants {
-		errs := views.FormErrors{"min-participants": "Min participants must be less than max participants"}
-		return render(c, http.StatusOK, views.EditGameForm(formData, errs, office, *game))
+		errs := games.EditGameFormErrors{MinParticipants: "Min participants must be less than max participants"}
+		return render(c, http.StatusOK, games.EditGameForm(formData, errs, office, *game))
 	}
 
 	for i, gt := range db.GameTypes {
@@ -231,8 +228,8 @@ func (s *Server) editGameHandler(c echo.Context) error {
 		}
 
 		if i == len(db.GameTypes)-1 {
-			errs := views.FormErrors{"game-type": "Invalid game type"}
-			return render(c, http.StatusOK, views.EditGameForm(formData, errs, office, *game))
+			errs := games.EditGameFormErrors{GameType: "Invalid game type"}
+			return render(c, http.StatusOK, games.EditGameForm(formData, errs, office, *game))
 		}
 	}
 

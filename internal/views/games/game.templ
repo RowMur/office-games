@@ -1,0 +1,120 @@
+package games
+
+import (
+	"fmt"
+	"github.com/RowMur/office-games/internal/db"
+	"github.com/RowMur/office-games/internal/views/components"
+	"github.com/RowMur/office-games/internal/views/layout"
+	"strconv"
+)
+
+type WinLosses struct {
+	Wins   int
+	Losses int
+}
+
+type UserWinLosses map[uint]WinLosses
+
+type GamePageProps struct {
+	Game          db.Game
+	Office        db.Office
+	UserWinLosses UserWinLosses
+	User          *db.User
+}
+
+templ GamePage(props GamePageProps) {
+	@layout.Base(props.User) {
+		<main class="mx-6 my-8">
+			@GamePageBreadcrumb(GamePageBreadcrumbProps{
+				Game:   props.Game,
+				Office: props.Office,
+			})
+			@GamePageHeading(GamePageHeadingProps{
+				Game:   props.Game,
+				Office: props.Office,
+			})
+			@GamePageTabs(GamePageTabsProps{
+				CurrentTab: "Overview",
+				Office:     props.Office,
+				Game:       props.Game,
+				User:       *props.User,
+			})
+			<section class="my-6">
+				<h4 class="text-lg font-semibold mb-2">Rankings</h4>
+				@OfficeRankings(OfficeRankingsProps{
+					Rankings:      props.Game.Rankings,
+					UserWinLosses: props.UserWinLosses,
+				})
+			</section>
+			<section class="my-6">
+				@components.SectionHeading("Recent Matches", nil)
+				if len(props.Game.Matches) == 0 {
+					<p>No matches have been played yet. Go and play some { props.Game.Name }!</p>
+				} else {
+					<ul class="flex flex-col gap-2">
+						{{
+						nOfMatchesToShow := 5
+						matchesToShow := []db.Match{}
+						if len(props.Game.Matches) <= nOfMatchesToShow {
+							matchesToShow = props.Game.Matches
+						} else {
+							matchesToShow = props.Game.Matches[0:nOfMatchesToShow]
+						}
+						}}
+						for _, match := range matchesToShow {
+							@components.Match(match, false)
+						}
+					</ul>
+				}
+			</section>
+		</main>
+	}
+}
+
+type OfficeRankingsProps struct {
+	Rankings      []db.Ranking
+	UserWinLosses UserWinLosses
+}
+
+templ OfficeRankings(props OfficeRankingsProps) {
+	<table id="office-ranking" class="w-full">
+		<thead class="border-b-[1px] border-accent">
+			<tr>
+				<th class="w-px"></th>
+				<th class="text-left pl-1">Player</th>
+				<th class="text-right">Wins</th>
+				<th class="text-right">Losses</th>
+				<th class="hidden sm:block text-right">%</th>
+				<th class="text-right">Points</th>
+			</tr>
+		</thead>
+		<tbody>
+			for i, ranking := range props.Rankings {
+				<tr>
+					<td class="text-right opacity-70">#{ fmt.Sprintf("%d", i + 1) }</td>
+					<td class="pl-1">{ ranking.User.Username }</td>
+					<td class="text-right">
+						{ strconv.Itoa(props.UserWinLosses[ranking.User.ID].Wins) }
+					</td>
+					<td class="text-right">
+						{ strconv.Itoa(props.UserWinLosses[ranking.User.ID].Losses) }
+					</td>
+					<td class="hidden sm:block text-right">
+						{{
+							wins := props.UserWinLosses[ranking.User.ID].Wins
+							losses := props.UserWinLosses[ranking.User.ID].Losses
+							total := wins + losses
+
+							percentage := 0.0
+							if total > 0 {
+								percentage = float64(wins) / float64(total) * 100
+							}
+						}}
+						{ fmt.Sprintf("%.2f", percentage) }
+					</td>
+					<td class="text-right">{ strconv.Itoa(ranking.Points) }</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+}

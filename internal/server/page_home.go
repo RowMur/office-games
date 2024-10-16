@@ -10,12 +10,10 @@ import (
 func pageHandler(c echo.Context) error {
 	user := userFromContext(c)
 	if user == nil {
-		pageContent := views.LoggedOutHomepage()
-		return render(c, http.StatusOK, views.Page(pageContent, nil))
+		return render(c, http.StatusOK, views.LoggedOutHomepage())
 	}
 
 	userHasOffices := len(user.Offices) > 0
 
-	mainPageContent := views.MainPage(*user, userHasOffices, user.Offices)
-	return render(c, http.StatusOK, views.Page(mainPageContent, user))
+	return render(c, http.StatusOK, views.MainPage(user, userHasOffices, user.Offices))
 }

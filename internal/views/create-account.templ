@@ -1,25 +1,70 @@
 package views
 
+import (
+	"github.com/RowMur/office-games/internal/views/components"
+	"github.com/RowMur/office-games/internal/views/layout"
+)
+
 templ CreateAccountPage() {
-	<main class="grid place-items-center my-8">
-		<div class="flex flex-col gap-4">
-			@CreateAccountForm(FormData{}, FormErrors{})
-			<hr/>
-			<p class="text-center">
-				Already have an account?
-				<br/>
-				<a href="/sign-in" class="underline">Sign in</a>
-			</p>
-		</div>
-	</main>
+	@layout.Base(nil) {
+		<main class="grid place-items-center my-8">
+			<div class="flex flex-col gap-4">
+				@CreateAccountForm(CreateAccountFormData{}, CreateAccountFormErrors{})
+				<hr/>
+				<p class="text-center">
+					Already have an account?
+					<br/>
+					<a href="/sign-in" class="underline">Sign in</a>
+				</p>
+			</div>
+		</main>
+	}
 }
 
-templ CreateAccountForm(data FormData, errors FormErrors) {
+type CreateAccountFormData struct {
+	Username string
+	Email    string
+	Password string
+	Confirm  string
+}
+
+type CreateAccountFormErrors struct {
+	Username string
+	Email    string
+	Password string
+	Confirm  string
+}
+
+templ CreateAccountForm(data CreateAccountFormData, errors CreateAccountFormErrors) {
 	<form hx-post="/create-account" hx-swap="outerHTML">
-		@formField("username", "Username", "text", data, errors)
-		@formField("email", "Email", "email", data, errors)
-		@formField("password", "Password", "password", data, errors)
-		@formField("confirm", "Confirm Password", "password", data, errors)
+		@components.FormField(components.FormFieldProps{
+			Name:      "username",
+			Label:     "Username",
+			InputType: "text",
+			Value:     data.Username,
+			Error:     errors.Username,
+		})
+		@components.FormField(components.FormFieldProps{
+			Name:      "email",
+			Label:     "Email",
+			InputType: "email",
+			Value:     data.Email,
+			Error:     errors.Email,
+		})
+		@components.FormField(components.FormFieldProps{
+			Name:      "password",
+			Label:     "Password",
+			InputType: "password",
+			Value:     data.Password,
+			Error:     errors.Password,
+		})
+		@components.FormField(components.FormFieldProps{
+			Name:      "confirm",
+			Label:     "Confirm Password",
+			InputType: "password",
+			Value:     data.Confirm,
+			Error:     errors.Confirm,
+		})
 		<button type="submit" class="bg-accent text-light block mx-auto mt-4 px-4 py-1">Create Account</button>
 	</form>
 }
