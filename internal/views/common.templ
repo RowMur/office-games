@@ -1,6 +1,10 @@
 package views
 
-import "github.com/RowMur/office-games/internal/db"
+import (
+	"fmt"
+	"github.com/RowMur/office-games/internal/db"
+	"github.com/google/uuid"
+)
 
 templ Page(contents templ.Component, user *db.User) {
 	<!DOCTYPE html>
@@ -17,7 +21,7 @@ templ Page(contents templ.Component, user *db.User) {
 				}
 			</style>
 			<script src="/static/multiselect.js"></script>
-			<link rel="stylesheet" href="/static/output.css"/>
+			<link rel="stylesheet" href={ fmt.Sprintf("/static/output.css?val=%s", uuid.New().String()) }/>
 			<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
 			<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"/>
 			<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"/>
