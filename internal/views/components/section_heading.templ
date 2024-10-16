@@ -1,0 +1,10 @@
+package components
+
+templ SectionHeading(title string, secondaryLinkProps *SecondaryLinkProps) {
+	<div class="flex justify-between mb-2">
+		<h3 class="text-lg font-semibold">{ title }</h3>
+		if secondaryLinkProps != nil {
+			@secondaryLink(*secondaryLinkProps)
+		}
+	</div>
+}

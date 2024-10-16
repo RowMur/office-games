@@ -9,6 +9,5 @@ import (
 
 func faqPageHandler(c echo.Context) error {
 	user := userFromContext(c)
-	pageContent := views.FaqPage()
-	return render(c, http.StatusOK, views.Page(pageContent, user))
+	return render(c, http.StatusOK, views.FaqPage(user))
 }

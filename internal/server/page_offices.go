@@ -23,8 +23,7 @@ func (s *Server) officeHandler(c echo.Context) error {
 		return c.Redirect(http.StatusTemporaryRedirect, "/sign-in")
 	}
 
-	officePageContent := views.OfficePage(*office, user)
-	return render(c, http.StatusOK, views.Page(officePageContent, user))
+	return render(c, http.StatusOK, views.OfficePage(*office, user))
 }
 
 func (s *Server) joinOfficeHandler(c echo.Context) error {
@@ -36,8 +35,8 @@ func (s *Server) joinOfficeHandler(c echo.Context) error {
 	officeCode := c.FormValue("office")
 	userErr, err := s.app.JoinOffice(user, officeCode)
 	if userErr != nil {
-		formData := views.FormData{"office": officeCode}
-		errs := views.FormErrors{"office": userErr.Error()}
+		formData := views.JoinOfficeFormData{Office: officeCode}
+		errs := views.JoinOfficeFormErrors{Office: userErr.Error()}
 		return render(c, http.StatusOK, views.JoinOfficeForm(formData, errs))
 	}
 	if err != nil {
@@ -56,8 +55,8 @@ func (s *Server) createOfficeHandler(c echo.Context) error {
 
 	officeName := c.FormValue("office")
 	if officeName == "" {
-		errs := views.FormErrors{"office": "Office name is required"}
-		return render(c, http.StatusOK, views.CreateOfficeForm(views.FormData{}, errs))
+		errs := views.CreateOfficeFormErrors{Office: "Office name is required"}
+		return render(c, http.StatusOK, views.CreateOfficeForm(views.CreateOfficeFormData{}, errs))
 	}
 
 	_, err := s.app.CreateOffice(user, officeName)

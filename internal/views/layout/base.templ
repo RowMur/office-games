@@ -1,0 +1,42 @@
+package layout
+
+import (
+	"fmt"
+	"github.com/RowMur/office-games/internal/db"
+	"github.com/google/uuid"
+)
+
+templ Base(user *db.User) {
+	<!DOCTYPE html>
+	<html lang="en">
+		<head>
+			<meta charset="UTF-8"/>
+			<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+			<script src="https://unpkg.com/htmx.org@2.0.2" integrity="sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ" crossorigin="anonymous"></script>
+			<title>Office Games</title>
+			<meta name="description" content="Office Games - A platform to play and manage office games with your colleagues."/>
+			<style>
+				html {
+					scrollbar-gutter: stable;
+				}
+			</style>
+			<script src="/static/multiselect.js"></script>
+			<link rel="stylesheet" href={ fmt.Sprintf("/static/output.css?val=%s", uuid.New().String()) }/>
+			<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png"/>
+			<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png"/>
+			<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png"/>
+			<link rel="manifest" href="/site.webmanifest"/>
+			<script>
+				const thirtyMinutes = 30 * 60 * 1000;
+				setInterval(function() {
+					window.location.reload();
+				}, thirtyMinutes);
+			</script>
+		</head>
+		<body class="bg-back text-content w-11/12 max-w-lg mx-auto h-svh gutte">
+			@heading(user)
+			{ children... }
+			@footer()
+		</body>
+	</html>
+}

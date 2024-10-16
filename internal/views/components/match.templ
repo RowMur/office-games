@@ -1,0 +1,67 @@
+package components
+
+import "github.com/RowMur/office-games/internal/db"
+
+templ Match(match db.Match, showApprovalState bool) {
+	<li class="bg-light rounded p-4">
+		<div class="flex gap-3">
+			<div class="text-center">
+				<p class="font-semibold">W</p>
+			</div>
+			<div class="min-w-0 grow">
+				@MatchPlayerList(match.Winners(), true)
+				@MatchPlayerList(match.Losers(), false)
+			</div>
+			if showApprovalState {
+				<div>
+					@MatchApprovalState(match.IsApprovedByWinners())
+					@MatchApprovalState(match.IsApprovedByLosers())
+				</div>
+			}
+		</div>
+		<p class="opacity-70 mt-2 flex flex-wrap gap-2 text-xs">
+			<span>
+				{ match.CreatedAt.Format("02/01/06") }
+			</span>
+			<span>
+				Created by: { match.Creator.Username }
+			</span>
+			if match.Note != "" {
+				<span>
+					Note: { match.Note }
+				</span>
+			}
+		</p>
+	</li>
+}
+
+templ MatchPlayerList(players []db.MatchParticipant, isWinners bool) {
+	{{
+		class := "text-ellipsis text-nowrap overflow-hidden"
+		if isWinners {
+			class += " font-semibold"
+		}
+	}}
+	<p class={ class }>
+		@ListOfUsers(players)
+	</p>
+}
+
+templ MatchApprovalState(isApproved bool) {
+	<p class="text-ellipsis text-nowrap overflow-hidden text-right">
+		if isApproved {
+			Approved
+		} else {
+			Pending
+		}
+	</p>
+}
+
+templ ListOfUsers(users []db.MatchParticipant) {
+	for i, user := range users {
+		if i > 0 {
+			, 
+		}
+		{ user.User.Username }
+	}
+}

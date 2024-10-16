@@ -10,8 +10,7 @@ import (
 
 func resetPasswordPage(c echo.Context) error {
 	token := tokenFromContext(c)
-	pageContent := views.ResetPasswordPage(token.String)
-	return render(c, 200, views.Page(pageContent, nil))
+	return render(c, 200, views.ResetPasswordPage(token.String))
 }
 
 func (s *Server) resetPasswordFormHandler(c echo.Context) error {
@@ -23,15 +22,15 @@ func (s *Server) resetPasswordFormHandler(c echo.Context) error {
 	errs := s.us.ResetPassword(token.UserId, password, confirmPassword)
 	if errs != nil {
 		if errs.Error != nil {
-			formErrs := views.FormErrors{"submit": "Failed to reset password"}
-			return render(c, http.StatusOK, views.ResetPasswordForm(views.FormData{}, formErrs, token.String))
+			formErrs := views.ResetPasswordFormErrors{Submit: "Failed to reset password"}
+			return render(c, http.StatusOK, views.ResetPasswordForm(views.ResetPasswordFormData{}, formErrs, token.String))
 		}
 
-		formErrs := views.FormErrors{
-			"password": errs.Password,
-			"confirm":  errs.Confirm,
+		formErrs := views.ResetPasswordFormErrors{
+			Password: errs.Password,
+			Confirm:  errs.Confirm,
 		}
-		return render(c, http.StatusOK, views.ResetPasswordForm(views.FormData{}, formErrs, token.String))
+		return render(c, http.StatusOK, views.ResetPasswordForm(views.ResetPasswordFormData{}, formErrs, token.String))
 	}
 
 	return render(c, 200, views.ResetPasswordSuccess())

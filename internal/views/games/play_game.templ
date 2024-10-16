@@ -1,0 +1,101 @@
+package games
+
+import (
+	"errors"
+	"fmt"
+	"github.com/RowMur/office-games/internal/db"
+	"github.com/RowMur/office-games/internal/views/layout"
+	"strconv"
+)
+
+templ PlayGamePage(game db.Game, office db.Office, players []db.User, endpoint string, user *db.User) {
+	@layout.Base(user) {
+		<main class="mx-6 my-8">
+			@GamePageBreadcrumb(GamePageBreadcrumbProps{
+				Game:   game,
+				Office: office,
+			})
+			@GamePageHeading(GamePageHeadingProps{
+				Game:   game,
+				Office: office,
+			})
+			@GamePageTabs(GamePageTabsProps{
+				CurrentTab: "Play",
+				Office:     office,
+				Game:       game,
+				User:       *user,
+			})
+			<section class="my-6">
+				<h4 class="text-lg font-semibold mb-2">Play a Match</h4>
+				@PlayMatchForm(nil, players, endpoint)
+			</section>
+		</main>
+	}
+}
+
+type PlayMatchFormData struct {
+	Note    string
+	Winners []string
+	Losers  []string
+}
+
+func ValidatePlayMatchForm(game *db.Game, formData PlayMatchFormData) error {
+	participantCount := len(formData.Winners) + len(formData.Losers)
+	if participantCount < game.MinParticipants {
+		return errors.New(fmt.Sprintf("At least %d participants are required", game.MinParticipants))
+	}
+	if participantCount > game.MaxParticipants {
+		return errors.New(fmt.Sprintf("At most %d participants are allowed", game.MaxParticipants))
+	}
+
+	if game.GameType == db.GameTypeHeadToHead && len(formData.Winners) != len(formData.Losers) {
+		return errors.New("The number of winners and losers must be equal")
+	}
+
+	players := append(formData.Winners, formData.Losers...)
+	playersMap := map[string]bool{}
+	for _, player := range players {
+		if playersMap[player] {
+			return errors.New("A player can only be in one team")
+		}
+		playersMap[player] = true
+	}
+
+	return nil
+}
+
+templ PlayMatchForm(err error, players []db.User, endpoint string) {
+	<form hx-post={ endpoint } hx-swap="none">
+		<div class="my-2 flex flex-col gap-2">
+			<label for="note" class="block font-semibold">Note</label>
+			<input type="text" class="text-black w-full" name="note" id="note" value="" placeholder="Tournament match"/>
+		</div>
+		<div class="flex flex-col gap-2 mt-3">
+			@PlayerSelect(players, "Winners")
+		</div>
+		<div class="flex flex-col gap-2 mt-2">
+			@PlayerSelect(players, "Losers")
+		</div>
+		<div class="flex flex-col items-center">
+			<button type="submit" class="bg-accent text-light px-4 py-1 w-3/5 mx-auto rounded mt-4">Play</button>
+			<div id="errorsubmit"></div>
+		</div>
+	</form>
+}
+
+templ PlayerSelect(players []db.User, key string) {
+	<label for={ key } class="block font-semibold">{ key }</label>
+	<select name={ key } id={ key } class="bg-light px-4 py-1 text-light" multiple>
+		for _, player := range players {
+			<option value={ strconv.Itoa(int(player.ID)) }>{ player.Username }</option>
+		}
+	</select>
+}
+
+templ PlayMatchFormErrors(err error) {
+	<div id="errorsubmit" hx-swap-oob="true" hx-select="errorsubmit">
+		if err.Error() != "" {
+			<p class="text-red-500">{ err.Error() }</p>
+		}
+	</div>
+}

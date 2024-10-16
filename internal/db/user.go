@@ -96,7 +96,6 @@ func (d *Database) UpdateUser(id uint, updates map[string]interface{}) (*User, U
 			}
 		}
 	}
-	fmt.Printf("updates: %+v\n", user)
 	return user, nil, nil
 }
 

@@ -1,0 +1,19 @@
+package components
+
+type ListSectionItem struct {
+	Name string
+	URL  string
+}
+
+templ ListSection(title string, items []ListSectionItem, secondaryLink *SecondaryLinkProps) {
+	<section>
+		@SectionHeading(title, secondaryLink)
+		<ul class="mt-2 flex flex-wrap gap-2">
+			for _, item := range items {
+				<a href={ templ.SafeURL(item.URL) } class="bg-light p-2 pt-6 pr-6 w-fit rounded grow">
+					<li>{ item.Name }</li>
+				</a>
+			}
+		</ul>
+	</section>
+}

@@ -8,8 +8,7 @@ import (
 )
 
 func signInHandler(c echo.Context) error {
-	signInPageContent := views.SignInPage()
-	return render(c, http.StatusOK, views.Page(signInPageContent, nil))
+	return render(c, http.StatusOK, views.SignInPage())
 }
 
 func (s *Server) signInFormHandler(c echo.Context) error {
@@ -21,10 +20,10 @@ func (s *Server) signInFormHandler(c echo.Context) error {
 		if errs.Error != nil {
 			return echo.NewHTTPError(http.StatusInternalServerError, errs.Error.Error())
 		}
-		data := views.FormData{"username": username}
-		formErrors := views.FormErrors{
-			username: errs.Username,
-			password: errs.Password,
+		data := views.SignInFormData{Username: username}
+		formErrors := views.SignInFormErrors{
+			Username: errs.Username,
+			Password: errs.Password,
 		}
 		return render(c, http.StatusOK, views.SignInForm(data, formErrors))
 	}

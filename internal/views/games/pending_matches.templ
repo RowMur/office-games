@@ -1,0 +1,44 @@
+package games
+
+import (
+	"fmt"
+	"github.com/RowMur/office-games/internal/db"
+	"github.com/RowMur/office-games/internal/views/components"
+	"github.com/RowMur/office-games/internal/views/layout"
+	"strconv"
+)
+
+templ PendingMatchesPage(game db.Game, office db.Office, pendingMatches []db.Match, user *db.User) {
+	@layout.Base(user) {
+		<main class="mx-6 my-8">
+			@GamePageBreadcrumb(GamePageBreadcrumbProps{
+				Game:   game,
+				Office: office,
+			})
+			@GamePageHeading(GamePageHeadingProps{
+				Game:   game,
+				Office: office,
+			})
+			@GamePageTabs(GamePageTabsProps{
+				CurrentTab: "Pending Matches",
+				Office:     office,
+				Game:       game,
+				User:       *user,
+			})
+			<section class="my-6">
+				<h4 class="text-lg font-semibold mb-2">Pending Matches</h4>
+				if len(pendingMatches) == 0 {
+					<p>No matches are pending approval. Go and play some { game.Name }!</p>
+				} else {
+					<ul class="flex flex-col gap-2">
+						for _, match := range pendingMatches {
+							<a href={ templ.SafeURL(fmt.Sprintf("/offices/%s/games/%s/pending/%s", office.Code, strconv.Itoa(int(game.ID)), strconv.Itoa(int(match.ID)))) }>
+								@components.Match(match, true)
+							</a>
+						}
+					</ul>
+				}
+			</section>
+		</main>
+	}
+}

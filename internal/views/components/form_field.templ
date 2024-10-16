@@ -1,0 +1,23 @@
+package components
+
+type FormFieldProps struct {
+	Name      string
+	Label     string
+	InputType string
+	Value     string
+	Error     string
+}
+
+templ FormField(props FormFieldProps) {
+	<label for={ props.Name } class="block">{ props.Label }:</label>
+	<input
+		id={ props.Name }
+		name={ props.Name }
+		type={ props.InputType }
+		value={ props.Value }
+		class="text-black w-full"
+	/>
+	if props.Error != "" {
+		<p class="text-red-500">{ props.Error }</p>
+	}
+}

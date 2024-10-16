@@ -1,23 +1,52 @@
 package views
 
+import (
+	"github.com/RowMur/office-games/internal/views/components"
+	"github.com/RowMur/office-games/internal/views/layout"
+)
+
 templ SignInPage() {
-	<main class="grid place-items-center my-8">
-		<div class="flex flex-col gap-4">
-			@SignInForm(FormData{}, FormErrors{})
-			<hr/>
-			<p class="text-center">
-				Don&apos;t have an account?
-				<br/>
-				<a href="/create-account" class="underline">Create account</a>
-			</p>
-		</div>
-	</main>
+	@layout.Base(nil) {
+		<main class="grid place-items-center my-8">
+			<div class="flex flex-col gap-4">
+				@SignInForm(SignInFormData{}, SignInFormErrors{})
+				<hr/>
+				<p class="text-center">
+					Don&apos;t have an account?
+					<br/>
+					<a href="/create-account" class="underline">Create account</a>
+				</p>
+			</div>
+		</main>
+	}
 }
 
-templ SignInForm(data FormData, errors FormErrors) {
+type SignInFormData struct {
+	Username string
+	Password string
+}
+
+type SignInFormErrors struct {
+	Username string
+	Password string
+}
+
+templ SignInForm(data SignInFormData, errors SignInFormErrors) {
 	<form hx-post="/sign-in" hx-swap="outerHTML">
-		@formField("username", "Username", "text", data, errors)
-		@formField("password", "Password", "password", data, errors)
+		@components.FormField(components.FormFieldProps{
+			Name:      "username",
+			Label:     "Username",
+			InputType: "text",
+			Value:     data.Username,
+			Error:     errors.Username,
+		})
+		@components.FormField(components.FormFieldProps{
+			Name:      "password",
+			Label:     "Password",
+			InputType: "password",
+			Value:     data.Password,
+			Error:     errors.Password,
+		})
 		<a href="/forgot-password" class="hover:underline opacity-70 text-sm">Forgot your password?</a>
 		<button type="submit" class="bg-accent text-light block mx-auto mt-4 px-4 py-1">Sign In</button>
 	</form>

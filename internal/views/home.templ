@@ -1,74 +1,98 @@
 package views
 
-import "github.com/RowMur/office-games/internal/db"
+import (
+	"github.com/RowMur/office-games/internal/db"
+	"github.com/RowMur/office-games/internal/views/components"
+	"github.com/RowMur/office-games/internal/views/layout"
+)
 
-templ MainPage(currentUser db.User, hasOffice bool, offices []db.Office) {
-	<main class="mt-4 mx-6">
-		if hasOffice {
-			{{
-				listSections := []ListSectionItem{}
+templ MainPage(currentUser *db.User, hasOffice bool, offices []db.Office) {
+	@layout.Base(currentUser) {
+		<main class="mt-4 mx-6">
+			if hasOffice {
+				{{
+				listSections := []components.ListSectionItem{}
 				for _, office := range offices {
-					listSections = append(listSections, ListSectionItem{
+					listSections = append(listSections, components.ListSectionItem{
 						Name: office.Name,
 						URL:  "/offices/" + office.Code,
 					})
 				}
-			}}
-			@ListSection("Your Offices", listSections, nil)
-		}
-		<div class="w-full grid place-items-center my-8 gap-6">
-			<section class="w-full">
-				@SectionHeading("Create new office", nil)
-				@CreateOfficeForm(FormData{}, FormErrors{})
-			</section>
-			<section class="w-full">
-				@SectionHeading("Join an office", nil)
-				@JoinOfficeForm(FormData{}, FormErrors{})
-			</section>
-		</div>
-	</main>
+				}}
+				@components.ListSection("Your Offices", listSections, nil)
+			}
+			<div class="w-full grid place-items-center my-8 gap-6">
+				<section class="w-full">
+					@components.SectionHeading("Create new office", nil)
+					@CreateOfficeForm(CreateOfficeFormData{}, CreateOfficeFormErrors{})
+				</section>
+				<section class="w-full">
+					@components.SectionHeading("Join an office", nil)
+					@JoinOfficeForm(JoinOfficeFormData{}, JoinOfficeFormErrors{})
+				</section>
+			</div>
+		</main>
+	}
 }
 
-templ CreateOfficeForm(data FormData, errors FormErrors) {
+type CreateOfficeFormData struct {
+	Office string
+}
+
+type CreateOfficeFormErrors struct {
+	Office string
+}
+
+templ CreateOfficeForm(data CreateOfficeFormData, errors CreateOfficeFormErrors) {
 	<form hx-post="/offices/create" hx-swap="outerHTML">
 		<label for="office" class="block">Name:</label>
 		<div class="flex gap-4">
-			<input id="office" name="office" type="text" value={ data["office"] } class="text-black grow" placeholder="The office..."/>
+			<input id="office" name="office" type="text" value={ data.Office } class="text-black grow" placeholder="The office..."/>
 			<button type="submit" class="bg-accent text-light block w-16">Create</button>
 		</div>
-		if errors["office"] != "" {
-			<p class="text-red-500">{ errors["office"] }</p>
+		if errors.Office != "" {
+			<p class="text-red-500">{ errors.Office }</p>
 		}
 	</form>
 }
 
-templ JoinOfficeForm(data FormData, errors FormErrors) {
+type JoinOfficeFormData struct {
+	Office string
+}
+
+type JoinOfficeFormErrors struct {
+	Office string
+}
+
+templ JoinOfficeForm(data JoinOfficeFormData, errors JoinOfficeFormErrors) {
 	<form hx-post="/offices/join" hx-swap="outerHTML">
 		<label for="office" class="block">Code:</label>
 		<div class="flex gap-4">
-			<input id="office" name="office" type="text" value={ data["office"] } class="text-black grow" placeholder="ABCDEF" required/>
+			<input id="office" name="office" type="text" value={ data.Office } class="text-black grow" placeholder="ABCDEF" required/>
 			<button type="submit" class="bg-accent text-light block w-16">Join</button>
 		</div>
-		if errors["office"] != "" {
-			<p class="text-red-500">{ errors["office"] }</p>
+		if errors.Office != "" {
+			<p class="text-red-500">{ errors.Office }</p>
 		}
 	</form>
 }
 
 templ LoggedOutHomepage() {
-	<main class="my-4 mx-6">
-		<section class="w-full my-8">
-			@SectionHeading("Welcome!", nil)
-			<p class="text-lg mt-4">Office Games is a platform for tracking games with your coworkers</p>
-			<a href="/create-account" class="bg-accent text-light block w-fit rounded px-4 py-1 mt-4">Get started</a>
-		</section>
-		<section class="w-full my-8">
-			@SectionHeading("Features", nil)
-			<ul class="list-disc mt-4 [&>li]:mb-2">
-				<li>Track matches played</li>
-				<li>View leaderboards and match history</li>
-				<li>Create custom games each with their own ranking system</li>
-			</ul>
-		</section>
-	</main>
+	@layout.Base(nil) {
+		<main class="my-4 mx-6">
+			<section class="w-full my-8">
+				@components.SectionHeading("Welcome!", nil)
+				<p class="text-lg mt-4">Office Games is a platform for tracking games with your coworkers</p>
+				<a href="/create-account" class="bg-accent text-light block w-fit rounded px-4 py-1 mt-4">Get started</a>
+			</section>
+			<section class="w-full my-8">
+				@components.SectionHeading("Features", nil)
+				<ul class="list-disc mt-4 [&>li]:mb-2">
+					<li>Track matches played</li>
+					<li>View leaderboards and match history</li>
+					<li>Create custom games each with their own ranking system</li>
+				</ul>
+			</section>
+		</main>
+	}
 }
