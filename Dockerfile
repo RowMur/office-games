@@ -16,7 +16,7 @@ RUN npm install
 
 COPY tailwind.config.js ./
 COPY internal/assets/input.css ./internal/assets/
-COPY internal/views/*.templ ./internal/views/
+COPY internal/views/ ./internal/views/
 RUN npm run build-styles
 
 COPY internal/assets/ ./internal/assets/
