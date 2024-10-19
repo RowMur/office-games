@@ -92,6 +92,39 @@ type Game struct {
 	MaxParticipants int    `gorm:"default:4"`
 }
 
+func (g *Game) BeforeDelete(tx *gorm.DB) (err error) {
+	// Delete all rankings for the game
+	if g.ID == 0 {
+		return errors.New("Game ID is 0")
+	}
+
+	rankings := []Ranking{}
+	err = tx.Where("game_id = ?", g.ID).Find(&rankings).Error
+	if err != nil {
+		return
+	}
+	if len(rankings) != 0 {
+		err = tx.Delete(rankings).Error
+		if err != nil {
+			return
+		}
+	}
+
+	matches := []Match{}
+	err = tx.Where("game_id = ?", g.ID).Find(&matches).Error
+	if err != nil {
+		return
+	}
+	if len(matches) != 0 {
+		err = tx.Delete(matches).Error
+		if err != nil {
+			return
+		}
+	}
+
+	return
+}
+
 func (g *Game) AfterCreate(tx *gorm.DB) (err error) {
 	// Create a ranking for each player in the office
 	office := Office{}
@@ -180,6 +213,21 @@ type Match struct {
 	State        string `gorm:"default:'pending'"`
 	Approvals    []MatchApproval
 	Note         string
+}
+
+func (m *Match) BeforeDelete(tx *gorm.DB) (err error) {
+	if m.ID == 0 {
+		return errors.New("Match ID is 0")
+	}
+	err = tx.Where("match_id = ?", m.ID).Delete(&MatchParticipant{}).Error
+	if err != nil {
+		return
+	}
+	err = tx.Where("match_id = ?", m.ID).Delete(&MatchApproval{}).Error
+	if err != nil {
+		return
+	}
+	return
 }
 
 func (m *Match) IsApprovedByUser(userID uint) bool {

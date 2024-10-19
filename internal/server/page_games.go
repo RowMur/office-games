@@ -8,6 +8,7 @@ import (
 	"github.com/RowMur/office-games/internal/db"
 	"github.com/RowMur/office-games/internal/views/games"
 	"github.com/labstack/echo/v4"
+	"gorm.io/gorm"
 )
 
 func (s *Server) gamesPageHandler(c echo.Context) error {
@@ -168,10 +169,20 @@ func (s *Server) gameAdminPage(c echo.Context) error {
 }
 
 func (s *Server) deleteGameHandler(c echo.Context) error {
-	gameId := c.Param("id")
+	gameIdString := c.Param("id")
 	office := c.Param("code")
 
-	err := s.db.C.Delete(&db.Game{}, gameId).Error
+	gameId, err := strconv.Atoi(gameIdString)
+	if err != nil {
+		return c.String(http.StatusBadRequest, "Invalid game ID")
+	}
+
+	game := &db.Game{
+		Model: gorm.Model{
+			ID: uint(gameId),
+		},
+	}
+	err = s.db.C.Delete(game).Error
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
@@ -263,21 +274,10 @@ func (s *Server) pendingMatchDeleteHandler(c echo.Context) error {
 		return c.String(http.StatusForbidden, "You can only delete pending matches")
 	}
 
-	tx := s.db.C.Begin()
-
-	err = tx.Delete(match).Error
+	err = s.db.C.Delete(match).Error
 	if err != nil {
-		tx.Rollback()
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
-
-	err = tx.Delete(&db.MatchParticipant{}, "match_id = ?", match.ID).Error
-	if err != nil {
-		tx.Rollback()
-		return c.String(http.StatusInternalServerError, err.Error())
-	}
-
-	tx.Commit()
 
 	c.Response().Header().Set("HX-Redirect", fmt.Sprintf("/offices/%s/games/%s/pending", officeCode, gameId))
 	return c.NoContent(http.StatusOK)
