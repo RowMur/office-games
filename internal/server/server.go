@@ -72,6 +72,7 @@ func (s *Server) Run() {
 	officeMember.GET("/offices/:code/games/:id/pending", s.gamePendingMatchesPage)
 	officeMember.GET("/offices/:code/games/:id/pending/:matchId", s.pendingMatchPage)
 	officeMember.GET("/offices/:code/games/:id/pending/:matchId/approve", s.pendingMatchApproveHandler)
+	officeMember.DELETE("/offices/:code/games/:id/pending/:matchId/delete", s.pendingMatchDeleteHandler)
 
 	officeAdmin.GET("/offices/:code/games/:id/admin", s.gameAdminPage)
 

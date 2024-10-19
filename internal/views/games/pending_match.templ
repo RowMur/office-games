@@ -62,10 +62,13 @@ templ PendingMatchPage(game db.Game, office db.Office, match db.Match, user *db.
 						}
 					</ul>
 				</div>
-				{{ url := fmt.Sprintf("/offices/%s/games/%s/pending/%s/approve", office.Code, strconv.Itoa(int(game.ID)), strconv.Itoa(int(match.ID))) }}
 			</div>
-			<div class="flex justify-center">
-				<button hx-get={ url } hx-swap="none" class="bg-accent text-light px-4 py-1 w-3/5 rounded my-4">Approve</button>
+			<div class="flex gap-4">
+				{{ baseUrl := fmt.Sprintf("./%s", strconv.Itoa(int(match.ID))) }}
+				if user.ID == match.CreatorID {
+					<button hx-delete={ baseUrl + "/delete" } class="bg-red-500 px-4 py-1 rounded my-4">Delete</button>
+				}
+				<button hx-get={ baseUrl + "/approve" } hx-swap="none" class="bg-accent text-light px-4 py-1 rounded my-4">Approve</button>
 			</div>
 			@MatchApproveError("")
 		</main>

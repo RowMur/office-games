@@ -241,3 +241,44 @@ func (s *Server) editGameHandler(c echo.Context) error {
 	c.Response().Header().Set("HX-Refresh", "true")
 	return c.NoContent(http.StatusOK)
 }
+
+func (s *Server) pendingMatchDeleteHandler(c echo.Context) error {
+	user := userFromContext(c)
+
+	matchId := c.Param("matchId")
+	gameId := c.Param("id")
+	officeCode := c.Param("code")
+
+	match := &db.Match{}
+	err := s.db.C.First(match, matchId).Error
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	if user.ID != match.CreatorID {
+		return c.String(http.StatusForbidden, "You do not have permission to delete this match")
+	}
+
+	if match.State != db.MatchStatePending {
+		return c.String(http.StatusForbidden, "You can only delete pending matches")
+	}
+
+	tx := s.db.C.Begin()
+
+	err = tx.Delete(match).Error
+	if err != nil {
+		tx.Rollback()
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	err = tx.Delete(&db.MatchParticipant{}, "match_id = ?", match.ID).Error
+	if err != nil {
+		tx.Rollback()
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	tx.Commit()
+
+	c.Response().Header().Set("HX-Redirect", fmt.Sprintf("/offices/%s/games/%s/pending", officeCode, gameId))
+	return c.NoContent(http.StatusOK)
+}
