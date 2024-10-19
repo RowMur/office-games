@@ -6,6 +6,7 @@ import (
 
 	"github.com/jackc/pgx/v5/pgconn"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 type User struct {
@@ -17,6 +18,17 @@ type User struct {
 	Rankings            []Ranking
 	MatchParticipations []MatchParticipant
 	Approvals           []MatchApproval
+	NonPlayer           bool `default:"false"`
+}
+
+func (u *User) AfterUpdate(tx *gorm.DB) (err error) {
+	if u.NonPlayer {
+		err = tx.Delete(&Ranking{}, "user_id = ?", u.ID).Error
+		if err != nil {
+			return
+		}
+	}
+	return
 }
 
 type CreateUserErrors struct {
@@ -80,7 +92,7 @@ type UpdateErrors map[string]string
 
 func (d *Database) UpdateUser(id uint, updates map[string]interface{}) (*User, UpdateErrors, error) {
 	user := &User{}
-	err := d.C.Model(user).Where("id = ?", id).Updates(updates).Error
+	err := d.C.Model(user).Where("id = ?", id).Clauses(clause.Returning{Columns: []clause.Column{{Name: "id"}}}).Updates(updates).Error
 	if err != nil {
 		postgresErr, ok := err.(*pgconn.PgError)
 		if !ok {

@@ -13,7 +13,7 @@ func mePageHandler(c echo.Context) error {
 		return c.Redirect(http.StatusTemporaryRedirect, "/sign-in")
 	}
 
-	return render(c, http.StatusOK, views.MePage(user, views.UserDetailsFormData{Email: user.Email, Username: user.Username}, views.UserDetailsFormErrors{}))
+	return render(c, http.StatusOK, views.MePage(user, views.UserDetailsFormData{Email: user.Email, Username: user.Username, NonPlayingParticipant: user.NonPlayer}, views.UserDetailsFormErrors{}))
 }
 
 func (s *Server) meUpdateHandler(c echo.Context) error {
@@ -24,6 +24,7 @@ func (s *Server) meUpdateHandler(c echo.Context) error {
 
 	username := c.FormValue("username")
 	email := c.FormValue("email")
+	nonPlayer := c.FormValue("nonPlayingParticipant") == "on"
 
 	if username == "" || email == "" {
 		data := views.UserDetailsFormData{Username: username, Email: email}
@@ -38,7 +39,11 @@ func (s *Server) meUpdateHandler(c echo.Context) error {
 		return render(c, http.StatusOK, views.UserDetailsForm(data, errs, &falseVar))
 	}
 
-	user, updateErrs, err := s.db.UpdateUser(user.ID, map[string]interface{}{"username": username, "email": email})
+	if user.NonPlayer && !nonPlayer {
+		return c.String(http.StatusForbidden, "You cannot undo being a non-playing participant")
+	}
+
+	user, updateErrs, err := s.db.UpdateUser(user.ID, map[string]interface{}{"username": username, "email": email, "non_player": nonPlayer})
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
@@ -50,7 +55,7 @@ func (s *Server) meUpdateHandler(c echo.Context) error {
 		return render(c, http.StatusOK, views.UserDetailsForm(views.UserDetailsFormData{Username: username, Email: email}, formErrs, nil))
 	}
 
-	formData := views.UserDetailsFormData{Email: user.Email, Username: user.Username}
+	formData := views.UserDetailsFormData{Email: user.Email, Username: user.Username, NonPlayingParticipant: user.NonPlayer}
 	truePtr := true
 	return render(c, http.StatusOK, views.UserDetailsForm(formData, views.UserDetailsFormErrors{}, &truePtr))
 }

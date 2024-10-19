@@ -70,8 +70,9 @@ func MePage(user *db.User, data UserDetailsFormData, errors UserDetailsFormError
 }
 
 type UserDetailsFormData struct {
-	Username string
-	Email    string
+	Username              string
+	Email                 string
+	NonPlayingParticipant bool
 }
 
 type UserDetailsFormErrors struct {
@@ -100,7 +101,7 @@ func UserDetailsForm(data UserDetailsFormData, errors UserDetailsFormErrors, did
 			templ_7745c5c3_Var3 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form hx-post=\"/me\" hx-swap=\"outerHTML\">")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<form hx-post=\"/me\" hx-swap=\"outerHTML\" class=\"flex flex-col gap-2\">")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -120,6 +121,15 @@ func UserDetailsForm(data UserDetailsFormData, errors UserDetailsFormErrors, did
 			Value:     data.Email,
 			Error:     errors.Email,
 			InputType: "email",
+		}).Render(ctx, templ_7745c5c3_Buffer)
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		templ_7745c5c3_Err = components.Checkbox(components.CheckboxProps{
+			Name:     "nonPlayingParticipant",
+			Label:    "Non playing participant (Irreversible)",
+			Checked:  data.NonPlayingParticipant,
+			Disabled: data.NonPlayingParticipant,
 		}).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err

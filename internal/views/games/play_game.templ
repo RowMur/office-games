@@ -87,7 +87,9 @@ templ PlayerSelect(players []db.User, key string) {
 	<label for={ key } class="block font-semibold">{ key }</label>
 	<select name={ key } id={ key } class="bg-light px-4 py-1 text-light" multiple>
 		for _, player := range players {
-			<option value={ strconv.Itoa(int(player.ID)) }>{ player.Username }</option>
+			if !player.NonPlayer {
+				<option value={ strconv.Itoa(int(player.ID)) }>{ player.Username }</option>
+			}
 		}
 	</select>
 }

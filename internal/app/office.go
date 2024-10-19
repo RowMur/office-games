@@ -53,17 +53,20 @@ func (a *App) JoinOffice(user *db.User, code string) (error, error) {
 		return nil, err
 	}
 
-	var initRankingsForEachOfficeGame []db.Ranking
-	for _, game := range office.Games {
-		initRankingsForEachOfficeGame = append(initRankingsForEachOfficeGame, db.Ranking{UserID: user.ID, GameID: game.ID})
-	}
-	if len(initRankingsForEachOfficeGame) > 0 {
-		err = tx.Model(user).Association("Rankings").Append(initRankingsForEachOfficeGame)
-		if err != nil {
-			tx.Rollback()
-			return nil, err
+	if !user.NonPlayer {
+		var initRankingsForEachOfficeGame []db.Ranking
+		for _, game := range office.Games {
+			initRankingsForEachOfficeGame = append(initRankingsForEachOfficeGame, db.Ranking{UserID: user.ID, GameID: game.ID})
+		}
+		if len(initRankingsForEachOfficeGame) > 0 {
+			err = tx.Model(user).Association("Rankings").Append(initRankingsForEachOfficeGame)
+			if err != nil {
+				tx.Rollback()
+				return nil, err
+			}
 		}
 	}
+
 	tx.Commit()
 	return nil, nil
 }

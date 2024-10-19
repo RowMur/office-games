@@ -69,9 +69,14 @@ templ OfficePage(office db.Office, user *db.User) {
 					for _, player := range office.Players {
 						<li class="flex justify-between bg-light p-2 rounded">
 							<span>{ player.Username }</span>
-							if office.Admin.ID == player.ID {
-								<span>admin</span>
-							}
+							<span class="flex gap-2">
+								if office.Admin.ID == player.ID {
+									<span>admin</span>
+								}
+								if player.NonPlayer {
+									<span>non-player</span>
+								}
+							</span>
 						</li>
 					}
 				</ul>

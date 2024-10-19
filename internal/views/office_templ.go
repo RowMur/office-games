@@ -167,17 +167,23 @@ func OfficePage(office db.Office, user *db.User) templ.Component {
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</span> ")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</span> <span class=\"flex gap-2\">")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
 				if office.Admin.ID == player.ID {
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<span>admin</span>")
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<span>admin</span> ")
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
 				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</li>")
+				if player.NonPlayer {
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<span>non-player</span>")
+					if templ_7745c5c3_Err != nil {
+						return templ_7745c5c3_Err
+					}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</span></li>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}

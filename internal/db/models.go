@@ -1,6 +1,7 @@
 package db
 
 import (
+	"errors"
 	"math/rand"
 
 	"gorm.io/gorm"
@@ -40,12 +41,25 @@ func generateCode() string {
 func (o *Office) AfterCreate(tx *gorm.DB) (err error) {
 	// Add the admin to the office players
 	var user User
-	tx.Where("id = ?", o.AdminRefer).First(&user)
-	tx.Model(&o).Association("Players").Append(&user)
+	err = tx.Where("id = ?", o.AdminRefer).First(&user).Error
+	if err != nil {
+		return
+	}
+	err = tx.Model(&o).Association("Players").Append(&user)
+	if err != nil {
+		return
+	}
 	// Generate a code for the office
-	tx.Model(&o).Update("Code", generateCode())
+	err = tx.Model(&o).Update("Code", generateCode()).Error
+	if err != nil {
+		return
+	}
 	// Create the default game
-	tx.Model(&o).Association("Games").Append(&Game{Name: "Default Game"})
+	err = tx.Model(&o).Association("Games").Append(&Game{Name: "Default Game"})
+	if err != nil {
+		return
+	}
+
 	return
 }
 
@@ -85,6 +99,10 @@ func (g *Game) AfterCreate(tx *gorm.DB) (err error) {
 
 	var initPlayerRankings []Ranking
 	for _, user := range office.Players {
+		if user.NonPlayer {
+			continue
+		}
+
 		initPlayerRankings = append(initPlayerRankings, Ranking{UserID: user.ID})
 	}
 	err = tx.Model(&g).Association("Rankings").Append(initPlayerRankings)
@@ -98,6 +116,21 @@ type Ranking struct {
 	Game   Game
 	UserID uint
 	User   User
+}
+
+func (r *Ranking) AfterCreate(tx *gorm.DB) (err error) {
+	user := User{}
+	err = tx.Where("id = ?", r.UserID).First(&user).Error
+	if err != nil {
+		return
+	}
+
+	if user.NonPlayer {
+		err = errors.New("Non-players cannot be ranked")
+		return
+	}
+
+	return
 }
 
 const (
@@ -115,6 +148,21 @@ type MatchParticipant struct {
 	StartingElo   int
 	CalculatedElo int
 	AppliedElo    int
+}
+
+func (mp *MatchParticipant) AfterCreate(tx *gorm.DB) (err error) {
+	user := User{}
+	err = tx.Where("id = ?", mp.UserID).First(&user).Error
+	if err != nil {
+		return
+	}
+
+	if user.NonPlayer {
+		err = errors.New("Non-players cannot play matches")
+		return
+	}
+
+	return
 }
 
 const (

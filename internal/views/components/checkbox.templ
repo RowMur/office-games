@@ -1,0 +1,25 @@
+package components
+
+type CheckboxProps struct {
+	Name     string
+	Label    string
+	Checked  bool
+	Disabled bool
+}
+
+templ Checkbox(props CheckboxProps) {
+	<div class="flex gap-2">
+		<label class="inline">{ props.Label }:</label>
+		<input
+			id={ props.Name }
+			name={ props.Name }
+			type="checkbox"
+			if props.Checked {
+				checked
+			}
+			if props.Disabled {
+				disabled
+			}
+		/>
+	</div>
+}
