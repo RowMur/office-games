@@ -20,12 +20,6 @@ templ PendingMatchesPage(game db.Game, office db.Office, pendingMatches []db.Mat
 				Game:   game,
 				Office: office,
 			})
-			@GamePageTabs(GamePageTabsProps{
-				CurrentTab: "Pending Matches",
-				Office:     office,
-				Game:       game,
-				User:       *user,
-			})
 			<section class="my-6">
 				<h4 class="text-lg font-semibold mb-2">Pending Matches</h4>
 				if len(pendingMatches) == 0 {

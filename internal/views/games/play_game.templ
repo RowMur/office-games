@@ -21,12 +21,6 @@ templ PlayGamePage(game db.Game, office db.Office, players []db.User, endpoint s
 				Game:   game,
 				Office: office,
 			})
-			@GamePageTabs(GamePageTabsProps{
-				CurrentTab: "Play",
-				Office:     office,
-				Game:       game,
-				User:       *user,
-			})
 			<section class="my-6">
 				<h4 class="text-lg font-semibold mb-2">Play a Match</h4>
 				@PlayMatchForm(nil, players, endpoint)

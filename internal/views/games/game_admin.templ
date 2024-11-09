@@ -20,12 +20,6 @@ templ GameAdminPage(game db.Game, office db.Office, user *db.User) {
 				Game:   game,
 				Office: office,
 			})
-			@GamePageTabs(GamePageTabsProps{
-				CurrentTab: "Admin",
-				Office:     office,
-				Game:       game,
-				User:       *user,
-			})
 			<section class="my-8">
 				@EditGameForm(EditGameFormData{
 					Name:            game.Name,

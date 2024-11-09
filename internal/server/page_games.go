@@ -39,11 +39,17 @@ func (s *Server) gamesPageHandler(c echo.Context) error {
 		}
 	}
 
+	gameWithPendingMatches, err := s.app.GetGameById(gameId, true)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
 	return render(c, http.StatusOK, games.GamePage(games.GamePageProps{
-		Game:          *game,
-		Office:        game.Office,
-		UserWinLosses: playerWinLosses,
-		User:          user,
+		Game:              *game,
+		Office:            game.Office,
+		UserWinLosses:     playerWinLosses,
+		User:              user,
+		PendingMatchCount: len(gameWithPendingMatches.Matches),
 	}))
 }
 
