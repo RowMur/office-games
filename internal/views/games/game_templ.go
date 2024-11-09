@@ -67,9 +67,9 @@ func GamePage(props GamePageProps) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = GamePageBreadcrumb(GamePageBreadcrumbProps{
-				Game:   props.Game,
-				Office: props.Office,
+			templ_7745c5c3_Err = components.Breadcrumbs([]components.Crumb{
+				{Name: props.Office.Name, URL: props.Office.Link()},
+				{Name: props.Game.Name},
 			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

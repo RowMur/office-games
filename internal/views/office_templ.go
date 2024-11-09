@@ -53,11 +53,9 @@ func OfficePage(office db.Office, user *db.User) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-
-			crumbs := []components.Crumb{
-				{Name: office.Name, URL: fmt.Sprintf("/offices/%s", office.Code)},
-			}
-			templ_7745c5c3_Err = components.Breadcrumbs(crumbs).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = components.Breadcrumbs([]components.Crumb{
+				{Name: office.Name},
+			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -68,7 +66,7 @@ func OfficePage(office db.Office, user *db.User) templ.Component {
 			var templ_7745c5c3_Var3 string
 			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(office.Name)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/office.templ`, Line: 22, Col: 53}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/office.templ`, Line: 19, Col: 53}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 			if templ_7745c5c3_Err != nil {
@@ -81,7 +79,7 @@ func OfficePage(office db.Office, user *db.User) templ.Component {
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(office.Admin.Username)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/office.templ`, Line: 25, Col: 37}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/office.templ`, Line: 22, Col: 37}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -94,7 +92,7 @@ func OfficePage(office db.Office, user *db.User) templ.Component {
 			var templ_7745c5c3_Var5 string
 			templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(office.Code)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/office.templ`, Line: 41, Col: 29}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/office.templ`, Line: 38, Col: 29}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 			if templ_7745c5c3_Err != nil {
@@ -107,7 +105,7 @@ func OfficePage(office db.Office, user *db.User) templ.Component {
 			var templ_7745c5c3_Var6 string
 			templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(office.Code)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/office.templ`, Line: 43, Col: 19}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/office.templ`, Line: 40, Col: 19}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 			if templ_7745c5c3_Err != nil {
@@ -161,7 +159,7 @@ func OfficePage(office db.Office, user *db.User) templ.Component {
 				var templ_7745c5c3_Var7 string
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(player.Username)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/office.templ`, Line: 71, Col: 30}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/office.templ`, Line: 68, Col: 30}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {

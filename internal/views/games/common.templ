@@ -1,11 +1,6 @@
 package games
 
-import (
-	"fmt"
-	"github.com/RowMur/office-games/internal/db"
-	"github.com/RowMur/office-games/internal/views/components"
-	"strconv"
-)
+import "github.com/RowMur/office-games/internal/db"
 
 type GamePageHeadingProps struct {
 	Game   db.Game
@@ -25,27 +20,24 @@ type GamePageTabsProps struct {
 
 templ GamePageTabs(props GamePageTabsProps) {
 	<ul class="flex flex-wrap gap-2">
-		{{
-				baseURL := fmt.Sprintf("/offices/%s/games/%s", props.Office.Code, strconv.Itoa(int(props.Game.ID)))
-		}}
 		@GamePageTab(GamePageTabProps{
-			Href:       baseURL,
+			Href:       props.Game.Link(),
 			Text:       "Overview",
 			CurrentTab: props.CurrentTab,
 		})
 		@GamePageTab(GamePageTabProps{
-			Href:       baseURL + "/play",
+			Href:       props.Game.Link() + "/play",
 			Text:       "Play",
 			CurrentTab: props.CurrentTab,
 		})
 		@GamePageTab(GamePageTabProps{
-			Href:       baseURL + "/pending",
+			Href:       props.Game.Link() + "/pending",
 			Text:       "Pending Matches",
 			CurrentTab: props.CurrentTab,
 		})
 		if props.User.ID == props.Office.AdminRefer {
 			@GamePageTab(GamePageTabProps{
-				Href:       baseURL + "/admin",
+				Href:       props.Game.Link() + "/admin",
 				Text:       "Admin",
 				CurrentTab: props.CurrentTab,
 			})
@@ -70,19 +62,4 @@ templ GamePageTab(props GamePageTabProps) {
 			}
 		>{ props.Text }</a>
 	</li>
-}
-
-type GamePageBreadcrumbProps struct {
-	Game   db.Game
-	Office db.Office
-}
-
-templ GamePageBreadcrumb(props GamePageBreadcrumbProps) {
-	{{
-		crumbs := []components.Crumb{
-			{Name: props.Office.Name, URL: fmt.Sprintf("/offices/%s", props.Office.Code)},
-			{Name: props.Game.Name, URL: fmt.Sprintf("/offices/%s/games/%s", props.Office.Code, strconv.Itoa(int(props.Game.ID)))},
-		}
-	}}
-	@components.Breadcrumbs(crumbs)
 }

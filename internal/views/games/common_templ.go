@@ -8,12 +8,7 @@ package games
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import (
-	"fmt"
-	"github.com/RowMur/office-games/internal/db"
-	"github.com/RowMur/office-games/internal/views/components"
-	"strconv"
-)
+import "github.com/RowMur/office-games/internal/db"
 
 type GamePageHeadingProps struct {
 	Game   db.Game
@@ -48,7 +43,7 @@ func GamePageHeading(props GamePageHeadingProps) templ.Component {
 		var templ_7745c5c3_Var2 string
 		templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(props.Game.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/common.templ`, Line: 16, Col: 71}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/common.templ`, Line: 11, Col: 71}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
 		if templ_7745c5c3_Err != nil {
@@ -61,7 +56,7 @@ func GamePageHeading(props GamePageHeadingProps) templ.Component {
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(props.Office.Name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/common.templ`, Line: 16, Col: 99}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/common.templ`, Line: 11, Col: 99}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -107,10 +102,8 @@ func GamePageTabs(props GamePageTabsProps) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-
-		baseURL := fmt.Sprintf("/offices/%s/games/%s", props.Office.Code, strconv.Itoa(int(props.Game.ID)))
 		templ_7745c5c3_Err = GamePageTab(GamePageTabProps{
-			Href:       baseURL,
+			Href:       props.Game.Link(),
 			Text:       "Overview",
 			CurrentTab: props.CurrentTab,
 		}).Render(ctx, templ_7745c5c3_Buffer)
@@ -118,7 +111,7 @@ func GamePageTabs(props GamePageTabsProps) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = GamePageTab(GamePageTabProps{
-			Href:       baseURL + "/play",
+			Href:       props.Game.Link() + "/play",
 			Text:       "Play",
 			CurrentTab: props.CurrentTab,
 		}).Render(ctx, templ_7745c5c3_Buffer)
@@ -126,7 +119,7 @@ func GamePageTabs(props GamePageTabsProps) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		templ_7745c5c3_Err = GamePageTab(GamePageTabProps{
-			Href:       baseURL + "/pending",
+			Href:       props.Game.Link() + "/pending",
 			Text:       "Pending Matches",
 			CurrentTab: props.CurrentTab,
 		}).Render(ctx, templ_7745c5c3_Buffer)
@@ -135,7 +128,7 @@ func GamePageTabs(props GamePageTabsProps) templ.Component {
 		}
 		if props.User.ID == props.Office.AdminRefer {
 			templ_7745c5c3_Err = GamePageTab(GamePageTabProps{
-				Href:       baseURL + "/admin",
+				Href:       props.Game.Link() + "/admin",
 				Text:       "Admin",
 				CurrentTab: props.CurrentTab,
 			}).Render(ctx, templ_7745c5c3_Buffer)
@@ -209,52 +202,13 @@ func GamePageTab(props GamePageTabProps) templ.Component {
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(props.Text)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/common.templ`, Line: 71, Col: 15}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/common.templ`, Line: 63, Col: 15}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</a></li>")
-		if templ_7745c5c3_Err != nil {
-			return templ_7745c5c3_Err
-		}
-		return templ_7745c5c3_Err
-	})
-}
-
-type GamePageBreadcrumbProps struct {
-	Game   db.Game
-	Office db.Office
-}
-
-func GamePageBreadcrumb(props GamePageBreadcrumbProps) templ.Component {
-	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
-		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
-		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
-			return templ_7745c5c3_CtxErr
-		}
-		templ_7745c5c3_Buffer, templ_7745c5c3_IsBuffer := templruntime.GetBuffer(templ_7745c5c3_W)
-		if !templ_7745c5c3_IsBuffer {
-			defer func() {
-				templ_7745c5c3_BufErr := templruntime.ReleaseBuffer(templ_7745c5c3_Buffer)
-				if templ_7745c5c3_Err == nil {
-					templ_7745c5c3_Err = templ_7745c5c3_BufErr
-				}
-			}()
-		}
-		ctx = templ.InitializeContext(ctx)
-		templ_7745c5c3_Var8 := templ.GetChildren(ctx)
-		if templ_7745c5c3_Var8 == nil {
-			templ_7745c5c3_Var8 = templ.NopComponent
-		}
-		ctx = templ.ClearChildren(ctx)
-
-		crumbs := []components.Crumb{
-			{Name: props.Office.Name, URL: fmt.Sprintf("/offices/%s", props.Office.Code)},
-			{Name: props.Game.Name, URL: fmt.Sprintf("/offices/%s/games/%s", props.Office.Code, strconv.Itoa(int(props.Game.ID)))},
-		}
-		templ_7745c5c3_Err = components.Breadcrumbs(crumbs).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

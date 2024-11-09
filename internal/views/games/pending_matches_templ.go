@@ -53,9 +53,10 @@ func PendingMatchesPage(game db.Game, office db.Office, pendingMatches []db.Matc
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = GamePageBreadcrumb(GamePageBreadcrumbProps{
-				Game:   game,
-				Office: office,
+			templ_7745c5c3_Err = components.Breadcrumbs([]components.Crumb{
+				{Name: office.Name, URL: office.Link()},
+				{Name: game.Name, URL: game.Link()},
+				{Name: "Pending Matches"},
 			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -88,7 +89,7 @@ func PendingMatchesPage(game db.Game, office db.Office, pendingMatches []db.Matc
 				var templ_7745c5c3_Var3 string
 				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(game.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/pending_matches.templ`, Line: 31, Col: 69}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/pending_matches.templ`, Line: 32, Col: 69}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 				if templ_7745c5c3_Err != nil {

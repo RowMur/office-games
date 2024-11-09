@@ -11,9 +11,10 @@ import (
 templ PendingMatchesPage(game db.Game, office db.Office, pendingMatches []db.Match, user *db.User) {
 	@layout.Base(user) {
 		<main class="mx-6 my-8">
-			@GamePageBreadcrumb(GamePageBreadcrumbProps{
-				Game:   game,
-				Office: office,
+			@components.Breadcrumbs([]components.Crumb{
+				{Name: office.Name, URL: office.Link()},
+				{Name: game.Name, URL: game.Link()},
+				{Name: "Pending Matches"},
 			})
 			@GamePageHeading(GamePageHeadingProps{
 				Game:   game,

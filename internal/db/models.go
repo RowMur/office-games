@@ -2,7 +2,9 @@ package db
 
 import (
 	"errors"
+	"fmt"
 	"math/rand"
+	"strconv"
 
 	"gorm.io/gorm"
 )
@@ -25,6 +27,10 @@ type Office struct {
 	Admin      User   `gorm:"foreignKey:AdminRefer"`
 	Players    []User `gorm:"many2many:user_offices;"`
 	Games      []Game
+}
+
+func (o *Office) Link() string {
+	return fmt.Sprintf("/offices/%s", o.Code)
 }
 
 func generateCode() string {
@@ -90,6 +96,10 @@ type Game struct {
 	GameType        string `gorm:"default:'head_to_head'"`
 	MinParticipants int    `gorm:"default:2"`
 	MaxParticipants int    `gorm:"default:4"`
+}
+
+func (g *Game) Link() string {
+	return fmt.Sprintf("/offices/%s/games/%s", g.Office.Code, strconv.Itoa(int(g.ID)))
 }
 
 func (g *Game) BeforeDelete(tx *gorm.DB) (err error) {

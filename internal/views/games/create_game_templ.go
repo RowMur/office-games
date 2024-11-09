@@ -53,8 +53,8 @@ func CreateGamePage(user *db.User, office db.Office) templ.Component {
 				return templ_7745c5c3_Err
 			}
 			templ_7745c5c3_Err = components.Breadcrumbs([]components.Crumb{
-				{Name: office.Name, URL: fmt.Sprintf("/offices/%s", office.Code)},
-				{Name: "Create Game", URL: fmt.Sprintf("/offices/%s/games/create", office.Code)},
+				{Name: office.Name, URL: office.Link()},
+				{Name: "Create Game"},
 			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err

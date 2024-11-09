@@ -11,12 +11,9 @@ import (
 templ OfficePage(office db.Office, user *db.User) {
 	@layout.Base(user) {
 		<main class="mx-6 my-8">
-			{{
-			crumbs := []components.Crumb{
-				{Name: office.Name, URL: fmt.Sprintf("/offices/%s", office.Code)},
-			}
-			}}
-			@components.Breadcrumbs(crumbs)
+			@components.Breadcrumbs([]components.Crumb{
+				{Name: office.Name},
+			})
 			<section class="flex justify-evenly mb-8 mt-2 text-center items-center">
 				<div>
 					<h2 class="text-3xl font-semibold">{ office.Name }</h2>

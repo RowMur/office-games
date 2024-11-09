@@ -56,7 +56,7 @@ func (s *Server) gamesPlayPageHandler(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	endpoint := fmt.Sprintf("/offices/%s/games/%s/play", game.Office.Code, gameId)
+	endpoint := game.Link() + "/play"
 	return render(c, http.StatusOK, games.PlayGamePage(*game, game.Office, game.Office.Players, endpoint, user))
 }
 
@@ -91,12 +91,11 @@ func (s *Server) gamesPlayFormHandler(c echo.Context) error {
 	// Not the end of the world if the auto approve doesnt work
 	_ = s.app.ApproveMatch(user, match)
 	if match.IsApproved() {
-		gameHome := fmt.Sprintf("/offices/%s/games/%s", game.Office.Code, gameId)
-		c.Response().Header().Set("HX-Redirect", gameHome)
+		c.Response().Header().Set("HX-Redirect", game.Link())
 		return c.NoContent(http.StatusOK)
 	}
 
-	gameHome := fmt.Sprintf("/offices/%s/games/%s/pending/%d", game.Office.Code, gameId, match.ID)
+	gameHome := game.Link() + fmt.Sprintf("/pending/%d", match.ID)
 	c.Response().Header().Set("HX-Redirect", gameHome)
 	return c.NoContent(http.StatusOK)
 }

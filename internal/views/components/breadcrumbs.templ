@@ -8,7 +8,11 @@ type Crumb struct {
 templ Breadcrumbs(crumbs []Crumb) {
 	<nav class="opacity-70">
 		for _, crumb := range crumbs {
-			<a href={ templ.SafeURL(crumb.URL) } class="hover:underline">{ crumb.Name } &gt; </a>
+			if crumb.URL == "" {
+				<span>{ crumb.Name }</span>
+			} else {
+				<span><a href={ templ.SafeURL(crumb.URL) } class="hover:underline">{ crumb.Name }</a> &gt; </span>
+			}
 		}
 	</nav>
 }

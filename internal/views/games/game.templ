@@ -25,9 +25,9 @@ type GamePageProps struct {
 templ GamePage(props GamePageProps) {
 	@layout.Base(props.User) {
 		<main class="mx-6 my-8">
-			@GamePageBreadcrumb(GamePageBreadcrumbProps{
-				Game:   props.Game,
-				Office: props.Office,
+			@components.Breadcrumbs([]components.Crumb{
+				{Name: props.Office.Name, URL: props.Office.Link()},
+				{Name: props.Game.Name},
 			})
 			@GamePageHeading(GamePageHeadingProps{
 				Game:   props.Game,

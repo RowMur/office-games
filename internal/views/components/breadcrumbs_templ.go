@@ -39,31 +39,51 @@ func Breadcrumbs(crumbs []Crumb) templ.Component {
 			return templ_7745c5c3_Err
 		}
 		for _, crumb := range crumbs {
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<a href=\"")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var2 templ.SafeURL = templ.SafeURL(crumb.URL)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var2)))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" class=\"hover:underline\">")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			var templ_7745c5c3_Var3 string
-			templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(crumb.Name)
-			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/breadcrumbs.templ`, Line: 11, Col: 76}
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(" &gt; </a>")
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
+			if crumb.URL == "" {
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<span>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var2 string
+				templ_7745c5c3_Var2, templ_7745c5c3_Err = templ.JoinStringErrs(crumb.Name)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/breadcrumbs.templ`, Line: 12, Col: 22}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var2))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</span>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+			} else {
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<span><a href=\"")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var3 templ.SafeURL = templ.SafeURL(crumb.URL)
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var3)))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" class=\"hover:underline\">")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				var templ_7745c5c3_Var4 string
+				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(crumb.Name)
+				if templ_7745c5c3_Err != nil {
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/breadcrumbs.templ`, Line: 14, Col: 83}
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</a> &gt; </span>")
+				if templ_7745c5c3_Err != nil {
+					return templ_7745c5c3_Err
+				}
 			}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</nav>")

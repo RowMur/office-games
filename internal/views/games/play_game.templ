@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"github.com/RowMur/office-games/internal/db"
+	"github.com/RowMur/office-games/internal/views/components"
 	"github.com/RowMur/office-games/internal/views/layout"
 	"strconv"
 )
@@ -11,9 +12,10 @@ import (
 templ PlayGamePage(game db.Game, office db.Office, players []db.User, endpoint string, user *db.User) {
 	@layout.Base(user) {
 		<main class="mx-6 my-8">
-			@GamePageBreadcrumb(GamePageBreadcrumbProps{
-				Game:   game,
-				Office: office,
+			@components.Breadcrumbs([]components.Crumb{
+				{Name: office.Name, URL: office.Link()},
+				{Name: game.Name, URL: game.Link()},
+				{Name: "Play"},
 			})
 			@GamePageHeading(GamePageHeadingProps{
 				Game:   game,

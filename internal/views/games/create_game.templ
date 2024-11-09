@@ -11,8 +11,8 @@ templ CreateGamePage(user *db.User, office db.Office) {
 	@layout.Base(user) {
 		<main class="mx-6 my-8">
 			@components.Breadcrumbs([]components.Crumb{
-				{Name: office.Name, URL: fmt.Sprintf("/offices/%s", office.Code)},
-				{Name: "Create Game", URL: fmt.Sprintf("/offices/%s/games/create", office.Code)},
+				{Name: office.Name, URL: office.Link()},
+				{Name: "Create Game"},
 			})
 			<section class="grid place-items-center my-8">
 				@CreateGameForm(CreateGameFormData{}, CreateGameFormErrors{}, office.Code)
