@@ -270,12 +270,12 @@ func (m *Match) IsApprovedByLosers() bool {
 func (m *Match) IsAdminApproved() bool {
 	adminUserId := m.Game.Office.AdminRefer
 
-	// Don't allow admin's to "super" approve their own matches
-	for _, participant := range m.Participants {
-		if participant.UserID == adminUserId {
-			return false
-		}
-	}
+	// // Don't allow admin's to "super" approve their own matches
+	// for _, participant := range m.Participants {
+	// 	if participant.UserID == adminUserId {
+	// 		return false
+	// 	}
+	// }
 
 	for _, approval := range m.Approvals {
 		if approval.UserID == adminUserId {
