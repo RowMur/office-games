@@ -72,11 +72,22 @@ func (a *App) JoinOffice(user *db.User, code string) (error, error) {
 }
 
 func (a *App) CreateOffice(admin *db.User, name string) (*db.Office, error) {
+	tx := a.db.Begin()
+
 	office := &db.Office{Name: name, AdminRefer: admin.ID}
-	err := a.db.Create(office).Error
+	err := tx.Create(office).Error
 	if err != nil {
+		tx.Rollback()
 		return nil, err
 	}
 
+	// Create the default game
+	err = tx.Model(&office).Association("Games").Append(&db.Game{Name: "Default Game"})
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	tx.Commit()
 	return office, nil
 }
