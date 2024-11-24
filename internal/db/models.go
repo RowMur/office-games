@@ -55,15 +55,13 @@ func (o *Office) AfterCreate(tx *gorm.DB) (err error) {
 	if err != nil {
 		return
 	}
-	// Generate a code for the office
-	err = tx.Model(&o).Update("Code", generateCode()).Error
-	if err != nil {
-		return
-	}
-	// Create the default game
-	err = tx.Model(&o).Association("Games").Append(&Game{Name: "Default Game"})
-	if err != nil {
-		return
+
+	if o.Code == "" {
+		// Generate a code for the office
+		err = tx.Model(&o).Update("Code", generateCode()).Error
+		if err != nil {
+			return
+		}
 	}
 
 	return
