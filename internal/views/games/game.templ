@@ -75,7 +75,10 @@ templ GamePage(props GamePageProps) {
 				})
 			</section>
 			<section class="my-6">
-				@components.SectionHeading("Recent Matches", nil)
+				@components.SectionHeading("Recent Matches", &components.SecondaryLinkProps{
+					URL:  props.Game.Link() + "/matches",
+					Name: "All Matches",
+				})
 				if len(props.Game.Matches) == 0 {
 					<p>No matches have been played yet. Go and play some { props.Game.Name }!</p>
 				} else {

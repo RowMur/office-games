@@ -182,7 +182,10 @@ func GamePage(props GamePageProps) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = components.SectionHeading("Recent Matches", nil).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = components.SectionHeading("Recent Matches", &components.SecondaryLinkProps{
+				URL:  props.Game.Link() + "/matches",
+				Name: "All Matches",
+			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -194,7 +197,7 @@ func GamePage(props GamePageProps) templ.Component {
 				var templ_7745c5c3_Var7 string
 				templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(props.Game.Name)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/game.templ`, Line: 80, Col: 75}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/game.templ`, Line: 83, Col: 75}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 				if templ_7745c5c3_Err != nil {
@@ -326,7 +329,7 @@ func OfficeRankings(props OfficeRankingsProps) templ.Component {
 			var templ_7745c5c3_Var11 string
 			templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", i+1))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/game.templ`, Line: 130, Col: 66}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/game.templ`, Line: 133, Col: 66}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 			if templ_7745c5c3_Err != nil {
@@ -339,7 +342,7 @@ func OfficeRankings(props OfficeRankingsProps) templ.Component {
 			var templ_7745c5c3_Var12 string
 			templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(ranking.User.Username)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/game.templ`, Line: 131, Col: 45}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/game.templ`, Line: 134, Col: 45}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 			if templ_7745c5c3_Err != nil {
@@ -352,7 +355,7 @@ func OfficeRankings(props OfficeRankingsProps) templ.Component {
 			var templ_7745c5c3_Var13 string
 			templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(props.UserWinLosses[ranking.User.ID].Wins))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/game.templ`, Line: 133, Col: 63}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/game.templ`, Line: 136, Col: 63}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 			if templ_7745c5c3_Err != nil {
@@ -365,7 +368,7 @@ func OfficeRankings(props OfficeRankingsProps) templ.Component {
 			var templ_7745c5c3_Var14 string
 			templ_7745c5c3_Var14, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(props.UserWinLosses[ranking.User.ID].Losses))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/game.templ`, Line: 136, Col: 65}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/game.templ`, Line: 139, Col: 65}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var14))
 			if templ_7745c5c3_Err != nil {
@@ -387,7 +390,7 @@ func OfficeRankings(props OfficeRankingsProps) templ.Component {
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%.2f", percentage))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/game.templ`, Line: 149, Col: 39}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/game.templ`, Line: 152, Col: 39}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {
@@ -400,7 +403,7 @@ func OfficeRankings(props OfficeRankingsProps) templ.Component {
 			var templ_7745c5c3_Var16 string
 			templ_7745c5c3_Var16, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(ranking.Points))
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/game.templ`, Line: 151, Col: 58}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/game.templ`, Line: 154, Col: 58}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var16))
 			if templ_7745c5c3_Err != nil {

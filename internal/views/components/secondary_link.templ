@@ -6,5 +6,5 @@ type SecondaryLinkProps struct {
 }
 
 templ secondaryLink(link SecondaryLinkProps) {
-	<a href={ templ.SafeURL(link.URL) } class="opacity-70 hover:underline">{ link.Name }</a>
+	<a href={ templ.SafeURL(link.URL) } class="opacity-70 hover:underline h-fit">{ link.Name }</a>
 }

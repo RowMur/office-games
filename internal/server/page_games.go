@@ -287,3 +287,22 @@ func (s *Server) pendingMatchDeleteHandler(c echo.Context) error {
 	c.Response().Header().Set("HX-Redirect", fmt.Sprintf("/offices/%s/games/%s/pending", officeCode, gameId))
 	return c.NoContent(http.StatusOK)
 }
+
+func (s *Server) matchesPageHandler(c echo.Context) error {
+	user := userFromContext(c)
+	gameId := c.Param("id")
+
+	game, err := s.app.GetGameById(gameId, false)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	return render(c, http.StatusOK, games.MatchesPage(
+		games.MatchesPageProps{
+			User:    user,
+			Matches: game.Matches,
+			Office:  game.Office,
+			Game:    *game,
+		},
+	))
+}

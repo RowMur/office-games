@@ -1,0 +1,38 @@
+package games
+
+import (
+	"github.com/RowMur/office-games/internal/db"
+	"github.com/RowMur/office-games/internal/views/components"
+	"github.com/RowMur/office-games/internal/views/layout"
+)
+
+type MatchesPageProps struct {
+	User    *db.User
+	Matches []db.Match
+	Office  db.Office
+	Game    db.Game
+}
+
+templ MatchesPage(props MatchesPageProps) {
+	@layout.Base(props.User) {
+		<main class="mx-6 my-8">
+			@components.Breadcrumbs([]components.Crumb{
+				{Name: props.Office.Name, URL: props.Office.Link()},
+				{Name: props.Game.Name, URL: props.Game.Link()},
+				{Name: "Matches"},
+			})
+			@GamePageHeading(GamePageHeadingProps{
+				Game:   props.Game,
+				Office: props.Office,
+			})
+			<section class="my-6">
+				@components.SectionHeading("Matches", nil)
+				<ul class="flex flex-col gap-2">
+					for _, match := range props.Matches {
+						@components.Match(match, false)
+					}
+				</ul>
+			</section>
+		</main>
+	}
+}

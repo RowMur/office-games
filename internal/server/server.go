@@ -76,5 +76,7 @@ func (s *Server) Run() {
 
 	officeAdmin.GET("/offices/:code/games/:id/admin", s.gameAdminPage)
 
+	officeMember.GET("/offices/:code/games/:id/matches", s.matchesPageHandler)
+
 	e.Logger.Fatal(e.Start(":8080"))
 }
