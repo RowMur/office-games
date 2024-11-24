@@ -93,7 +93,13 @@ templ EditGameForm(data EditGameFormData, errors EditGameFormErrors, officeCode 
 			}
 		</fieldset>
 		<div class="flex justify-between mt-4">
-			<button hx-delete={ fmt.Sprintf("/offices/%s/games/%s", officeCode, strconv.Itoa(int(game.ID))) } class="bg-red-500 text-content h-fit rounded w-16">Delete</button>
+			<button
+				hx-delete={ fmt.Sprintf("/offices/%s/games/%s", officeCode, strconv.Itoa(int(game.ID))) }
+				hx-confirm="Are you sure you want to delete this game?"
+				class="bg-red-500 text-content h-fit rounded w-16"
+			>
+				Delete
+			</button>
 			<button type="submit" class="bg-accent text-light block w-16 rounded">Save</button>
 		</div>
 	</form>

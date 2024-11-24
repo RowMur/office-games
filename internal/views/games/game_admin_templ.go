@@ -330,13 +330,13 @@ func EditGameForm(data EditGameFormData, errors EditGameFormErrors, officeCode s
 		var templ_7745c5c3_Var15 string
 		templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("/offices/%s/games/%s", officeCode, strconv.Itoa(int(game.ID))))
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/game_admin.templ`, Line: 96, Col: 98}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/game_admin.templ`, Line: 97, Col: 91}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" class=\"bg-red-500 text-content h-fit rounded w-16\">Delete</button> <button type=\"submit\" class=\"bg-accent text-light block w-16 rounded\">Save</button></div></form>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("\" hx-confirm=\"Are you sure you want to delete this game?\" class=\"bg-red-500 text-content h-fit rounded w-16\">Delete</button> <button type=\"submit\" class=\"bg-accent text-light block w-16 rounded\">Save</button></div></form>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
