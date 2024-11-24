@@ -7,10 +7,11 @@ import (
 )
 
 type MatchesPageProps struct {
-	User    *db.User
-	Matches []db.Match
-	Office  db.Office
-	Game    db.Game
+	User     *db.User
+	Matches  []db.Match
+	Office   db.Office
+	Game     db.Game
+	NextPage string
 }
 
 templ MatchesPage(props MatchesPageProps) {
@@ -28,11 +29,37 @@ templ MatchesPage(props MatchesPageProps) {
 			<section class="my-6">
 				@components.SectionHeading("Matches", nil)
 				<ul class="flex flex-col gap-2">
-					for _, match := range props.Matches {
-						@components.Match(match, false)
-					}
+					@Matches(MatchesProps{Matches: props.Matches, Game: props.Game, NextPage: props.NextPage})
 				</ul>
 			</section>
 		</main>
+	}
+}
+
+type MatchesProps struct {
+	Matches  []db.Match
+	NextPage string
+	Game     db.Game
+}
+
+templ Matches(props MatchesProps) {
+	for i, match := range props.Matches {
+		{{
+	shouldLoadNextPage := i == len(props.Matches)-1 && props.NextPage != ""
+		}}
+		<div
+			if shouldLoadNextPage {
+				hx-get={ props.Game.Link() + "/matches?page=" + props.NextPage }
+				hx-trigger="revealed"
+				hx-target="#matches-indicator"
+				hx-swap="outerHTML"
+				hx-indicator="#matches-indicator"
+			}
+		>
+			@components.Match(match, false)
+		</div>
+		if shouldLoadNextPage {
+			<div id="matches-indicator" class="htmx-indicator">Loading...</div>
+		}
 	}
 }

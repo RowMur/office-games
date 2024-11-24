@@ -288,21 +288,56 @@ func (s *Server) pendingMatchDeleteHandler(c echo.Context) error {
 	return c.NoContent(http.StatusOK)
 }
 
+const (
+	matchesPerPage = 10
+)
+
 func (s *Server) matchesPageHandler(c echo.Context) error {
 	user := userFromContext(c)
 	gameId := c.Param("id")
+
+	page := c.QueryParam("page")
+	if page == "" {
+		page = "0"
+	}
 
 	game, err := s.app.GetGameById(gameId, false)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	return render(c, http.StatusOK, games.MatchesPage(
-		games.MatchesPageProps{
-			User:    user,
-			Matches: game.Matches,
-			Office:  game.Office,
-			Game:    *game,
-		},
-	))
+	pageInt, err := strconv.Atoi(page)
+	if err != nil || pageInt < 0 {
+		return c.String(http.StatusBadRequest, "Invalid page number")
+	}
+
+	startingIndex := pageInt * matchesPerPage
+	if startingIndex > len(game.Matches)-1 {
+		return c.String(http.StatusNotFound, "Page not found")
+	}
+
+	endingIndex := min(startingIndex+matchesPerPage, len(game.Matches))
+	matchesToReturn := game.Matches[startingIndex:endingIndex]
+
+	hasNextPage := len(game.Matches) > endingIndex
+	nextPage := ""
+	if hasNextPage {
+		nextPage = strconv.Itoa(pageInt + 1)
+	}
+
+	if pageInt < 1 {
+		// full page
+		return render(c, http.StatusOK, games.MatchesPage(
+			games.MatchesPageProps{
+				User:     user,
+				Matches:  matchesToReturn,
+				Office:   game.Office,
+				Game:     *game,
+				NextPage: nextPage,
+			},
+		))
+	}
+
+	// partial page
+	return render(c, http.StatusOK, games.Matches(games.MatchesProps{Matches: matchesToReturn, Game: *game, NextPage: nextPage}))
 }
