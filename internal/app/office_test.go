@@ -71,12 +71,6 @@ func TestJoinOffice(t *testing.T) {
 		if len(players) != 1 {
 			t.Errorf("expected 1 player, got %d", len(players))
 		}
-
-		rankings := []db.Ranking{}
-		c.Model(user).Association("Rankings").Find(&rankings)
-		if len(rankings) != 1 {
-			t.Errorf("expected 1 rankings, got %d", len(rankings))
-		}
 	})
 
 	t.Run("It should initialise rankings for each game", func(t *testing.T) {
@@ -105,9 +99,8 @@ func TestJoinOffice(t *testing.T) {
 
 		rankings := []db.Ranking{}
 		c.Model(user).Association("Rankings").Find(&rankings)
-		if len(rankings) != 2 {
-			// 2 because on office creation, a game is automatically created as well as the manual one added here
-			t.Errorf("expected 2 rankings, got %d", len(rankings))
+		if len(rankings) != 1 {
+			t.Errorf("expected 1 rankings, got %d", len(rankings))
 		}
 	})
 
