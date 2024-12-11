@@ -2,11 +2,9 @@ package elo
 
 import (
 	"math"
-
-	"github.com/RowMur/office-games/internal/db"
 )
 
-func CalculatePointsGainLoss(winners, losers []db.Ranking, multiplier float64) int {
+func CalculatePointsGainLoss(winners, losers []Elo, multiplier float64) int {
 	summedWinnerElo := float64(0)
 	for _, winner := range winners {
 		summedWinnerElo += float64(winner.Points)

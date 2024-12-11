@@ -3,6 +3,7 @@ package server
 import (
 	"github.com/RowMur/office-games/internal/app"
 	"github.com/RowMur/office-games/internal/db"
+	"github.com/RowMur/office-games/internal/elo"
 	"github.com/RowMur/office-games/internal/user"
 	"github.com/labstack/echo/v4"
 )
@@ -11,15 +12,17 @@ type Server struct {
 	us  *user.UserService
 	db  *db.Database
 	app *app.App
+	es  *elo.EloService
 }
 
 func NewServer() *Server {
 	database := db.Init()
-	app := app.NewApp(database.C)
+	app := app.NewApp(database)
 	return &Server{
 		db:  &database,
-		us:  user.NewUserService(&database),
+		us:  user.NewUserService(database),
 		app: app,
+		es:  elo.NewEloService(database),
 	}
 }
 
@@ -77,6 +80,8 @@ func (s *Server) Run() {
 	officeAdmin.GET("/offices/:code/games/:id/admin", s.gameAdminPage)
 
 	officeMember.GET("/offices/:code/games/:id/matches", s.matchesPageHandler)
+
+	signedIn.GET("/elo", s.eloPageHandler)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }

@@ -8,7 +8,7 @@ import (
 func (a *App) GetGameById(id string, pendingMatches bool) (*db.Game, error) {
 	game := db.Game{}
 
-	query := a.db.Where("id = ?", id).
+	query := a.db.C.Where("id = ?", id).
 		Preload("Office.Players", func(db *gorm.DB) *gorm.DB {
 			return db.Order("LOWER(username)")
 		}).

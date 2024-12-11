@@ -1,12 +1,14 @@
 package app
 
-import "gorm.io/gorm"
+import (
+	"github.com/RowMur/office-games/internal/db"
+)
 
 type App struct {
-	db *gorm.DB
+	db db.Database
 }
 
-func NewApp(db *gorm.DB) *App {
+func NewApp(db db.Database) *App {
 	return &App{
 		db: db,
 	}

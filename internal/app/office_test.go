@@ -10,36 +10,37 @@ import (
 	"gorm.io/gorm"
 )
 
-var c *gorm.DB
+var database db.Database
 
 func setup(t *testing.T) {
 	fmt.Println("Setting up")
-	if c != nil {
+	if database.C != nil {
 		return
 	}
 
 	var err error
-	c, err = gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
+	c, err := gorm.Open(sqlite.Open(":memory:"), &gorm.Config{})
 	if err != nil {
 		t.Fatalf("failed to connect database: %v", err)
 	}
 
-	err = c.AutoMigrate(db.Models...)
+	err = database.C.AutoMigrate(db.Models...)
 	if err != nil {
 		t.Fatalf("failed to migrate database: %v", err)
 	}
 
+	database = db.Database{C: c}
 	fmt.Println("Setup done")
 }
 
 func TestJoinOffice(t *testing.T) {
 	setup(t)
 	t.Run("It should return an error if the office code does not exist", func(t *testing.T) {
-		app := app.NewApp(c)
+		app := app.NewApp(database)
 
 		user := &db.User{Username: "username", Email: "email", Password: "password"}
-		c.Create(user)
-		defer c.Unscoped().Delete(user)
+		database.C.Create(user)
+		defer database.C.Unscoped().Delete(user)
 
 		userErr, _ := app.JoinOffice(user, "code")
 		if userErr == nil {
@@ -48,15 +49,15 @@ func TestJoinOffice(t *testing.T) {
 	})
 
 	t.Run("It shouldn't add a duplicate user to the office", func(t *testing.T) {
-		app := app.NewApp(c)
+		app := app.NewApp(database)
 
 		user := &db.User{Username: "username", Email: "email", Password: "password"}
-		c.Create(user)
-		defer c.Unscoped().Delete(user)
+		database.C.Create(user)
+		defer database.C.Unscoped().Delete(user)
 
 		office := &db.Office{AdminRefer: user.ID}
-		c.Create(office)
-		defer c.Unscoped().Delete(office)
+		database.C.Create(office)
+		defer database.C.Unscoped().Delete(office)
 
 		userErr, err := app.JoinOffice(user, office.Code)
 		if userErr != nil {
@@ -67,30 +68,30 @@ func TestJoinOffice(t *testing.T) {
 		}
 
 		players := []db.User{}
-		c.Model(office).Association("Players").Find(&players)
+		database.C.Model(office).Association("Players").Find(&players)
 		if len(players) != 1 {
 			t.Errorf("expected 1 player, got %d", len(players))
 		}
 	})
 
 	t.Run("It should initialise rankings for each game", func(t *testing.T) {
-		app := app.NewApp(c)
+		app := app.NewApp(database)
 
 		officeAdmin := &db.User{Username: "username", Email: "email", Password: "password"}
-		c.Create(officeAdmin)
-		defer c.Unscoped().Delete(officeAdmin)
+		database.C.Create(officeAdmin)
+		defer database.C.Unscoped().Delete(officeAdmin)
 
 		user := &db.User{Username: "user", Email: "userEmail", Password: "password"}
-		c.Create(user)
-		defer c.Unscoped().Delete(user)
+		database.C.Create(user)
+		defer database.C.Unscoped().Delete(user)
 
 		office := &db.Office{AdminRefer: officeAdmin.ID}
-		c.Create(office)
-		defer c.Unscoped().Delete(office)
+		database.C.Create(office)
+		defer database.C.Unscoped().Delete(office)
 
 		game1 := &db.Game{Name: "game1", OfficeID: office.ID}
-		c.Create(game1)
-		defer c.Unscoped().Delete(game1)
+		database.C.Create(game1)
+		defer database.C.Unscoped().Delete(game1)
 
 		userErr, err := app.JoinOffice(user, office.Code)
 		if userErr != nil || err != nil {
@@ -98,7 +99,7 @@ func TestJoinOffice(t *testing.T) {
 		}
 
 		rankings := []db.Ranking{}
-		c.Model(user).Association("Rankings").Find(&rankings)
+		database.C.Model(user).Association("Rankings").Find(&rankings)
 		if len(rankings) != 1 {
 			t.Errorf("expected 1 rankings, got %d", len(rankings))
 		}
@@ -110,11 +111,11 @@ func TestJoinOffice(t *testing.T) {
 func TestCreateOffice(t *testing.T) {
 	setup(t)
 	t.Run("It should create an office", func(t *testing.T) {
-		app := app.NewApp(c)
+		app := app.NewApp(database)
 
 		user := &db.User{Username: "username", Email: "email", Password: "password"}
-		c.Create(user)
-		defer c.Unscoped().Delete(user)
+		database.C.Create(user)
+		defer database.C.Unscoped().Delete(user)
 
 		office, err := app.CreateOffice(user, "office")
 		if err != nil {
@@ -130,11 +131,11 @@ func TestCreateOffice(t *testing.T) {
 	})
 
 	t.Run("It should create a default game", func(t *testing.T) {
-		app := app.NewApp(c)
+		app := app.NewApp(database)
 
 		user := &db.User{Username: "username", Email: "email", Password: "password"}
-		c.Create(user)
-		defer c.Unscoped().Delete(user)
+		database.C.Create(user)
+		defer database.C.Unscoped().Delete(user)
 
 		office, err := app.CreateOffice(user, "office")
 		if err != nil {
@@ -145,12 +146,12 @@ func TestCreateOffice(t *testing.T) {
 		}
 
 		games := []db.Game{}
-		c.Model(office).Association("Games").Find(&games)
+		database.C.Model(office).Association("Games").Find(&games)
 		if len(games) != 1 {
 			t.Errorf("expected 1 game, got %d", len(games))
 		}
 
-		c.Model(games[0]).Association("Rankings").Find(&games[0].Rankings)
+		database.C.Model(games[0]).Association("Rankings").Find(&games[0].Rankings)
 		if len(games[0].Rankings) != 1 {
 			t.Errorf("expected 1 ranking, got %d", len(games[0].Rankings))
 		}
