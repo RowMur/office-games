@@ -37,7 +37,7 @@ type CreateUserErrors struct {
 	Error    error
 }
 
-func (d *Database) CreateUser(username, email, password string) *CreateUserErrors {
+func (d Database) CreateUser(username, email, password string) *CreateUserErrors {
 	user := &User{Username: username, Email: email, Password: password}
 	err := d.C.Create(user).Error
 	if err != nil {

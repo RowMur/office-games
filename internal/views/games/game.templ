@@ -3,6 +3,7 @@ package games
 import (
 	"fmt"
 	"github.com/RowMur/office-games/internal/db"
+	"github.com/RowMur/office-games/internal/elo"
 	"github.com/RowMur/office-games/internal/views/components"
 	"github.com/RowMur/office-games/internal/views/layout"
 	"strconv"
@@ -18,7 +19,7 @@ type UserWinLosses map[uint]WinLosses
 type GamePageProps struct {
 	Game              db.Game
 	Office            db.Office
-	UserWinLosses     UserWinLosses
+	Elos              elo.Elos
 	User              *db.User
 	PendingMatchCount int
 }
@@ -69,10 +70,7 @@ templ GamePage(props GamePageProps) {
 			</ul>
 			<section class="my-6">
 				<h4 class="text-lg font-semibold mb-2">Rankings</h4>
-				@OfficeRankings(OfficeRankingsProps{
-					Rankings:      props.Game.Rankings,
-					UserWinLosses: props.UserWinLosses,
-				})
+				@OfficeRankings(props.Elos)
 			</section>
 			<section class="my-6">
 				@components.SectionHeading("Recent Matches", &components.SecondaryLinkProps{
@@ -110,12 +108,7 @@ templ GamePageAction(url string) {
 	</a>
 }
 
-type OfficeRankingsProps struct {
-	Rankings      []db.Ranking
-	UserWinLosses UserWinLosses
-}
-
-templ OfficeRankings(props OfficeRankingsProps) {
+templ OfficeRankings(elos elo.Elos) {
 	<table id="office-ranking" class="w-full">
 		<thead class="border-b-[1px] border-accent">
 			<tr>
@@ -128,30 +121,20 @@ templ OfficeRankings(props OfficeRankingsProps) {
 			</tr>
 		</thead>
 		<tbody>
-			for i, ranking := range props.Rankings {
+			for i, elo := range elos {
 				<tr>
 					<td class="text-right opacity-70">#{ fmt.Sprintf("%d", i + 1) }</td>
-					<td class="pl-1">{ ranking.User.Username }</td>
+					<td class="pl-1">{ elo.User.Username }</td>
 					<td class="text-right">
-						{ strconv.Itoa(props.UserWinLosses[ranking.User.ID].Wins) }
+						{ strconv.Itoa(elo.WinCount) }
 					</td>
 					<td class="text-right">
-						{ strconv.Itoa(props.UserWinLosses[ranking.User.ID].Losses) }
+						{ strconv.Itoa(elo.LossCount) }
 					</td>
 					<td class="hidden sm:block text-right">
-						{{
-							wins := props.UserWinLosses[ranking.User.ID].Wins
-							losses := props.UserWinLosses[ranking.User.ID].Losses
-							total := wins + losses
-
-							percentage := 0.0
-							if total > 0 {
-								percentage = float64(wins) / float64(total) * 100
-							}
-						}}
-						{ fmt.Sprintf("%.2f", percentage) }
+						{ fmt.Sprintf("%.2f", elo.Percentage()) }
 					</td>
-					<td class="text-right">{ strconv.Itoa(ranking.Points) }</td>
+					<td class="text-right">{ strconv.Itoa(elo.Points) }</td>
 				</tr>
 			}
 		</tbody>

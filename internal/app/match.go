@@ -4,13 +4,12 @@ import (
 	"errors"
 
 	"github.com/RowMur/office-games/internal/db"
-	"github.com/RowMur/office-games/internal/elo"
 	"gorm.io/gorm"
 )
 
 func (a *App) GetMatchById(id string) (*db.Match, error) {
 	match := db.Match{}
-	err := a.db.Preload("Game.Office").
+	err := a.db.C.Preload("Game.Office").
 		Preload("Participants.User").
 		Preload("Creator").
 		Preload("Approvals").
@@ -23,7 +22,7 @@ func (a *App) GetMatchById(id string) (*db.Match, error) {
 }
 
 func (a *App) LogMatch(creator *db.User, game *db.Game, note string, winners, losers []string) (*db.Match, error) {
-	tx := a.db.Begin()
+	tx := a.db.C.Begin()
 
 	match := db.Match{
 		GameID:    game.ID,
@@ -68,7 +67,8 @@ func (a *App) LogMatch(creator *db.User, game *db.Game, note string, winners, lo
 		if len(winners) > len(losers) {
 			multiplier = float64(len(losers)) / float64(len(winners))
 		}
-		calcElo := elo.CalculatePointsGainLoss([]db.Ranking{ranking}, loserRankings, multiplier)
+		// calcElo := elo.CalculatePointsGainLoss([]db.Ranking{ranking}, loserRankings, multiplier)
+		calcElo := int(multiplier)
 		if len(winners) > len(losers) {
 			// When the multiplier is applied to a side, each player on that side gets slightly shortchanged due to the rounding
 			// E.g. 10 points net gain/loss split in a game with 3 winners and 1 loser
@@ -91,7 +91,8 @@ func (a *App) LogMatch(creator *db.User, game *db.Game, note string, winners, lo
 		if len(losers) > len(winners) {
 			multiplier = float64(len(winners)) / float64(len(losers))
 		}
-		calcElo := elo.CalculatePointsGainLoss(winnerRankings, []db.Ranking{ranking}, multiplier)
+		// calcElo := elo.CalculatePointsGainLoss(winnerRankings, []db.Ranking{ranking}, multiplier)
+		calcElo := int(multiplier)
 		participant.CalculatedElo = -calcElo
 		participants = append(participants, participant)
 	}
@@ -112,7 +113,7 @@ func (a *App) ApproveMatch(user *db.User, match *db.Match) error {
 	}
 
 	var count int64
-	err := a.db.Model(&db.MatchApproval{}).Where("match_id = ? AND user_id = ?", match.ID, user.ID).Count(&count).Error
+	err := a.db.C.Model(&db.MatchApproval{}).Where("match_id = ? AND user_id = ?", match.ID, user.ID).Count(&count).Error
 	if err != nil {
 		return err
 	}
@@ -120,7 +121,7 @@ func (a *App) ApproveMatch(user *db.User, match *db.Match) error {
 		return errors.New("already approved")
 	}
 
-	tx := a.db.Begin()
+	tx := a.db.C.Begin()
 
 	approval := db.MatchApproval{
 		MatchID: match.ID,

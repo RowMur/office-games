@@ -14,42 +14,35 @@ import (
 func (s *Server) gamesPageHandler(c echo.Context) error {
 	user := userFromContext(c)
 	gameId := c.Param("id")
+	gameIdInt, err := strconv.Atoi(gameId)
+	if err != nil {
+		return c.String(http.StatusBadRequest, "Invalid game ID")
+	}
+
+	gameIdUint := uint(gameIdInt)
 
 	game, err := s.app.GetGameById(gameId, false)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	playerWinLosses := games.UserWinLosses{}
-	for _, match := range game.Matches {
-		for _, participant := range match.Participants {
-			winCount := playerWinLosses[participant.UserID].Wins
-			lossCount := playerWinLosses[participant.UserID].Losses
-
-			if participant.Result == db.MatchResultWin {
-				winCount++
-			} else if participant.Result == db.MatchResultLoss {
-				lossCount++
-			}
-
-			playerWinLosses[participant.UserID] = games.WinLosses{
-				Wins:   winCount,
-				Losses: lossCount,
-			}
-		}
-	}
-
-	gameWithPendingMatches, err := s.app.GetGameById(gameId, true)
+	elos, err := s.es.GetElos(gameIdUint)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
+	var pendingMatchCount int64
+	err = s.db.C.
+		Model(&db.Match{}).
+		Where("game_id = ? AND state = ?", gameId, db.MatchStatePending).
+		Count(&pendingMatchCount).Error
+
 	return render(c, http.StatusOK, games.GamePage(games.GamePageProps{
 		Game:              *game,
 		Office:            game.Office,
-		UserWinLosses:     playerWinLosses,
+		Elos:              elos,
 		User:              user,
-		PendingMatchCount: len(gameWithPendingMatches.Matches),
+		PendingMatchCount: int(pendingMatchCount),
 	}))
 }
 

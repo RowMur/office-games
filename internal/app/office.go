@@ -10,7 +10,7 @@ import (
 
 func (a *App) GetOfficeByCode(code string) (*db.Office, error) {
 	office := &db.Office{}
-	err := a.db.Where("code = ?", code).
+	err := a.db.C.Where("code = ?", code).
 		Preload("Players", func(db *gorm.DB) *gorm.DB {
 
 			return db.Order("LOWER(username)")
@@ -30,7 +30,7 @@ func (a *App) GetOfficeByCode(code string) (*db.Office, error) {
 
 func (a *App) JoinOffice(user *db.User, code string) (error, error) {
 	office := &db.Office{}
-	err := a.db.Where("code = ?", code).Preload("Players").Preload("Games").First(office).Error
+	err := a.db.C.Where("code = ?", code).Preload("Players").Preload("Games").First(office).Error
 	if err != nil {
 		if db.IsRecordNotFoundError(err) {
 			return errors.New("Office not found"), nil
@@ -46,7 +46,7 @@ func (a *App) JoinOffice(user *db.User, code string) (error, error) {
 		}
 	}
 
-	tx := a.db.Begin()
+	tx := a.db.C.Begin()
 	err = tx.Model(office).Association("Players").Append(user)
 	if err != nil {
 		tx.Rollback()
@@ -72,7 +72,7 @@ func (a *App) JoinOffice(user *db.User, code string) (error, error) {
 }
 
 func (a *App) CreateOffice(admin *db.User, name string) (*db.Office, error) {
-	tx := a.db.Begin()
+	tx := a.db.C.Begin()
 
 	office := &db.Office{Name: name, AdminRefer: admin.ID}
 	err := tx.Create(office).Error
