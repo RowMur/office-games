@@ -43,6 +43,7 @@ func (s *Server) gamesPageHandler(c echo.Context) error {
 		Elos:              elos,
 		User:              user,
 		PendingMatchCount: int(pendingMatchCount),
+		Es:                s.es,
 	}))
 }
 
@@ -327,6 +328,7 @@ func (s *Server) matchesPageHandler(c echo.Context) error {
 				Office:   game.Office,
 				Game:     *game,
 				NextPage: nextPage,
+				Es:       s.es,
 			},
 		))
 	}

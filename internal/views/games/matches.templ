@@ -2,6 +2,7 @@ package games
 
 import (
 	"github.com/RowMur/office-games/internal/db"
+	"github.com/RowMur/office-games/internal/elo"
 	"github.com/RowMur/office-games/internal/views/components"
 	"github.com/RowMur/office-games/internal/views/layout"
 )
@@ -12,6 +13,7 @@ type MatchesPageProps struct {
 	Office   db.Office
 	Game     db.Game
 	NextPage string
+	Es       *elo.EloService
 }
 
 templ MatchesPage(props MatchesPageProps) {
@@ -29,7 +31,7 @@ templ MatchesPage(props MatchesPageProps) {
 			<section class="my-6">
 				@components.SectionHeading("Matches", nil)
 				<ul class="flex flex-col gap-2">
-					@Matches(MatchesProps{Matches: props.Matches, Game: props.Game, NextPage: props.NextPage})
+					@Matches(MatchesProps{Matches: props.Matches, Game: props.Game, NextPage: props.NextPage, Es: props.Es})
 				</ul>
 			</section>
 		</main>
@@ -40,6 +42,7 @@ type MatchesProps struct {
 	Matches  []db.Match
 	NextPage string
 	Game     db.Game
+	Es       *elo.EloService
 }
 
 templ Matches(props MatchesProps) {
@@ -56,7 +59,7 @@ templ Matches(props MatchesProps) {
 				hx-indicator="#matches-indicator"
 			}
 		>
-			@components.Match(match, false)
+			@components.Match(match, false, props.Es)
 		</div>
 		if shouldLoadNextPage {
 			<div id="matches-indicator" class="htmx-indicator">Loading...</div>

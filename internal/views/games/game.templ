@@ -22,6 +22,7 @@ type GamePageProps struct {
 	Elos              elo.Elos
 	User              *db.User
 	PendingMatchCount int
+	Es                *elo.EloService
 }
 
 templ GamePage(props GamePageProps) {
@@ -91,7 +92,7 @@ templ GamePage(props GamePageProps) {
 						}
 						}}
 						for _, match := range matchesToShow {
-							@components.Match(match, false)
+							@components.Match(match, false, props.Es)
 						}
 					</ul>
 				}

@@ -28,7 +28,7 @@ templ PendingMatchesPage(game db.Game, office db.Office, pendingMatches []db.Mat
 					<ul class="flex flex-col gap-2">
 						for _, match := range pendingMatches {
 							<a href={ templ.SafeURL(fmt.Sprintf("/offices/%s/games/%s/pending/%s", office.Code, strconv.Itoa(int(game.ID)), strconv.Itoa(int(match.ID)))) }>
-								@components.Match(match, true)
+								@components.Match(match, true, nil)
 							</a>
 						}
 					</ul>

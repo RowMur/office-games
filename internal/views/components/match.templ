@@ -1,16 +1,20 @@
 package components
 
-import "github.com/RowMur/office-games/internal/db"
+import (
+	"fmt"
+	"github.com/RowMur/office-games/internal/db"
+	"github.com/RowMur/office-games/internal/elo"
+)
 
-templ Match(match db.Match, showApprovalState bool) {
+templ Match(match db.Match, showApprovalState bool, es *elo.EloService) {
 	<li class="bg-light rounded p-4">
 		<div class="flex gap-3">
 			<div class="text-center">
 				<p class="font-semibold">W</p>
 			</div>
 			<div class="min-w-0 grow">
-				@MatchPlayerList(match.Winners(), true)
-				@MatchPlayerList(match.Losers(), false)
+				@MatchPlayerList(match.Winners(), true, es, match)
+				@MatchPlayerList(match.Losers(), false, es, match)
 			</div>
 			if showApprovalState {
 				<div>
@@ -35,7 +39,7 @@ templ Match(match db.Match, showApprovalState bool) {
 	</li>
 }
 
-templ MatchPlayerList(players []db.MatchParticipant, isWinners bool) {
+templ MatchPlayerList(players []db.MatchParticipant, isWinners bool, es *elo.EloService, match db.Match) {
 	{{
 		class := "text-ellipsis text-nowrap overflow-hidden"
 		if isWinners {
@@ -43,7 +47,7 @@ templ MatchPlayerList(players []db.MatchParticipant, isWinners bool) {
 		}
 	}}
 	<p class={ class }>
-		@ListOfUsers(players)
+		@ListOfUsers(players, es, match)
 	</p>
 }
 
@@ -57,11 +61,30 @@ templ MatchApprovalState(isApproved bool) {
 	</p>
 }
 
-templ ListOfUsers(users []db.MatchParticipant) {
+templ ListOfUsers(users []db.MatchParticipant, es *elo.EloService, match db.Match) {
 	for i, user := range users {
 		if i > 0 {
 			, 
 		}
+		{{
+			dir := "+"
+			var mp *elo.ProcessedMatchParticipant
+			if es != nil {
+				m := es.GetMatch(match.GameID, match.ID)
+				if m != nil {
+					if m.Participants != nil {
+						tmp := m.Participants[user.UserID]
+						mp = &tmp
+						if !mp.Win {
+							dir = "-"
+						}
+					}
+				}
+			}
+		}}
 		{ user.User.Username }
+		if mp != nil {
+			({ dir }{ fmt.Sprintf("%d", mp.PointsApplied) })
+		}
 	}
 }

@@ -10,6 +10,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"github.com/RowMur/office-games/internal/db"
+	"github.com/RowMur/office-games/internal/elo"
 	"github.com/RowMur/office-games/internal/views/components"
 	"github.com/RowMur/office-games/internal/views/layout"
 )
@@ -20,6 +21,7 @@ type MatchesPageProps struct {
 	Office   db.Office
 	Game     db.Game
 	NextPage string
+	Es       *elo.EloService
 }
 
 func MatchesPage(props MatchesPageProps) templ.Component {
@@ -86,7 +88,7 @@ func MatchesPage(props MatchesPageProps) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = Matches(MatchesProps{Matches: props.Matches, Game: props.Game, NextPage: props.NextPage}).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = Matches(MatchesProps{Matches: props.Matches, Game: props.Game, NextPage: props.NextPage, Es: props.Es}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -108,6 +110,7 @@ type MatchesProps struct {
 	Matches  []db.Match
 	NextPage string
 	Game     db.Game
+	Es       *elo.EloService
 }
 
 func Matches(props MatchesProps) templ.Component {
@@ -146,7 +149,7 @@ func Matches(props MatchesProps) templ.Component {
 				var templ_7745c5c3_Var4 string
 				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(props.Game.Link() + "/matches?page=" + props.NextPage)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/matches.templ`, Line: 52, Col: 66}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/matches.templ`, Line: 55, Col: 66}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {
@@ -161,7 +164,7 @@ func Matches(props MatchesProps) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = components.Match(match, false).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = components.Match(match, false, props.Es).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
