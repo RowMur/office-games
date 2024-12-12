@@ -334,5 +334,5 @@ func (s *Server) matchesPageHandler(c echo.Context) error {
 	}
 
 	// partial page
-	return render(c, http.StatusOK, games.Matches(games.MatchesProps{Matches: matchesToReturn, Game: *game, NextPage: nextPage}))
+	return render(c, http.StatusOK, games.Matches(games.MatchesProps{Matches: matchesToReturn, Game: *game, NextPage: nextPage, Es: s.es}))
 }
