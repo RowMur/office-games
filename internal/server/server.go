@@ -17,12 +17,13 @@ type Server struct {
 
 func NewServer() *Server {
 	database := db.Init()
-	app := app.NewApp(database)
+	es := elo.NewEloService(database)
+	app := app.NewApp(database, es)
 	return &Server{
 		db:  &database,
 		us:  user.NewUserService(database),
 		app: app,
-		es:  elo.NewEloService(database),
+		es:  es,
 	}
 }
 

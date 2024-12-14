@@ -43,8 +43,14 @@ func (e Elo) Percentage() float64 {
 type Elos []Elo
 
 func (es *EloService) GetElos(gameId uint) (Elos, error) {
-	matches := []db.Match{}
+	if es.cache != nil {
+		e := (*es.cache)[gameId].elos
+		if e != nil {
+			return e, nil
+		}
+	}
 
+	matches := []db.Match{}
 	err := es.db.C.Where("game_id = ?", gameId).
 		Where("state NOT IN (?)", db.MatchStatePending).
 		Order("created_at").
@@ -123,8 +129,6 @@ func (es *EloService) GetElos(gameId uint) (Elos, error) {
 		newCacheEntry.matches[match.ID] = cachedMatch
 	}
 
-	(*es.cache)[gameId] = newCacheEntry
-
 	elosSlice := Elos{}
 	for _, elo := range elos {
 		elosSlice = append(elosSlice, elo)
@@ -148,7 +152,13 @@ func (es *EloService) GetElos(gameId uint) (Elos, error) {
 		return iElo.User.Username > jElo.User.Username
 	})
 
+	newCacheEntry.elos = elosSlice
+	(*es.cache)[gameId] = newCacheEntry
 	return elosSlice, nil
+}
+
+func (es EloService) InvalidateEloCache(gameId uint) {
+	(*es.cache)[gameId] = cacheEntry{}
 }
 
 func (es EloService) GetMatch(gameId uint, matchId uint) *ProcessedMatch {

@@ -10,6 +10,7 @@ func NewCache() *cache {
 
 type cacheEntry struct {
 	matches map[uint]ProcessedMatch
+	elos    Elos
 }
 
 type ProcessedMatch struct {
