@@ -131,7 +131,21 @@ func (es *EloService) GetElos(gameId uint) (Elos, error) {
 	}
 
 	sort.Slice(elosSlice, func(i, j int) bool {
-		return elosSlice[i].Points > elosSlice[j].Points
+		iElo := elosSlice[i]
+		jElo := elosSlice[j]
+		if iElo.Points != jElo.Points {
+			return iElo.Points > jElo.Points
+		}
+
+		if iElo.WinCount != jElo.WinCount {
+			return iElo.WinCount > jElo.WinCount
+		}
+
+		if iElo.LossCount != jElo.LossCount {
+			return iElo.LossCount < jElo.LossCount
+		}
+
+		return iElo.User.Username > jElo.User.Username
 	})
 
 	return elosSlice, nil
