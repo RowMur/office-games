@@ -1,13 +1,18 @@
 package app
 
 import (
+	"fmt"
+	"time"
+
 	"github.com/RowMur/office-games/internal/db"
 	"gorm.io/gorm"
 )
 
 func (a *App) GetGameById(id string, pendingMatches bool) (*db.Game, error) {
-	game := db.Game{}
+	startTime := time.Now()
+	defer fmt.Printf("GetGameById: %s\n", time.Now().Sub(startTime))
 
+	game := db.Game{}
 	query := a.db.C.Where("id = ?", id).
 		Preload("Office.Players", func(db *gorm.DB) *gorm.DB {
 			return db.Order("LOWER(username)")

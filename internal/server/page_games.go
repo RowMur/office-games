@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/RowMur/office-games/internal/db"
 	"github.com/RowMur/office-games/internal/views/games"
@@ -12,6 +13,9 @@ import (
 )
 
 func (s *Server) gamesPageHandler(c echo.Context) error {
+	startTime := time.Now()
+	defer fmt.Printf("Req: %s | Game Page Handler: %s\n", c.Request().URL.Path, time.Now().Sub(startTime))
+
 	user := userFromContext(c)
 	gameId := c.Param("id")
 	gameIdInt, err := strconv.Atoi(gameId)

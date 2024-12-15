@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	"github.com/RowMur/office-games/internal/db"
 	"github.com/RowMur/office-games/internal/email"
@@ -25,6 +26,9 @@ func userFromContext(c echo.Context) *db.User {
 
 func (s *Server) authMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		startTime := time.Now()
+		defer fmt.Printf("Req: %s | Auth middleware: %s\n", c.Request().URL.Path, time.Now().Sub(startTime))
+
 		authCookie, err := c.Request().Cookie("auth")
 		if err != nil && err != http.ErrNoCookie {
 			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
