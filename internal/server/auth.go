@@ -86,16 +86,8 @@ func (s *Server) enforceMember(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		officeCode := c.Param("code")
-		office, err := s.app.GetOfficeByCode(officeCode)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
-		}
-		if office == nil {
-			return echo.NewHTTPError(http.StatusNotFound, "Office not found")
-		}
-
-		for _, u := range office.Players {
-			if u.ID == user.ID {
+		for _, o := range user.Offices {
+			if o.Code == officeCode {
 				return next(c)
 			}
 		}
@@ -112,9 +104,11 @@ func (s *Server) enforceAdmin(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		officeCode := c.Param("code")
-		office, err := s.app.GetOfficeByCode(officeCode)
-		if err != nil {
-			return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+		var office *db.Office
+		for _, o := range user.Offices {
+			if o.Code == officeCode {
+				office = &o
+			}
 		}
 		if office == nil {
 			return echo.NewHTTPError(http.StatusNotFound, "Office not found")
