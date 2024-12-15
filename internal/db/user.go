@@ -82,7 +82,6 @@ func (d *Database) GetUserById(id uint) (*User, error) {
 		return getUserByIdCache[id], nil
 	}
 
-	fmt.Printf("Having to fetch user from db\n")
 	var user User
 	err := d.C.Preload("Offices").First(&user, id).Error
 	if err != nil {
