@@ -14,7 +14,9 @@ import (
 
 func (s *Server) gamesPageHandler(c echo.Context) error {
 	startTime := time.Now()
-	defer fmt.Printf("Req: %s | Game Page Handler: %s\n", c.Request().URL.Path, time.Now().Sub(startTime))
+	defer func() {
+		fmt.Printf("Req: %s | Game Page Handler: %s\n", c.Request().URL.Path, time.Now().Sub(startTime))
+	}()
 
 	user := userFromContext(c)
 	gameId := c.Param("id")

@@ -10,7 +10,9 @@ import (
 
 func (a *App) GetGameById(id string, pendingMatches bool) (*db.Game, error) {
 	startTime := time.Now()
-	defer fmt.Printf("GetGameById: %s\n", time.Now().Sub(startTime))
+	defer func() {
+		fmt.Printf("GetGameById: %s\n", time.Now().Sub(startTime))
+	}()
 
 	game := db.Game{}
 	query := a.db.C.Where("id = ?", id).

@@ -27,7 +27,9 @@ func userFromContext(c echo.Context) *db.User {
 func (s *Server) authMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		startTime := time.Now()
-		defer fmt.Printf("Req: %s | Auth middleware: %s\n", c.Request().URL.Path, time.Now().Sub(startTime))
+		defer func() {
+			fmt.Printf("Req: %s | Auth middleware: %s\n", c.Request().URL.Path, time.Now().Sub(startTime))
+		}()
 
 		authCookie, err := c.Request().Cookie("auth")
 		if err != nil && err != http.ErrNoCookie {

@@ -46,7 +46,9 @@ type Elos []Elo
 
 func (es *EloService) GetElos(gameId uint) (Elos, error) {
 	startTime := time.Now()
-	defer fmt.Printf("GetElos: %s\n", time.Now().Sub(startTime))
+	defer func() {
+		fmt.Printf("GetElos: %s\n", time.Now().Sub(startTime))
+	}()
 
 	if es.cache != nil {
 		e := (*es.cache)[gameId].elos
