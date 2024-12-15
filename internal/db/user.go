@@ -75,7 +75,14 @@ func (d *Database) GetUserByUsername(username string) (*User, error) {
 	return &user, nil
 }
 
+var getUserByIdCache = map[uint]*User{}
+
 func (d *Database) GetUserById(id uint) (*User, error) {
+	if getUserByIdCache[id] != nil {
+		return getUserByIdCache[id], nil
+	}
+
+	fmt.Printf("Having to fetch user from db\n")
 	var user User
 	err := d.C.Preload("Offices").First(&user, id).Error
 	if err != nil {
@@ -85,7 +92,12 @@ func (d *Database) GetUserById(id uint) (*User, error) {
 		return nil, err
 	}
 
+	getUserByIdCache[id] = &user
 	return &user, nil
+}
+
+func InvalidateGetUserByIdCache(id uint) {
+	getUserByIdCache[id] = nil
 }
 
 type UpdateErrors map[string]string
@@ -108,6 +120,8 @@ func (d *Database) UpdateUser(id uint, updates map[string]interface{}) (*User, U
 			}
 		}
 	}
+
+	InvalidateGetUserByIdCache(user.ID)
 	return user, nil, nil
 }
 

@@ -68,6 +68,7 @@ func (a *App) JoinOffice(user *db.User, code string) (error, error) {
 	}
 
 	tx.Commit()
+	db.InvalidateGetUserByIdCache(user.ID)
 	return nil, nil
 }
 
@@ -89,5 +90,6 @@ func (a *App) CreateOffice(admin *db.User, name string) (*db.Office, error) {
 	}
 
 	tx.Commit()
+	db.InvalidateGetUserByIdCache(admin.ID)
 	return office, nil
 }
