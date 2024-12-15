@@ -16,16 +16,18 @@ type EloService struct {
 func NewEloService(db db.Database) *EloService {
 	return &EloService{
 		db:    db,
-		cache: NewCache(),
+		cache: newCache(),
 	}
 }
 
 type Elo struct {
 	User      db.User
 	Points    int
-	Rank      int
 	WinCount  int
 	LossCount int
+
+	RecordPoints     int
+	RecordPointsDate time.Time
 }
 
 func (e Elo) MatchesPlayed() int {
@@ -44,6 +46,17 @@ func (e Elo) Percentage() float64 {
 
 type Elos []Elo
 
+func (elos Elos) RecordElo() *Elo {
+	recordElo := &Elo{}
+	for _, elo := range elos {
+		if elo.RecordPoints > recordElo.RecordPoints {
+			recordElo = &elo
+		}
+	}
+
+	return recordElo
+}
+
 func (es *EloService) GetElos(gameId uint) (Elos, error) {
 	startTime := time.Now()
 	defer func() {
@@ -51,9 +64,9 @@ func (es *EloService) GetElos(gameId uint) (Elos, error) {
 	}()
 
 	if es.cache != nil {
-		e := (*es.cache)[gameId].elos
-		if e != nil {
-			return e, nil
+		entry := es.cache.getEntry(gameId)
+		if entry != nil {
+			return entry.elos, nil
 		}
 	}
 
@@ -68,14 +81,12 @@ func (es *EloService) GetElos(gameId uint) (Elos, error) {
 		return nil, err
 	}
 
-	newCacheEntry := cacheEntry{
-		matches: map[uint]ProcessedMatch{},
-	}
+	ce := newCacheEntry()
 
 	elos := map[uint]Elo{}
 	for _, match := range matches {
 		cachedMatch := ProcessedMatch{
-			Participants: map[uint]ProcessedMatchParticipant{},
+			Participants: map[uint]*ProcessedMatchParticipant{},
 		}
 
 		winners := []Elo{}
@@ -104,12 +115,16 @@ func (es *EloService) GetElos(gameId uint) (Elos, error) {
 				pointsToApply = pointsToApply * 2
 			}
 
-			cachedMatch.Participants[winner.User.ID] = ProcessedMatchParticipant{
+			cachedMatch.Participants[winner.User.ID] = &ProcessedMatchParticipant{
 				UserID:        winner.User.ID,
 				Win:           true,
 				PointsApplied: pointsToApply,
 			}
 			winner.Points += pointsToApply
+			if winner.Points > winner.RecordPoints {
+				winner.RecordPoints = winner.Points
+				winner.RecordPointsDate = match.CreatedAt
+			}
 			elos[winner.User.ID] = winner
 		}
 		for _, loser := range losers {
@@ -124,16 +139,20 @@ func (es *EloService) GetElos(gameId uint) (Elos, error) {
 				pointsToApply = loser.Points - 200
 			}
 
-			cachedMatch.Participants[loser.User.ID] = ProcessedMatchParticipant{
+			cachedMatch.Participants[loser.User.ID] = &ProcessedMatchParticipant{
 				UserID:        loser.User.ID,
 				Win:           false,
 				PointsApplied: pointsToApply,
 			}
 			loser.Points -= pointsToApply
+			if loser.Points > loser.RecordPoints {
+				loser.RecordPoints = loser.Points
+				loser.RecordPointsDate = match.CreatedAt
+			}
 			elos[loser.User.ID] = loser
 		}
 
-		newCacheEntry.matches[match.ID] = cachedMatch
+		ce.matches[match.ID] = &cachedMatch
 	}
 
 	elosSlice := Elos{}
@@ -159,13 +178,13 @@ func (es *EloService) GetElos(gameId uint) (Elos, error) {
 		return iElo.User.Username > jElo.User.Username
 	})
 
-	newCacheEntry.elos = elosSlice
-	(*es.cache)[gameId] = newCacheEntry
+	ce.elos = elosSlice
+	es.cache.setEntry(gameId, &ce)
 	return elosSlice, nil
 }
 
 func (es EloService) InvalidateEloCache(gameId uint) {
-	(*es.cache)[gameId] = cacheEntry{}
+	(*es.cache)[gameId] = nil
 }
 
 func (es EloService) GetMatch(gameId uint, matchId uint) *ProcessedMatch {
@@ -174,6 +193,5 @@ func (es EloService) GetMatch(gameId uint, matchId uint) *ProcessedMatch {
 		return nil
 	}
 
-	match := matchesCache[matchId]
-	return &match
+	return matchesCache[matchId]
 }

@@ -269,8 +269,7 @@ func ListOfUsers(users []db.MatchParticipant, es *elo.EloService, match db.Match
 				m := es.GetMatch(match.GameID, match.ID)
 				if m != nil {
 					if m.Participants != nil {
-						tmp := m.Participants[user.UserID]
-						mp = &tmp
+						mp = m.Participants[user.UserID]
 						if !mp.Win {
 							dir = "-"
 						}
@@ -280,7 +279,7 @@ func ListOfUsers(users []db.MatchParticipant, es *elo.EloService, match db.Match
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(user.User.Username)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/match.templ`, Line: 85, Col: 22}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/match.templ`, Line: 84, Col: 22}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -298,7 +297,7 @@ func ListOfUsers(users []db.MatchParticipant, es *elo.EloService, match db.Match
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(dir)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/match.templ`, Line: 87, Col: 9}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/match.templ`, Line: 86, Col: 9}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
@@ -307,7 +306,7 @@ func ListOfUsers(users []db.MatchParticipant, es *elo.EloService, match db.Match
 				var templ_7745c5c3_Var12 string
 				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", mp.PointsApplied))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/match.templ`, Line: 87, Col: 48}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/match.templ`, Line: 86, Col: 48}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {

@@ -73,8 +73,7 @@ templ ListOfUsers(users []db.MatchParticipant, es *elo.EloService, match db.Matc
 				m := es.GetMatch(match.GameID, match.ID)
 				if m != nil {
 					if m.Participants != nil {
-						tmp := m.Participants[user.UserID]
-						mp = &tmp
+						mp = m.Participants[user.UserID]
 						if !mp.Win {
 							dir = "-"
 						}
