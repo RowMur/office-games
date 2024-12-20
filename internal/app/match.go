@@ -21,13 +21,14 @@ func (a *App) GetMatchById(id string) (*db.Match, error) {
 	return &match, nil
 }
 
-func (a *App) LogMatch(creator *db.User, game *db.Game, note string, winners, losers []string) (*db.Match, error) {
+func (a *App) LogMatch(creator *db.User, game *db.Game, note string, winners, losers []string, isHandicap bool) (*db.Match, error) {
 	tx := a.db.C.Begin()
 
 	match := db.Match{
-		GameID:    game.ID,
-		CreatorID: creator.ID,
-		Note:      note,
+		GameID:     game.ID,
+		CreatorID:  creator.ID,
+		Note:       note,
+		IsHandicap: isHandicap,
 	}
 	if err := tx.Create(&match).Error; err != nil {
 		tx.Rollback()

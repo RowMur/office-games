@@ -82,14 +82,24 @@ func Match(match db.Match, showApprovalState bool, es *elo.EloService) templ.Com
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</span> <span>Created by: ")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("</span> ")
+		if templ_7745c5c3_Err != nil {
+			return templ_7745c5c3_Err
+		}
+		if match.IsHandicap {
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<span>Handicap Match</span> ")
+			if templ_7745c5c3_Err != nil {
+				return templ_7745c5c3_Err
+			}
+		}
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<span>Created by: ")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
 		var templ_7745c5c3_Var3 string
 		templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(match.Creator.Username)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/match.templ`, Line: 31, Col: 40}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/match.templ`, Line: 34, Col: 40}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
 		if templ_7745c5c3_Err != nil {
@@ -107,7 +117,7 @@ func Match(match db.Match, showApprovalState bool, es *elo.EloService) templ.Com
 			var templ_7745c5c3_Var4 string
 			templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(match.Note)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/match.templ`, Line: 35, Col: 23}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/match.templ`, Line: 38, Col: 23}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 			if templ_7745c5c3_Err != nil {
@@ -279,7 +289,7 @@ func ListOfUsers(users []db.MatchParticipant, es *elo.EloService, match db.Match
 			var templ_7745c5c3_Var10 string
 			templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(user.User.Username)
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/match.templ`, Line: 84, Col: 22}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/match.templ`, Line: 87, Col: 22}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 			if templ_7745c5c3_Err != nil {
@@ -297,7 +307,7 @@ func ListOfUsers(users []db.MatchParticipant, es *elo.EloService, match db.Match
 				var templ_7745c5c3_Var11 string
 				templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(dir)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/match.templ`, Line: 86, Col: 9}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/match.templ`, Line: 89, Col: 9}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 				if templ_7745c5c3_Err != nil {
@@ -306,7 +316,7 @@ func ListOfUsers(users []db.MatchParticipant, es *elo.EloService, match db.Match
 				var templ_7745c5c3_Var12 string
 				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(fmt.Sprintf("%d", mp.PointsApplied))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/match.templ`, Line: 86, Col: 48}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/components/match.templ`, Line: 89, Col: 48}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {

@@ -27,6 +27,9 @@ templ Match(match db.Match, showApprovalState bool, es *elo.EloService) {
 			<span>
 				{ match.CreatedAt.Format("02/01/06") }
 			</span>
+			if match.IsHandicap {
+				<span>Handicap Match</span>
+			}
 			<span>
 				Created by: { match.Creator.Username }
 			</span>

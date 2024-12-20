@@ -79,6 +79,7 @@ func (s *Server) gamesPlayFormHandler(c echo.Context) error {
 	winners := c.Request().Form["Winners"]
 	losers := c.Request().Form["Losers"]
 	note := c.FormValue("note")
+	isHandicap := c.FormValue("isHandicap") == "on"
 
 	err = games.ValidatePlayMatchForm(game, games.PlayMatchFormData{
 		Note:    note,
@@ -89,7 +90,7 @@ func (s *Server) gamesPlayFormHandler(c echo.Context) error {
 		return render(c, http.StatusOK, games.PlayMatchFormErrors(err))
 	}
 
-	match, err := s.app.LogMatch(user, game, note, winners, losers)
+	match, err := s.app.LogMatch(user, game, note, winners, losers, isHandicap)
 	if err != nil {
 		return render(c, http.StatusOK, games.PlayMatchFormErrors(err))
 	}

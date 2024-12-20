@@ -22,6 +22,11 @@ templ PendingMatchPage(game db.Game, office db.Office, match db.Match, user *db.
 				<span>
 					Created by: { match.Creator.Username }
 				</span>
+				if match.IsHandicap {
+					<span>
+						Handicap Match
+					</span>
+				}
 				if match.Note != "" {
 					<span>
 						Note: { match.Note }

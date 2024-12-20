@@ -66,6 +66,17 @@ templ PlayMatchForm(err error, players []db.User, endpoint string) {
 			<label for="note" class="block font-semibold">Note</label>
 			<input type="text" class="text-black w-full" name="note" id="note" value="" placeholder="Tournament match"/>
 		</div>
+		<div class="flex gap-2 my-3">
+			<label class="inline font-semibold">Is handicap?</label>
+			{{
+			name := "isHandicap"
+			}}
+			<input
+				id={ name }
+				name={ name }
+				type="checkbox"
+			/>
+		</div>
 		<div class="flex flex-col gap-2 mt-3">
 			@PlayerSelect(players, "Winners")
 		</div>

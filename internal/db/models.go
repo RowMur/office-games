@@ -221,6 +221,7 @@ type Match struct {
 	State        string `gorm:"default:'pending'"`
 	Approvals    []MatchApproval
 	Note         string
+	IsHandicap   bool
 }
 
 func (m *Match) BeforeDelete(tx *gorm.DB) (err error) {

@@ -107,6 +107,10 @@ func (es *EloService) GetElos(gameId uint) (Elos, error) {
 		}
 
 		pointsGainLoss := CalculatePointsGainLoss(winners, losers, 1.0)
+		if match.IsHandicap {
+			pointsGainLoss = CalculateHandicapPointsGain()
+		}
+
 		for _, winner := range winners {
 			winner.WinCount++
 			pointsToApply := pointsGainLoss

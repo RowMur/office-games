@@ -4,6 +4,10 @@ import (
 	"math"
 )
 
+const (
+	handicapMultiplier = 0.25
+)
+
 func CalculatePointsGainLoss(winners, losers []Elo, multiplier float64) int {
 	summedWinnerElo := float64(0)
 	for _, winner := range winners {
@@ -21,6 +25,11 @@ func CalculatePointsGainLoss(winners, losers []Elo, multiplier float64) int {
 	pointsGainLoss := calculatePointsGainLoss(expectedScore, 1, multiplier)
 
 	return pointsGainLoss
+}
+
+func CalculateHandicapPointsGain() int {
+	basePointsGain := calculatePointsGainLoss(0.5, 1, handicapMultiplier)
+	return basePointsGain
 }
 
 func calculateExpectedScore(elo1, elo2 float64) float64 {
