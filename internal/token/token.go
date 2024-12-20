@@ -54,6 +54,10 @@ func ParseToken(tokenString string) (*Token, error) {
 		return []byte(secret), nil
 	})
 	if err != nil {
+		if errors.Is(err, jwt.ErrTokenExpired) {
+			return &Token{HasExpired: true, String: tokenString}, nil
+		}
+
 		return nil, errors.New("invalid token, could not parse")
 	}
 
@@ -63,14 +67,6 @@ func ParseToken(tokenString string) (*Token, error) {
 	}
 	if tokenIssuer != issuer {
 		return nil, errors.New("invalid token, invalid issuer")
-	}
-
-	tokenExp, err := token.Claims.GetExpirationTime()
-	if err != nil {
-		return nil, errors.New("invalid token, could not parse")
-	}
-	if tokenExp.Time.Unix() < time.Now().UTC().Unix() {
-		return &Token{HasExpired: true, String: tokenString}, nil
 	}
 
 	userId, err := token.Claims.GetSubject()
