@@ -347,3 +347,20 @@ func (s *Server) matchesPageHandler(c echo.Context) error {
 	// partial page
 	return render(c, http.StatusOK, games.Matches(games.MatchesProps{Matches: matchesToReturn, Game: *game, NextPage: nextPage, ProcessedGame: processedGame}))
 }
+
+func (s *Server) gameStatsPageHandler(c echo.Context) error {
+	user := userFromContext(c)
+	gameId := c.Param("id")
+
+	game, err := s.app.GetGameById(gameId, false)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	processedGame, err := s.gp.Process(game.ID)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	return render(c, http.StatusOK, games.StatsPage(*game, game.Office, user, *processedGame))
+}
