@@ -73,7 +73,10 @@ templ GamePage(props GamePageProps) {
 				@OfficeRankings(props.ProcessedGame.RankedPlayers())
 			</section>
 			<section class="my-6">
-				@components.SectionHeading("Stats", nil)
+				@components.SectionHeading("Stats", &components.SecondaryLinkProps{
+					URL:  props.Game.Link() + "/stats",
+					Name: "See more",
+				})
 				<div class="mt-2 flex flex-wrap gap-2">
 					@StatCard() {
 						<div class="flex flex-col gap-2">
