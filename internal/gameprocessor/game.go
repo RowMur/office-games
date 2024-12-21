@@ -87,8 +87,45 @@ func (g *Game) MostCommonOpposingPairing() (player1, player2 *Player) {
 	return nil, nil
 }
 
+func (g *Game) MostCommonPairingForPlayer(p Player) *Player {
+	pairings := g.playerPairings.orderedPlayerCombinationsForUser(p.User.ID)
+	if len(pairings) > 0 {
+		pairing := pairings[0]
+		if pairing.player1.User.ID == p.User.ID {
+			return &pairing.player2
+		}
+
+		return &pairings[0].player1
+	}
+
+	return nil
+}
+
+func (g *Game) MostCommonOpponentForPlayer(p Player) *Player {
+	pairings := g.playerOpposingPairings.orderedPlayerCombinationsForUser(p.User.ID)
+	if len(pairings) > 0 {
+		pairing := pairings[0]
+		if pairing.player1.User.ID == p.User.ID {
+			return &pairing.player2
+		}
+
+		return &pairings[0].player1
+	}
+
+	return nil
+}
+
 func (g *Game) GetMatch(matchId uint) *processedMatch {
 	return g.matches[matchId]
+}
+
+func (g *Game) GetPlayer(userId uint) *Player {
+	player, ok := g.players[userId]
+	if !ok {
+		return nil
+	}
+
+	return &player
 }
 
 func (g *Game) RankedPlayers() []Player {

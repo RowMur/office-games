@@ -1,6 +1,7 @@
 package games
 
 import (
+	"fmt"
 	"github.com/RowMur/office-games/internal/db"
 	"github.com/RowMur/office-games/internal/gameprocessor"
 	"github.com/RowMur/office-games/internal/views/components"
@@ -26,6 +27,17 @@ templ StatsPage(game db.Game, office db.Office, user *db.User, processedGame gam
 					@gameStats(processedGame)
 				</ul>
 			</section>
+			{{
+	thisPlayer := processedGame.GetPlayer(user.ID)
+			}}
+			if thisPlayer != nil {
+				<section class="my-6">
+					@components.SectionHeading("Your Stats", nil)
+					<ul class="flex flex-col gap-2">
+						@playerStats(processedGame, *thisPlayer)
+					</ul>
+				</section>
+			}
 		</main>
 	}
 }
@@ -33,8 +45,8 @@ templ StatsPage(game db.Game, office db.Office, user *db.User, processedGame gam
 templ gameStats(game gameprocessor.Game) {
 	@statRow("Games played", strconv.Itoa(game.MatchesPlayed()))
 	@statRow("Most games played by player", strconv.Itoa(game.MostPlayedPlayer().MatchesPlayed())+" ("+game.MostPlayedPlayer().User.Username+")")
-	@statRow("Highest ranking (current)", game.HighestRankedPlayer().User.Username+" ("+strconv.Itoa(game.HighestRankedPlayer().Points)+")")
-	@statRow("Highest ranking (all time)", game.RecordElo().User.Username+" ("+strconv.Itoa(game.RecordElo().RecordPoints)+")")
+	@statRow("Highest points (current)", game.HighestRankedPlayer().User.Username+" ("+strconv.Itoa(game.HighestRankedPlayer().Points)+")")
+	@statRow("Highest points (all time)", game.RecordElo().User.Username+" ("+strconv.Itoa(game.RecordElo().RecordPoints)+")")
 	{{
 	tm8p1, tm8p2 := game.MostCommonPairing()
 	}}
@@ -45,9 +57,20 @@ templ gameStats(game gameprocessor.Game) {
 	@statRow("Most common opponents", opp1.User.Username+" & "+opp2.User.Username)
 }
 
+templ playerStats(game gameprocessor.Game, player gameprocessor.Player) {
+	@statRow("Games played", strconv.Itoa(player.MatchesPlayed()))
+	@statRow("Wins", strconv.Itoa(player.WinCount))
+	@statRow("Losses", strconv.Itoa(player.LossCount))
+	@statRow("Win rate", fmt.Sprintf("%.2f", player.Percentage()))
+	@statRow("Current points", strconv.Itoa(player.Points))
+	@statRow("Highest points", fmt.Sprintf("%d (%s)", player.RecordPoints, player.RecordPointsDate.Format("02/01/06")))
+	@statRow("Most common teamate", game.MostCommonPairingForPlayer(player).User.Username)
+	@statRow("Most common opponent", game.MostCommonOpponentForPlayer(player).User.Username)
+}
+
 templ statRow(label string, value string) {
-	<li class="flex justify-between">
+	<li class="flex justify-between gap-2">
 		<span>{ label }</span>
-		<span>{ value }</span>
+		<span class="text-right">{ value }</span>
 	</li>
 }
