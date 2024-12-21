@@ -69,47 +69,37 @@ func (g *Game) PlayerCountCounts() map[int]int {
 	return counts
 }
 
-func (g *Game) MostCommonPairing() (player1, player2 *Player) {
+func (g *Game) MostCommonPairing() *playerCombination {
 	pairings := g.playerPairings.orderedPlayerCombinations()
 	if len(pairings) > 0 {
-		return &pairings[0].player1, &pairings[0].player2
-	}
-
-	return nil, nil
-}
-
-func (g *Game) MostCommonOpposingPairing() (player1, player2 *Player) {
-	pairings := g.playerOpposingPairings.orderedPlayerCombinations()
-	if len(pairings) > 0 {
-		return &pairings[0].player1, &pairings[0].player2
-	}
-
-	return nil, nil
-}
-
-func (g *Game) MostCommonPairingForPlayer(p Player) *Player {
-	pairings := g.playerPairings.orderedPlayerCombinationsForUser(p.User.ID)
-	if len(pairings) > 0 {
-		pairing := pairings[0]
-		if pairing.player1.User.ID == p.User.ID {
-			return &pairing.player2
-		}
-
-		return &pairings[0].player1
+		return &pairings[0]
 	}
 
 	return nil
 }
 
-func (g *Game) MostCommonOpponentForPlayer(p Player) *Player {
+func (g *Game) MostCommonOpposingPairing() *playerCombination {
+	pairings := g.playerOpposingPairings.orderedPlayerCombinations()
+	if len(pairings) > 0 {
+		return &pairings[0]
+	}
+
+	return nil
+}
+
+func (g *Game) MostCommonPairingForPlayer(p Player) *playerCombination {
+	pairings := g.playerPairings.orderedPlayerCombinationsForUser(p.User.ID)
+	if len(pairings) > 0 {
+		return &pairings[0]
+	}
+
+	return nil
+}
+
+func (g *Game) MostCommonOpponentForPlayer(p Player) *playerCombination {
 	pairings := g.playerOpposingPairings.orderedPlayerCombinationsForUser(p.User.ID)
 	if len(pairings) > 0 {
-		pairing := pairings[0]
-		if pairing.player1.User.ID == p.User.ID {
-			return &pairing.player2
-		}
-
-		return &pairings[0].player1
+		return &pairings[0]
 	}
 
 	return nil

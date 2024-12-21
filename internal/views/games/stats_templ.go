@@ -164,15 +164,11 @@ func gameStats(game gameprocessor.Game) templ.Component {
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-
-		tm8p1, tm8p2 := game.MostCommonPairing()
-		templ_7745c5c3_Err = statRow("Most common teammates", tm8p1.User.Username+" & "+tm8p2.User.Username).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = statRow("Most common teammates", game.MostCommonPairing().Print()).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-
-		opp1, opp2 := game.MostCommonOpposingPairing()
-		templ_7745c5c3_Err = statRow("Most common opponents", opp1.User.Username+" & "+opp2.User.Username).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = statRow("Most common opponents", game.MostCommonOpposingPairing().Print()).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -225,11 +221,11 @@ func playerStats(game gameprocessor.Game, player gameprocessor.Player) templ.Com
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = statRow("Most common teamate", game.MostCommonPairingForPlayer(player).User.Username).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = statRow("Most common teamate", game.MostCommonPairingForPlayer(player).PrintOtherPlayer(player)).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = statRow("Most common opponent", game.MostCommonOpponentForPlayer(player).User.Username).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = statRow("Most common opponent", game.MostCommonOpponentForPlayer(player).PrintOtherPlayer(player)).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -265,7 +261,7 @@ func statRow(label string, value string) templ.Component {
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(label)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/stats.templ`, Line: 73, Col: 15}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/stats.templ`, Line: 67, Col: 15}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -278,7 +274,7 @@ func statRow(label string, value string) templ.Component {
 		var templ_7745c5c3_Var7 string
 		templ_7745c5c3_Var7, templ_7745c5c3_Err = templ.JoinStringErrs(value)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/stats.templ`, Line: 74, Col: 34}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/stats.templ`, Line: 68, Col: 34}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var7))
 		if templ_7745c5c3_Err != nil {

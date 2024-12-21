@@ -1,18 +1,32 @@
 package gameprocessor
 
 import (
+	"fmt"
 	"sort"
 	"strconv"
 )
 
 type playerCombination struct {
-	player1 Player
-	player2 Player
+	Player1 Player
+	Player2 Player
 	matches []uint
 }
 
-func (pc *playerCombination) matchCount() int {
+func (pc *playerCombination) MatchCount() int {
 	return len(pc.matches)
+}
+
+func (pc *playerCombination) Print() string {
+	return fmt.Sprintf("%s & %s (%d)", pc.Player1.User.Username, pc.Player2.User.Username, pc.MatchCount())
+}
+
+func (pc *playerCombination) PrintOtherPlayer(p Player) string {
+	otherPlayer := pc.Player1
+	if pc.Player1.User.ID == p.User.ID {
+		otherPlayer = pc.Player2
+	}
+
+	return fmt.Sprintf("%s (%d)", otherPlayer.User.Username, pc.MatchCount())
 }
 
 type playerCombinations map[uint]map[uint]playerCombination
@@ -38,8 +52,8 @@ func (pcs *playerCombinations) addInOneDirection(matchID uint, player1, player2 
 	if _, ok := (*pcs)[player1.User.ID][player2.User.ID]; !ok {
 		(*pcs)[player1.User.ID][player2.User.ID] = playerCombination{
 			matches: []uint{},
-			player1: player1,
-			player2: player2,
+			Player1: player1,
+			Player2: player2,
 		}
 	}
 
@@ -52,7 +66,7 @@ func (pcs *playerCombinations) orderedPlayerCombinations() []playerCombination {
 	ordered := []playerCombination{}
 	for _, playerMap := range *pcs {
 		for _, pc := range playerMap {
-			if pc.player1.User.ID > pc.player2.User.ID {
+			if pc.Player1.User.ID > pc.Player2.User.ID {
 				ordered = append(ordered, pc)
 			}
 		}
@@ -80,8 +94,8 @@ func (pcs *playerCombinations) orderedPlayerCombinationsForUser(userId uint) []p
 func print(pcs []playerCombination) string {
 	str := ""
 	for _, pc := range pcs {
-		strMatchCount := strconv.Itoa(pc.matchCount())
-		str += pc.player1.User.Username + " and " + pc.player2.User.Username + ": " + strMatchCount + "\n"
+		strMatchCount := strconv.Itoa(pc.MatchCount())
+		str += pc.Player1.User.Username + " and " + pc.Player2.User.Username + ": " + strMatchCount + "\n"
 	}
 
 	return str
@@ -89,17 +103,17 @@ func print(pcs []playerCombination) string {
 
 func sortPlayerCombinations(pcs []playerCombination) {
 	sort.Slice(pcs, func(i, j int) bool {
-		iCount := pcs[i].matchCount()
-		jCount := pcs[j].matchCount()
+		iCount := pcs[i].MatchCount()
+		jCount := pcs[j].MatchCount()
 
 		if iCount != jCount {
-			return pcs[i].matchCount() > pcs[j].matchCount()
+			return pcs[i].MatchCount() > pcs[j].MatchCount()
 		}
 
-		if pcs[i].player1.User.Username != pcs[j].player1.User.Username {
-			return pcs[i].player1.User.Username < pcs[j].player1.User.Username
+		if pcs[i].Player1.User.Username != pcs[j].Player1.User.Username {
+			return pcs[i].Player1.User.Username < pcs[j].Player1.User.Username
 		}
 
-		return pcs[i].player2.User.Username < pcs[j].player2.User.Username
+		return pcs[i].Player2.User.Username < pcs[j].Player2.User.Username
 	})
 }

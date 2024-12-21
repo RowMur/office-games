@@ -47,14 +47,8 @@ templ gameStats(game gameprocessor.Game) {
 	@statRow("Most games played by player", strconv.Itoa(game.MostPlayedPlayer().MatchesPlayed())+" ("+game.MostPlayedPlayer().User.Username+")")
 	@statRow("Highest points (current)", game.HighestRankedPlayer().User.Username+" ("+strconv.Itoa(game.HighestRankedPlayer().Points)+")")
 	@statRow("Highest points (all time)", game.RecordElo().User.Username+" ("+strconv.Itoa(game.RecordElo().RecordPoints)+")")
-	{{
-	tm8p1, tm8p2 := game.MostCommonPairing()
-	}}
-	@statRow("Most common teammates", tm8p1.User.Username+" & "+tm8p2.User.Username)
-	{{
-	opp1, opp2 := game.MostCommonOpposingPairing()
-	}}
-	@statRow("Most common opponents", opp1.User.Username+" & "+opp2.User.Username)
+	@statRow("Most common teammates", game.MostCommonPairing().Print())
+	@statRow("Most common opponents", game.MostCommonOpposingPairing().Print())
 }
 
 templ playerStats(game gameprocessor.Game, player gameprocessor.Player) {
@@ -64,8 +58,8 @@ templ playerStats(game gameprocessor.Game, player gameprocessor.Player) {
 	@statRow("Win rate", fmt.Sprintf("%.2f", player.Percentage()))
 	@statRow("Current points", strconv.Itoa(player.Points))
 	@statRow("Highest points", fmt.Sprintf("%d (%s)", player.RecordPoints, player.RecordPointsDate.Format("02/01/06")))
-	@statRow("Most common teamate", game.MostCommonPairingForPlayer(player).User.Username)
-	@statRow("Most common opponent", game.MostCommonOpponentForPlayer(player).User.Username)
+	@statRow("Most common teamate", game.MostCommonPairingForPlayer(player).PrintOtherPlayer(player))
+	@statRow("Most common opponent", game.MostCommonOpponentForPlayer(player).PrintOtherPlayer(player))
 }
 
 templ statRow(label string, value string) {
