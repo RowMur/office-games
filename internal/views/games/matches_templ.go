@@ -10,18 +10,18 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"github.com/RowMur/office-games/internal/db"
-	"github.com/RowMur/office-games/internal/elo"
+	"github.com/RowMur/office-games/internal/gameprocessor"
 	"github.com/RowMur/office-games/internal/views/components"
 	"github.com/RowMur/office-games/internal/views/layout"
 )
 
 type MatchesPageProps struct {
-	User     *db.User
-	Matches  []db.Match
-	Office   db.Office
-	Game     db.Game
-	NextPage string
-	Es       *elo.EloService
+	User          *db.User
+	Matches       []db.Match
+	Office        db.Office
+	Game          db.Game
+	NextPage      string
+	ProcessedGame *gameprocessor.Game
 }
 
 func MatchesPage(props MatchesPageProps) templ.Component {
@@ -88,7 +88,7 @@ func MatchesPage(props MatchesPageProps) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = Matches(MatchesProps{Matches: props.Matches, Game: props.Game, NextPage: props.NextPage, Es: props.Es}).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = Matches(MatchesProps{Matches: props.Matches, Game: props.Game, NextPage: props.NextPage, ProcessedGame: props.ProcessedGame}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -107,10 +107,10 @@ func MatchesPage(props MatchesPageProps) templ.Component {
 }
 
 type MatchesProps struct {
-	Matches  []db.Match
-	NextPage string
-	Game     db.Game
-	Es       *elo.EloService
+	Matches       []db.Match
+	NextPage      string
+	Game          db.Game
+	ProcessedGame *gameprocessor.Game
 }
 
 func Matches(props MatchesProps) templ.Component {
@@ -164,7 +164,7 @@ func Matches(props MatchesProps) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = components.Match(match, false, props.Es).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = components.Match(match, false, props.ProcessedGame).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

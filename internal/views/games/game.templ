@@ -3,7 +3,7 @@ package games
 import (
 	"fmt"
 	"github.com/RowMur/office-games/internal/db"
-	"github.com/RowMur/office-games/internal/elo"
+	"github.com/RowMur/office-games/internal/gameprocessor"
 	"github.com/RowMur/office-games/internal/views/components"
 	"github.com/RowMur/office-games/internal/views/layout"
 	"strconv"
@@ -19,10 +19,9 @@ type UserWinLosses map[uint]WinLosses
 type GamePageProps struct {
 	Game              db.Game
 	Office            db.Office
-	Elos              elo.Elos
 	User              *db.User
 	PendingMatchCount int
-	Es                *elo.EloService
+	ProcessedGame     *gameprocessor.Game
 }
 
 templ GamePage(props GamePageProps) {
@@ -71,7 +70,7 @@ templ GamePage(props GamePageProps) {
 			</ul>
 			<section class="my-6">
 				@components.SectionHeading("Rankings", nil)
-				@OfficeRankings(props.Elos)
+				@OfficeRankings(props.ProcessedGame.RankedPlayers())
 			</section>
 			<section class="my-6">
 				@components.SectionHeading("Stats", nil)
@@ -90,7 +89,7 @@ templ GamePage(props GamePageProps) {
 						<div class="flex flex-col gap-2">
 							<div class="min-w-12 min-h-12 grid place-items-center text-center rounded-full mx-auto">
 								{{
-									recordElo := props.Elos.RecordElo()
+									recordElo := props.ProcessedGame.RecordElo()
 								}}
 								<b>{ strconv.Itoa(recordElo.RecordPoints) }</b>
 								{ recordElo.User.Username } - 
@@ -120,7 +119,7 @@ templ GamePage(props GamePageProps) {
 						}
 						}}
 						for _, match := range matchesToShow {
-							@components.Match(match, false, props.Es)
+							@components.Match(match, false, props.ProcessedGame)
 						}
 					</ul>
 				}
@@ -143,7 +142,7 @@ templ StatCard() {
 	</div>
 }
 
-templ OfficeRankings(elos elo.Elos) {
+templ OfficeRankings(players []gameprocessor.Player) {
 	<table id="office-ranking" class="w-full">
 		<thead class="border-b-[1px] border-accent">
 			<tr>
@@ -156,20 +155,20 @@ templ OfficeRankings(elos elo.Elos) {
 			</tr>
 		</thead>
 		<tbody>
-			for i, elo := range elos {
+			for i, player := range players {
 				<tr>
 					<td class="text-right opacity-70">#{ fmt.Sprintf("%d", i + 1) }</td>
-					<td class="pl-1">{ elo.User.Username }</td>
+					<td class="pl-1">{ player.User.Username }</td>
 					<td class="text-right">
-						{ strconv.Itoa(elo.WinCount) }
+						{ strconv.Itoa(player.WinCount) }
 					</td>
 					<td class="text-right">
-						{ strconv.Itoa(elo.LossCount) }
+						{ strconv.Itoa(player.LossCount) }
 					</td>
 					<td class="hidden sm:block text-right">
-						{ fmt.Sprintf("%.2f", elo.Percentage()) }
+						{ fmt.Sprintf("%.2f", player.Percentage()) }
 					</td>
-					<td class="text-right">{ strconv.Itoa(elo.Points) }</td>
+					<td class="text-right">{ strconv.Itoa(player.Points) }</td>
 				</tr>
 			}
 		</tbody>

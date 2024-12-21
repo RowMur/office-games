@@ -1,4 +1,4 @@
-package elo
+package gameprocessor
 
 import (
 	"math"
@@ -6,9 +6,10 @@ import (
 
 const (
 	handicapMultiplier = 0.25
+	kFactor            = 32
 )
 
-func CalculatePointsGainLoss(winners, losers []Elo, multiplier float64) int {
+func calculatePointsGainLoss(winners, losers []Player, multiplier float64) int {
 	summedWinnerElo := float64(0)
 	for _, winner := range winners {
 		summedWinnerElo += float64(winner.Points)
@@ -22,13 +23,13 @@ func CalculatePointsGainLoss(winners, losers []Elo, multiplier float64) int {
 	avgLoserElo := summedLoserElo / float64(len(losers))
 
 	expectedScore := calculateExpectedScore(avgWinnerElo, avgLoserElo)
-	pointsGainLoss := calculatePointsGainLoss(expectedScore, 1, multiplier)
+	pointsGainLoss := calculatePointsGainLossFromExpected(expectedScore, 1, multiplier)
 
 	return pointsGainLoss
 }
 
 func CalculateHandicapPointsGain() int {
-	basePointsGain := calculatePointsGainLoss(0.5, 1, handicapMultiplier)
+	basePointsGain := calculatePointsGainLossFromExpected(0.5, 1, handicapMultiplier)
 	return basePointsGain
 }
 
@@ -36,6 +37,6 @@ func calculateExpectedScore(elo1, elo2 float64) float64 {
 	return 1 / (1 + math.Pow(10, ((elo2-elo1)/400)))
 }
 
-func calculatePointsGainLoss(expectedScore float64, actualScore float64, multiplier float64) int {
-	return int(math.Round(multiplier * 32 * (actualScore - expectedScore)))
+func calculatePointsGainLossFromExpected(expectedScore float64, actualScore float64, multiplier float64) int {
+	return int(math.Round(multiplier * kFactor * (actualScore - expectedScore)))
 }

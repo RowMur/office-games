@@ -3,7 +3,7 @@ package server
 import (
 	"github.com/RowMur/office-games/internal/app"
 	"github.com/RowMur/office-games/internal/db"
-	"github.com/RowMur/office-games/internal/elo"
+	"github.com/RowMur/office-games/internal/gameprocessor"
 	"github.com/RowMur/office-games/internal/user"
 	"github.com/labstack/echo/v4"
 )
@@ -12,18 +12,18 @@ type Server struct {
 	us  *user.UserService
 	db  *db.Database
 	app *app.App
-	es  *elo.EloService
+	gp  *gameprocessor.GameProcessor
 }
 
 func NewServer() *Server {
 	database := db.Init()
-	es := elo.NewEloService(database)
-	app := app.NewApp(database, es)
+	gp := gameprocessor.NewGameProcessor(database)
+	app := app.NewApp(database, gp)
 	return &Server{
 		db:  &database,
 		us:  user.NewUserService(database),
 		app: app,
-		es:  es,
+		gp:  gp,
 	}
 }
 

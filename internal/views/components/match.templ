@@ -3,18 +3,18 @@ package components
 import (
 	"fmt"
 	"github.com/RowMur/office-games/internal/db"
-	"github.com/RowMur/office-games/internal/elo"
+	"github.com/RowMur/office-games/internal/gameprocessor"
 )
 
-templ Match(match db.Match, showApprovalState bool, es *elo.EloService) {
+templ Match(match db.Match, showApprovalState bool, g *gameprocessor.Game) {
 	<li class="bg-light rounded p-4">
 		<div class="flex gap-3">
 			<div class="text-center">
 				<p class="font-semibold">W</p>
 			</div>
 			<div class="min-w-0 grow">
-				@MatchPlayerList(match.Winners(), true, es, match)
-				@MatchPlayerList(match.Losers(), false, es, match)
+				@MatchPlayerList(match.Winners(), true, g, match)
+				@MatchPlayerList(match.Losers(), false, g, match)
 			</div>
 			if showApprovalState {
 				<div>
@@ -42,7 +42,7 @@ templ Match(match db.Match, showApprovalState bool, es *elo.EloService) {
 	</li>
 }
 
-templ MatchPlayerList(players []db.MatchParticipant, isWinners bool, es *elo.EloService, match db.Match) {
+templ MatchPlayerList(players []db.MatchParticipant, isWinners bool, g *gameprocessor.Game, match db.Match) {
 	{{
 		class := "text-ellipsis text-nowrap overflow-hidden"
 		if isWinners {
@@ -50,7 +50,7 @@ templ MatchPlayerList(players []db.MatchParticipant, isWinners bool, es *elo.Elo
 		}
 	}}
 	<p class={ class }>
-		@ListOfUsers(players, es, match)
+		@ListOfUsers(players, g, match)
 	</p>
 }
 
@@ -64,16 +64,16 @@ templ MatchApprovalState(isApproved bool) {
 	</p>
 }
 
-templ ListOfUsers(users []db.MatchParticipant, es *elo.EloService, match db.Match) {
+templ ListOfUsers(users []db.MatchParticipant, g *gameprocessor.Game, match db.Match) {
 	for i, user := range users {
 		if i > 0 {
 			, 
 		}
 		{{
 			dir := "+"
-			var mp *elo.ProcessedMatchParticipant
-			if es != nil {
-				m := es.GetMatch(match.GameID, match.ID)
+			var mp *gameprocessor.ProcessedMatchParticipant
+			if g != nil {
+				m := g.GetMatch(match.ID)
 				if m != nil {
 					if m.Participants != nil {
 						mp = m.Participants[user.UserID]

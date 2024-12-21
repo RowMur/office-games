@@ -227,6 +227,6 @@ func (a *App) processApprovedMatch(tx *gorm.DB, match *db.Match) error {
 		}
 	}
 
-	a.es.InvalidateEloCache(match.GameID)
+	a.gp.InvalidateGameCache(match.GameID)
 	return nil
 }

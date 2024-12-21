@@ -19,7 +19,7 @@ func (s *Server) eloPageHandler(c echo.Context) error {
 		return c.HTML(400, "Bad game ID")
 	}
 
-	rankings, err := s.es.GetElos(uint(gameIdint))
+	rankings, err := s.gp.Process(uint(gameIdint))
 	if err != nil {
 		if db.IsRecordNotFoundError(err) {
 			return c.HTML(400, "Unrecognised game ID")

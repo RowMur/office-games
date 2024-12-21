@@ -2,17 +2,17 @@ package app
 
 import (
 	"github.com/RowMur/office-games/internal/db"
-	"github.com/RowMur/office-games/internal/elo"
+	"github.com/RowMur/office-games/internal/gameprocessor"
 )
 
 type App struct {
 	db db.Database
-	es *elo.EloService
+	gp *gameprocessor.GameProcessor
 }
 
-func NewApp(db db.Database, es *elo.EloService) *App {
+func NewApp(db db.Database, gp *gameprocessor.GameProcessor) *App {
 	return &App{
 		db: db,
-		es: es,
+		gp: gp,
 	}
 }

@@ -32,7 +32,7 @@ func (s *Server) gamesPageHandler(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	elos, err := s.es.GetElos(gameIdUint)
+	processedGame, err := s.gp.Process(gameIdUint)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
@@ -46,10 +46,9 @@ func (s *Server) gamesPageHandler(c echo.Context) error {
 	return render(c, http.StatusOK, games.GamePage(games.GamePageProps{
 		Game:              *game,
 		Office:            game.Office,
-		Elos:              elos,
 		User:              user,
 		PendingMatchCount: int(pendingMatchCount),
-		Es:                s.es,
+		ProcessedGame:     processedGame,
 	}))
 }
 
@@ -326,20 +325,25 @@ func (s *Server) matchesPageHandler(c echo.Context) error {
 		nextPage = strconv.Itoa(pageInt + 1)
 	}
 
+	processedGame, err := s.gp.Process(game.ID)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
 	if pageInt < 1 {
 		// full page
 		return render(c, http.StatusOK, games.MatchesPage(
 			games.MatchesPageProps{
-				User:     user,
-				Matches:  matchesToReturn,
-				Office:   game.Office,
-				Game:     *game,
-				NextPage: nextPage,
-				Es:       s.es,
+				User:          user,
+				Matches:       matchesToReturn,
+				Office:        game.Office,
+				Game:          *game,
+				NextPage:      nextPage,
+				ProcessedGame: processedGame,
 			},
 		))
 	}
 
 	// partial page
-	return render(c, http.StatusOK, games.Matches(games.MatchesProps{Matches: matchesToReturn, Game: *game, NextPage: nextPage, Es: s.es}))
+	return render(c, http.StatusOK, games.Matches(games.MatchesProps{Matches: matchesToReturn, Game: *game, NextPage: nextPage, ProcessedGame: processedGame}))
 }
