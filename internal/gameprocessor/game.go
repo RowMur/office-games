@@ -42,7 +42,18 @@ func (g *Game) RankedPlayers() []Player {
 	}
 
 	sort.Slice(players, func(i, j int) bool {
-		return players[i].Points > players[j].Points
+		playerI := players[i]
+		playerJ := players[j]
+		if playerI.Points != playerJ.Points {
+			return playerI.Points > playerJ.Points
+		}
+		if playerI.WinCount != playerJ.WinCount {
+			return playerI.WinCount > playerJ.WinCount
+		}
+		if playerI.LossCount != playerJ.LossCount {
+			return playerI.LossCount < playerJ.LossCount
+		}
+		return playerI.User.Username > playerJ.User.Username
 	})
 
 	return players
