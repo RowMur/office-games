@@ -100,7 +100,7 @@ func (gp *GameProcessor) process(gameId uint) (*Game, error) {
 			winner.WinCount++
 			pointsToApply := pointsGainLoss
 
-			if winner.matchesPlayed() < 20 {
+			if winner.MatchesPlayed() < 20 {
 				pointsToApply = pointsToApply * 2
 			}
 
@@ -126,7 +126,7 @@ func (gp *GameProcessor) process(gameId uint) (*Game, error) {
 			loser.LossCount++
 			pointsToApply := pointsGainLoss
 
-			if loser.matchesPlayed() < 20 {
+			if loser.MatchesPlayed() < 20 {
 				pointsToApply = pointsToApply * 2
 			}
 

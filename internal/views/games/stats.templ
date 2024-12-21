@@ -1,0 +1,53 @@
+package games
+
+import (
+	"github.com/RowMur/office-games/internal/db"
+	"github.com/RowMur/office-games/internal/gameprocessor"
+	"github.com/RowMur/office-games/internal/views/components"
+	"github.com/RowMur/office-games/internal/views/layout"
+	"strconv"
+)
+
+templ StatsPage(game db.Game, office db.Office, user *db.User, processedGame gameprocessor.Game) {
+	@layout.Base(user) {
+		<main class="mx-6 my-8">
+			@components.Breadcrumbs([]components.Crumb{
+				{Name: office.Name, URL: office.Link()},
+				{Name: game.Name, URL: game.Link()},
+				{Name: "Stats"},
+			})
+			@GamePageHeading(GamePageHeadingProps{
+				Game:   game,
+				Office: office,
+			})
+			<section class="my-6">
+				@components.SectionHeading("Game Stats", nil)
+				<ul class="flex flex-col gap-2">
+					@gameStats(processedGame)
+				</ul>
+			</section>
+		</main>
+	}
+}
+
+templ gameStats(game gameprocessor.Game) {
+	@statRow("Games played", strconv.Itoa(game.MatchesPlayed()))
+	@statRow("Most games played by player", strconv.Itoa(game.MostPlayedPlayer().MatchesPlayed())+" ("+game.MostPlayedPlayer().User.Username+")")
+	@statRow("Highest ranking (current)", game.HighestRankedPlayer().User.Username+" ("+strconv.Itoa(game.HighestRankedPlayer().Points)+")")
+	@statRow("Highest ranking (all time)", game.RecordElo().User.Username+" ("+strconv.Itoa(game.RecordElo().RecordPoints)+")")
+	{{
+	tm8p1, tm8p2 := game.MostCommonPairing()
+	}}
+	@statRow("Most common teammates", tm8p1.User.Username+" & "+tm8p2.User.Username)
+	{{
+	opp1, opp2 := game.MostCommonOpposingPairing()
+	}}
+	@statRow("Most common opponents", opp1.User.Username+" & "+opp2.User.Username)
+}
+
+templ statRow(label string, value string) {
+	<li class="flex justify-between">
+		<span>{ label }</span>
+		<span>{ value }</span>
+	</li>
+}

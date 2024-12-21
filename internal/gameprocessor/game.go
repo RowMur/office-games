@@ -38,7 +38,7 @@ func (g *Game) RecordElo() (player *Player) {
 func (g *Game) MostPlayedPlayer() (player *Player) {
 	mostPlayed := &Player{}
 	for _, player := range g.players {
-		if player.matchesPlayed() > mostPlayed.matchesPlayed() {
+		if player.MatchesPlayed() > mostPlayed.MatchesPlayed() {
 			mostPlayed = &player
 		}
 	}

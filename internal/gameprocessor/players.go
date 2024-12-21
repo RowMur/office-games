@@ -16,12 +16,12 @@ type Player struct {
 	RecordPointsDate time.Time
 }
 
-func (p Player) matchesPlayed() int {
+func (p Player) MatchesPlayed() int {
 	return p.WinCount + p.LossCount
 }
 
 func (p Player) Percentage() float64 {
-	total := p.matchesPlayed()
+	total := p.MatchesPlayed()
 	percentage := 0.0
 	if total > 0 {
 		percentage = float64(p.WinCount) / float64(total) * 100
