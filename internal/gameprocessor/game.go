@@ -5,14 +5,18 @@ import (
 )
 
 type Game struct {
-	matches map[uint]*processedMatch
-	players map[uint]Player
+	matches                map[uint]*processedMatch
+	players                map[uint]Player
+	playerPairings         *playerCombinations
+	playerOpposingPairings *playerCombinations
 }
 
 func newGame() Game {
 	return Game{
-		matches: map[uint]*processedMatch{},
-		players: map[uint]Player{},
+		matches:                map[uint]*processedMatch{},
+		players:                map[uint]Player{},
+		playerPairings:         newPlayerCombinations(),
+		playerOpposingPairings: newPlayerCombinations(),
 	}
 }
 
@@ -29,6 +33,58 @@ func (g *Game) RecordElo() (player *Player) {
 	}
 
 	return recordHolder
+}
+
+func (g *Game) MostPlayedPlayer() (player *Player) {
+	mostPlayed := &Player{}
+	for _, player := range g.players {
+		if player.matchesPlayed() > mostPlayed.matchesPlayed() {
+			mostPlayed = &player
+		}
+	}
+
+	return mostPlayed
+}
+
+func (g *Game) HighestRankedPlayer() (player *Player) {
+	rankedPlayers := g.RankedPlayers()
+	if len(rankedPlayers) > 0 {
+		return &rankedPlayers[0]
+	}
+
+	return nil
+}
+
+func (g *Game) PlayerCountCounts() map[int]int {
+	counts := map[int]int{}
+	for _, match := range g.matches {
+		count := len(match.Participants)
+		if _, ok := counts[count]; !ok {
+			counts[count] = 0
+		}
+
+		counts[count]++
+	}
+
+	return counts
+}
+
+func (g *Game) MostCommonPairing() (player1, player2 *Player) {
+	pairings := g.playerPairings.orderedPlayerCombinations()
+	if len(pairings) > 0 {
+		return &pairings[0].player1, &pairings[0].player2
+	}
+
+	return nil, nil
+}
+
+func (g *Game) MostCommonOpposingPairing() (player1, player2 *Player) {
+	pairings := g.playerOpposingPairings.orderedPlayerCombinations()
+	if len(pairings) > 0 {
+		return &pairings[0].player1, &pairings[0].player2
+	}
+
+	return nil, nil
 }
 
 func (g *Game) GetMatch(matchId uint) *processedMatch {

@@ -88,6 +88,15 @@ func (gp *GameProcessor) process(gameId uint) (*Game, error) {
 		}
 
 		for _, winner := range winners {
+			for _, w := range winners {
+				if w.User.ID > winner.User.ID {
+					g.playerPairings.addMatch(match.ID, winner, w)
+				}
+			}
+			for _, l := range losers {
+				g.playerOpposingPairings.addMatch(match.ID, winner, l)
+			}
+
 			winner.WinCount++
 			pointsToApply := pointsGainLoss
 
@@ -108,6 +117,12 @@ func (gp *GameProcessor) process(gameId uint) (*Game, error) {
 			players[winner.User.ID] = winner
 		}
 		for _, loser := range losers {
+			for _, l := range losers {
+				if l.User.ID > loser.User.ID {
+					g.playerPairings.addMatch(match.ID, loser, l)
+				}
+			}
+
 			loser.LossCount++
 			pointsToApply := pointsGainLoss
 
