@@ -32,10 +32,22 @@ templ StatsPage(game db.Game, office db.Office, user *db.User, processedGame gam
 			}}
 			if thisPlayer != nil {
 				<section class="my-6">
-					@components.SectionHeading("Your Stats", nil)
-					<ul class="flex flex-col gap-2">
-						@playerStats(processedGame, *thisPlayer)
-					</ul>
+					<div class="flex gap-4 mb-2 items-center">
+						<h3 class="text-lg font-semibold">Player Stats</h3>
+						<select name="player" class="bg-back px-2 py-1 rounded-md" hx-trigger="change" hx-post={ game.Link() + "/stats" } hx-swap="outerHTML" hx-target="#player-stats">
+							for _, player := range office.Players {
+								if !player.NonPlayer {
+									<option
+										value={ strconv.Itoa(int(player.ID)) }
+										if user.ID == player.ID {
+											selected
+										}
+									>{ player.Username }</option>
+								}
+							}
+						</select>
+					</div>
+					@PlayerStats(processedGame, *thisPlayer)
 				</section>
 			}
 		</main>
@@ -51,15 +63,17 @@ templ gameStats(game gameprocessor.Game) {
 	@statRow("Most common opponents", game.MostCommonOpposingPairing().Print())
 }
 
-templ playerStats(game gameprocessor.Game, player gameprocessor.Player) {
-	@statRow("Games played", strconv.Itoa(player.MatchesPlayed()))
-	@statRow("Wins", strconv.Itoa(player.WinCount))
-	@statRow("Losses", strconv.Itoa(player.LossCount))
-	@statRow("Win rate", fmt.Sprintf("%.2f", player.Percentage()))
-	@statRow("Current points", strconv.Itoa(player.Points))
-	@statRow("Highest points", fmt.Sprintf("%d (%s)", player.RecordPoints, player.RecordPointsDate.Format("02/01/06")))
-	@statRow("Most common teamate", game.MostCommonPairingForPlayer(player).PrintOtherPlayer(player))
-	@statRow("Most common opponent", game.MostCommonOpponentForPlayer(player).PrintOtherPlayer(player))
+templ PlayerStats(game gameprocessor.Game, player gameprocessor.Player) {
+	<ul id="player-stats" class="flex flex-col gap-2">
+		@statRow("Games played", strconv.Itoa(player.MatchesPlayed()))
+		@statRow("Wins", strconv.Itoa(player.WinCount))
+		@statRow("Losses", strconv.Itoa(player.LossCount))
+		@statRow("Win rate", fmt.Sprintf("%.2f", player.Percentage()))
+		@statRow("Current points", strconv.Itoa(player.Points))
+		@statRow("Highest points", fmt.Sprintf("%d (%s)", player.RecordPoints, player.RecordPointsDate.Format("02/01/06")))
+		@statRow("Most common teamate", game.MostCommonPairingForPlayer(player).PrintOtherPlayer(player))
+		@statRow("Most common opponent", game.MostCommonOpponentForPlayer(player).PrintOtherPlayer(player))
+	</ul>
 }
 
 templ statRow(label string, value string) {

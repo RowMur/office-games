@@ -364,3 +364,30 @@ func (s *Server) gameStatsPageHandler(c echo.Context) error {
 
 	return render(c, http.StatusOK, games.StatsPage(*game, game.Office, user, *processedGame))
 }
+
+func (s *Server) gamePlayerStatsPostHandler(c echo.Context) error {
+	gameId := c.Param("id")
+
+	stringPlayerId := c.FormValue("player")
+	playerId, err := strconv.Atoi(stringPlayerId)
+	if err != nil {
+		return c.String(http.StatusBadRequest, "Invalid player ID")
+	}
+
+	game, err := s.app.GetGameById(gameId, false)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	processedGame, err := s.gp.Process(game.ID)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	player := processedGame.GetPlayer(uint(playerId))
+	if player == nil {
+		return c.String(http.StatusBadRequest, "Player not found")
+	}
+
+	return render(c, http.StatusOK, games.PlayerStats(*processedGame, *player))
+}

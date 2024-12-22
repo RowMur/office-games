@@ -83,6 +83,7 @@ func (s *Server) Run() {
 	officeMember.GET("/offices/:code/games/:id/matches", s.matchesPageHandler)
 
 	officeMember.GET("/offices/:code/games/:id/stats", s.gameStatsPageHandler)
+	officeMember.POST("/offices/:code/games/:id/stats", s.gamePlayerStatsPostHandler)
 
 	signedIn.GET("/elo", s.eloPageHandler)
 
