@@ -30,26 +30,30 @@ templ StatsPage(game db.Game, office db.Office, user *db.User, processedGame gam
 			{{
 	thisPlayer := processedGame.GetPlayer(user.ID)
 			}}
-			if thisPlayer != nil {
-				<section class="my-6">
-					<div class="flex gap-4 mb-2 items-center">
-						<h3 class="text-lg font-semibold">Player Stats</h3>
-						<select name="player" class="bg-back px-2 py-1 rounded-md" hx-trigger="change" hx-post={ game.Link() + "/stats" } hx-swap="outerHTML" hx-target="#player-stats">
-							for _, player := range office.Players {
-								if !player.NonPlayer {
-									<option
-										value={ strconv.Itoa(int(player.ID)) }
-										if user.ID == player.ID {
-											selected
-										}
-									>{ player.Username }</option>
-								}
+			<section class="my-6">
+				<div class="flex gap-4 mb-2 items-center">
+					<h3 class="text-lg font-semibold">Player Stats</h3>
+					<select name="player" class="bg-back px-2 py-1 rounded-md" hx-trigger="change" hx-post={ game.Link() + "/stats" } hx-swap="innerHTML" hx-target="#player-stats">
+						for _, player := range office.Players {
+							if !player.NonPlayer {
+								<option
+									value={ strconv.Itoa(int(player.ID)) }
+									if user.ID == player.ID {
+										selected
+									}
+								>{ player.Username }</option>
 							}
-						</select>
-					</div>
-					@PlayerStats(processedGame, *thisPlayer)
-				</section>
-			}
+						}
+					</select>
+				</div>
+				<div id="player-stats">
+					if thisPlayer != nil {
+						@PlayerStats(processedGame, *thisPlayer)
+					} else {
+						@PlayerHasntPlayedYet()
+					}
+				</div>
+			</section>
 		</main>
 	}
 }
@@ -64,7 +68,7 @@ templ gameStats(game gameprocessor.Game) {
 }
 
 templ PlayerStats(game gameprocessor.Game, player gameprocessor.Player) {
-	<ul id="player-stats" class="flex flex-col gap-2">
+	<ul class="flex flex-col gap-2">
 		@statRow("Games played", strconv.Itoa(player.MatchesPlayed()))
 		@statRow("Wins", strconv.Itoa(player.WinCount))
 		@statRow("Losses", strconv.Itoa(player.LossCount))
@@ -74,6 +78,10 @@ templ PlayerStats(game gameprocessor.Game, player gameprocessor.Player) {
 		@statRow("Most common teamate", game.MostCommonPairingForPlayer(player).PrintOtherPlayer(player))
 		@statRow("Most common opponent", game.MostCommonOpponentForPlayer(player).PrintOtherPlayer(player))
 	</ul>
+}
+
+templ PlayerHasntPlayedYet() {
+	<p class="text-center my-4">This player hasn't played any games yet.</p>
 }
 
 templ statRow(label string, value string) {

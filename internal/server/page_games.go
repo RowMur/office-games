@@ -386,7 +386,7 @@ func (s *Server) gamePlayerStatsPostHandler(c echo.Context) error {
 
 	player := processedGame.GetPlayer(uint(playerId))
 	if player == nil {
-		return c.String(http.StatusBadRequest, "Player not found")
+		return render(c, http.StatusOK, games.PlayerHasntPlayedYet())
 	}
 
 	return render(c, http.StatusOK, games.PlayerStats(*processedGame, *player))
