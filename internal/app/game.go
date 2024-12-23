@@ -19,10 +19,6 @@ func (a *App) GetGameById(id string, pendingMatches bool) (*db.Game, error) {
 		Preload("Office.Players", func(db *gorm.DB) *gorm.DB {
 			return db.Order("LOWER(username)")
 		}).
-		Preload("Rankings", func(db *gorm.DB) *gorm.DB {
-			return db.Order("Rankings.points DESC")
-		}).
-		Preload("Rankings.User").
 		Preload("Matches.Participants.User").
 		Preload("Matches.Creator").
 		Preload("Matches.Approvals")

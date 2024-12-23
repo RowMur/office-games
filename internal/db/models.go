@@ -13,7 +13,6 @@ var Models = []interface{}{
 	&User{},
 	&Office{},
 	&Game{},
-	&Ranking{},
 	&Match{},
 	&MatchApproval{},
 	&MatchParticipant{},
@@ -89,7 +88,6 @@ type Game struct {
 	Name            string
 	OfficeID        uint
 	Office          Office
-	Rankings        []Ranking
 	Matches         []Match
 	GameType        string `gorm:"default:'head_to_head'"`
 	MinParticipants int    `gorm:"default:2"`
@@ -101,21 +99,8 @@ func (g *Game) Link() string {
 }
 
 func (g *Game) BeforeDelete(tx *gorm.DB) (err error) {
-	// Delete all rankings for the game
 	if g.ID == 0 {
 		return errors.New("Game ID is 0")
-	}
-
-	rankings := []Ranking{}
-	err = tx.Where("game_id = ?", g.ID).Find(&rankings).Error
-	if err != nil {
-		return
-	}
-	if len(rankings) != 0 {
-		err = tx.Delete(rankings).Error
-		if err != nil {
-			return
-		}
 	}
 
 	matches := []Match{}
@@ -133,47 +118,6 @@ func (g *Game) BeforeDelete(tx *gorm.DB) (err error) {
 	return
 }
 
-func (g *Game) AfterCreate(tx *gorm.DB) (err error) {
-	// Create a ranking for each player in the office
-	office := Office{}
-	tx.Where("id = ?", g.OfficeID).Preload("Players").First(&office)
-
-	var initPlayerRankings []Ranking
-	for _, user := range office.Players {
-		if user.NonPlayer {
-			continue
-		}
-
-		initPlayerRankings = append(initPlayerRankings, Ranking{UserID: user.ID})
-	}
-	err = tx.Model(&g).Association("Rankings").Append(initPlayerRankings)
-	return
-}
-
-type Ranking struct {
-	gorm.Model
-	Points int `gorm:"default:400"`
-	GameID uint
-	Game   Game
-	UserID uint
-	User   User
-}
-
-func (r *Ranking) AfterCreate(tx *gorm.DB) (err error) {
-	user := User{}
-	err = tx.Where("id = ?", r.UserID).First(&user).Error
-	if err != nil {
-		return
-	}
-
-	if user.NonPlayer {
-		err = errors.New("Non-players cannot be ranked")
-		return
-	}
-
-	return
-}
-
 const (
 	MatchResultWin  = "win"
 	MatchResultLoss = "loss"
@@ -181,14 +125,11 @@ const (
 
 type MatchParticipant struct {
 	gorm.Model
-	UserID        uint
-	User          User
-	MatchID       uint
-	Match         Match
-	Result        string
-	StartingElo   int
-	CalculatedElo int
-	AppliedElo    int
+	UserID  uint
+	User    User
+	MatchID uint
+	Match   Match
+	Result  string
 }
 
 func (mp *MatchParticipant) AfterCreate(tx *gorm.DB) (err error) {

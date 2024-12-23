@@ -15,20 +15,9 @@ type User struct {
 	Email               string `gorm:"unique"`
 	Password            string
 	Offices             []Office `gorm:"many2many:user_offices;"`
-	Rankings            []Ranking
 	MatchParticipations []MatchParticipant
 	Approvals           []MatchApproval
 	NonPlayer           bool `default:"false"`
-}
-
-func (u *User) AfterUpdate(tx *gorm.DB) (err error) {
-	if u.NonPlayer {
-		err = tx.Delete(&Ranking{}, "user_id = ?", u.ID).Error
-		if err != nil {
-			return
-		}
-	}
-	return
 }
 
 type CreateUserErrors struct {

@@ -2,6 +2,7 @@ package app
 
 import (
 	"errors"
+	"strconv"
 
 	"github.com/RowMur/office-games/internal/db"
 	"gorm.io/gorm"
@@ -35,70 +36,33 @@ func (a *App) LogMatch(creator *db.User, game *db.Game, note string, winners, lo
 		return nil, err
 	}
 
-	winnerRankings := []db.Ranking{}
-	err := tx.Where("game_id = ? AND user_id IN (?)", game.ID, winners).Find(&winnerRankings).Error
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-	if len(winnerRankings) != len(winners) {
-		return nil, errors.New("winner not recognized")
-	}
-
-	loserRankings := []db.Ranking{}
-	err = tx.Where("game_id = ? AND user_id IN (?)", game.ID, losers).Find(&loserRankings).Error
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-	if len(loserRankings) != len(losers) {
-		return nil, errors.New("loser not recognized")
-	}
-
 	participants := []db.MatchParticipant{}
-	for _, ranking := range winnerRankings {
-		participant := db.MatchParticipant{
-			UserID:      ranking.UserID,
-			MatchID:     match.ID,
-			Result:      db.MatchResultWin,
-			StartingElo: ranking.Points,
+	for _, winner := range winners {
+		userId, err := strconv.Atoi(winner)
+		if err != nil {
+			tx.Rollback()
+			return nil, err
 		}
-
-		multiplier := 1.0
-		if len(winners) > len(losers) {
-			multiplier = float64(len(losers)) / float64(len(winners))
-		}
-		// calcElo := elo.CalculatePointsGainLoss([]db.Ranking{ranking}, loserRankings, multiplier)
-		calcElo := int(multiplier)
-		if len(winners) > len(losers) {
-			// When the multiplier is applied to a side, each player on that side gets slightly shortchanged due to the rounding
-			// E.g. 10 points net gain/loss split in a game with 3 winners and 1 loser
-			// The winners earn 3.33 points each (rounded to 3) and the loser loses 10 points
-			// To avoid a system wide net loss of ELO just add one to each of the winners
-			calcElo++
-		}
-		participant.CalculatedElo = calcElo
-		participants = append(participants, participant)
+		participants = append(participants, db.MatchParticipant{
+			UserID:  uint(userId),
+			MatchID: match.ID,
+			Result:  db.MatchResultWin,
+		})
 	}
-	for _, ranking := range loserRankings {
-		participant := db.MatchParticipant{
-			UserID:      ranking.UserID,
-			MatchID:     match.ID,
-			Result:      db.MatchResultLoss,
-			StartingElo: ranking.Points,
+	for _, loser := range losers {
+		userId, err := strconv.Atoi(loser)
+		if err != nil {
+			tx.Rollback()
+			return nil, err
 		}
-
-		multiplier := 1.0
-		if len(losers) > len(winners) {
-			multiplier = float64(len(winners)) / float64(len(losers))
-		}
-		// calcElo := elo.CalculatePointsGainLoss(winnerRankings, []db.Ranking{ranking}, multiplier)
-		calcElo := int(multiplier)
-		participant.CalculatedElo = -calcElo
-		participants = append(participants, participant)
+		participants = append(participants, db.MatchParticipant{
+			UserID:  uint(userId),
+			MatchID: match.ID,
+			Result:  db.MatchResultLoss,
+		})
 	}
 
-	err = tx.Create(&participants).Error
+	err := tx.Create(&participants).Error
 	if err != nil {
 		tx.Rollback()
 		return nil, err
@@ -167,10 +131,7 @@ func (a *App) IsMatchApproved(tx *gorm.DB, match *db.Match) (bool, error) {
 }
 
 func (a *App) processApprovedMatch(tx *gorm.DB, match *db.Match) error {
-	err := tx.Preload("Game.Office").
-		Preload("Participants").
-		Preload("Game.Rankings").
-		Find(&match, "id = ?", match.ID).Error
+	err := tx.Preload("Game.Office").Find(&match, "id = ?", match.ID).Error
 	if err != nil {
 		return err
 	}
@@ -179,52 +140,6 @@ func (a *App) processApprovedMatch(tx *gorm.DB, match *db.Match) error {
 	if err != nil {
 		tx.Rollback()
 		return err
-	}
-
-	// Update the rankings of the players
-	const matchesWithDoublePoints = 20
-	queryForGameMatches := tx.Select("id").Where("game_id = ?", match.GameID).Table("matches")
-
-	for _, participant := range match.Participants {
-		var matchesPlayed int64
-		err := tx.Model(&db.MatchParticipant{}).Where("user_id = ? AND match_id IN (?)", participant.UserID, queryForGameMatches).Count(&matchesPlayed).Error
-		if err != nil {
-			tx.Rollback()
-			return errors.New("error counting matches played")
-		}
-
-		var ranking db.Ranking
-		for _, r := range match.Game.Rankings {
-			if r.UserID == participant.UserID {
-				ranking = r
-				break
-			}
-		}
-		if ranking.ID == 0 {
-			tx.Rollback()
-			return errors.New("player not recognised")
-		}
-
-		appliedElo := participant.CalculatedElo
-		if matchesPlayed <= matchesWithDoublePoints {
-			appliedElo *= 2
-		}
-		if ranking.Points+appliedElo < 200 {
-			appliedElo = ranking.Points - 200
-		}
-
-		err = tx.Model(&participant).Update("AppliedElo", appliedElo).Error
-		if err != nil {
-			tx.Rollback()
-			return errors.New("error updating elo")
-		}
-
-		newElo := ranking.Points + appliedElo
-		err = tx.Model(&ranking).Update("Points", newElo).Error
-		if err != nil {
-			tx.Rollback()
-			return errors.New("error updating elo")
-		}
 	}
 
 	a.gp.InvalidateGameCache(match.GameID)

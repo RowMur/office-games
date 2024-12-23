@@ -7,6 +7,12 @@ import (
 	"github.com/RowMur/office-games/internal/db"
 )
 
+const (
+	matchesWithDoublePoints = 20
+	eloStartingPoints       = 400
+	eloLowerBound           = 200
+)
+
 type GameProcessor struct {
 	db    db.Database
 	cache *cache
@@ -71,7 +77,7 @@ func (gp *GameProcessor) process(gameId uint) (*Game, error) {
 			if _, ok := players[participant.UserID]; !ok {
 				players[participant.UserID] = Player{
 					User:   participant.User,
-					Points: 400,
+					Points: eloStartingPoints,
 				}
 			}
 
@@ -100,7 +106,7 @@ func (gp *GameProcessor) process(gameId uint) (*Game, error) {
 			winner.WinCount++
 			pointsToApply := pointsGainLoss
 
-			if winner.MatchesPlayed() < 20 {
+			if winner.MatchesPlayed() < matchesWithDoublePoints {
 				pointsToApply = pointsToApply * 2
 			}
 
@@ -126,12 +132,12 @@ func (gp *GameProcessor) process(gameId uint) (*Game, error) {
 			loser.LossCount++
 			pointsToApply := pointsGainLoss
 
-			if loser.MatchesPlayed() < 20 {
+			if loser.MatchesPlayed() < matchesWithDoublePoints {
 				pointsToApply = pointsToApply * 2
 			}
 
-			if loser.Points-pointsToApply < 200 {
-				pointsToApply = loser.Points - 200
+			if loser.Points-pointsToApply < eloLowerBound {
+				pointsToApply = loser.Points - eloLowerBound
 			}
 
 			cachedMatch.Participants[loser.User.ID] = &ProcessedMatchParticipant{
