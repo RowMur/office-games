@@ -41,6 +41,15 @@ func (s *Server) createAccountFormHandler(c echo.Context) error {
 		return render(c, http.StatusOK, views.CreateAccountForm(data, formErrs))
 	}
 
+	fromCookie, err := c.Cookie("from")
+	if err != nil {
+		return echo.NewHTTPError(http.StatusInternalServerError, err.Error())
+	}
+	if fromCookie != nil {
+		c.Response().Header().Set("HX-Redirect", fromCookie.Value)
+		return c.NoContent(http.StatusOK)
+	}
+
 	cookie := &http.Cookie{
 		Name:  "auth",
 		Value: token,
