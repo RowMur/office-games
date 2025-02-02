@@ -13,7 +13,8 @@ import (
 
 type contextWithUser struct {
 	echo.Context
-	user *db.User
+	user  *db.User
+	token *token.Token
 }
 
 func userFromContext(c echo.Context) *db.User {
@@ -22,6 +23,14 @@ func userFromContext(c echo.Context) *db.User {
 		return nil
 	}
 	return cc.user
+}
+
+func usersTokenFromContext(c echo.Context) *token.Token {
+	cc, ok := c.(*contextWithUser)
+	if !ok {
+		return nil
+	}
+	return cc.token
 }
 
 func (s *Server) authMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
@@ -55,14 +64,18 @@ func (s *Server) authMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 		if user == nil || err != nil {
 			return signOut(c)
 		}
-		cc := &contextWithUser{c, user}
+
+		c.Response().Header().Set("Access-Control-Allow-Origin", "*")
+		cc := &contextWithUser{c, user, token}
 		return next(cc)
 	}
 }
 
 func enforceSignedIn(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
+		fmt.Printf("enforceSignedIn: %+v\n", c.Request().Method)
 		if userFromContext(c) == nil {
+			fmt.Println("returning redirect in enforceSignedIn")
 			return c.Redirect(http.StatusTemporaryRedirect, "/sign-in")
 		}
 		return next(c)
@@ -71,7 +84,14 @@ func enforceSignedIn(next echo.HandlerFunc) echo.HandlerFunc {
 
 func enforceSignedOut(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		if userFromContext(c) != nil {
+		user := userFromContext(c)
+		if user != nil {
+			if c.Request().Header.Get("Content-Type") == "application/json" {
+				token := usersTokenFromContext(c)
+				return c.JSON(http.StatusOK, map[string]string{"token": token.String})
+
+			}
+			fmt.Println("returning redirect in enforceSignedOut")
 			return c.Redirect(http.StatusTemporaryRedirect, "/")
 		}
 		return next(c)

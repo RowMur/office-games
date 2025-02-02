@@ -6,6 +6,7 @@ import (
 	"github.com/RowMur/office-games/internal/gameprocessor"
 	"github.com/RowMur/office-games/internal/user"
 	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 type Server struct {
@@ -30,6 +31,7 @@ func NewServer() *Server {
 func (s *Server) Run() {
 	e := echo.New()
 
+	e.Use(middleware.CORS())
 	e.Use(s.authMiddleware)
 	signedIn := e.Group("", enforceSignedIn)
 	signedOut := e.Group("", enforceSignedOut)
