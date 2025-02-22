@@ -26,6 +26,7 @@ type Office struct {
 	Admin      User   `gorm:"foreignKey:AdminRefer"`
 	Players    []User `gorm:"many2many:user_offices;"`
 	Games      []Game
+	Matches    []Match
 }
 
 func (o *Office) Link() string {

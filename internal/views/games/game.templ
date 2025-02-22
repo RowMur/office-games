@@ -17,7 +17,6 @@ type WinLosses struct {
 type UserWinLosses map[uint]WinLosses
 
 type GamePageProps struct {
-	Game              db.Game
 	Office            db.Office
 	User              *db.User
 	PendingMatchCount int
@@ -27,16 +26,15 @@ type GamePageProps struct {
 templ GamePage(props GamePageProps) {
 	@layout.Base(props.User) {
 		<main class="mx-6 my-8">
-			@components.Breadcrumbs([]components.Crumb{
-				{Name: props.Office.Name, URL: props.Office.Link()},
-				{Name: props.Game.Name},
-			})
+			// @components.Breadcrumbs([]components.Crumb{
+			// 	{Name: props.Office.Name, URL: props.Office.Link()},
+			// 	{Name: props.Game.Name},
+			// })
 			@GamePageHeading(GamePageHeadingProps{
-				Game:   props.Game,
 				Office: props.Office,
 			})
 			<ul class="mt-2 flex flex-wrap gap-2">
-				@GamePageAction(props.Game.Link() + "/play") {
+				@GamePageAction(props.Office.Link() + "/play") {
 					<div class="flex flex-col gap-2">
 						<div class="w-12 h-12 grid place-items-center border-accent rounded-full border-2">
 							VS
@@ -44,7 +42,7 @@ templ GamePage(props GamePageProps) {
 						<p class="text-center">Play</p>
 					</div>
 				}
-				@GamePageAction(props.Game.Link() + "/pending") {
+				@GamePageAction(props.Office.Link() + "/pending") {
 					<div class="flex flex-col gap-2">
 						<div class="w-12 h-12 grid place-items-center border-accent rounded-full border-2 mx-auto">
 							{ strconv.Itoa(props.PendingMatchCount) }
@@ -53,7 +51,7 @@ templ GamePage(props GamePageProps) {
 					</div>
 				}
 				if props.User.ID == props.Office.AdminRefer {
-					@GamePageAction(props.Game.Link() + "/admin") {
+					@GamePageAction(props.Office.Link() + "/admin") {
 						<div class="flex flex-col gap-2">
 							<div class="w-12 h-12 p-2 grid place-items-center rounded-full">
 								<svg xmlns="http://www.w3.org/2000/svg" fill="#E2E8F0" xmlns:xlink="http://www.w3.org/1999/xlink" version="1.1" id="Capa_1" viewBox="0 0 54 54" xml:space="preserve">
@@ -74,7 +72,7 @@ templ GamePage(props GamePageProps) {
 			</section>
 			<section class="my-6">
 				@components.SectionHeading("Stats", &components.SecondaryLinkProps{
-					URL:  props.Game.Link() + "/stats",
+					URL:  props.Office.Link() + "/stats",
 					Name: "See more",
 				})
 				<div class="mt-2 flex flex-wrap gap-2">
@@ -82,7 +80,7 @@ templ GamePage(props GamePageProps) {
 						<div class="flex flex-col gap-2">
 							<div class="min-w-12 min-h-12 grid place-items-center text-center rounded-full mx-auto">
 								<b>
-									{ strconv.Itoa(len(props.Game.Matches)) }
+									{ strconv.Itoa(len(props.Office.Matches)) }
 								</b>
 							</div>
 							<p class="text-center"><i>Matches Played</i></p>
@@ -105,20 +103,20 @@ templ GamePage(props GamePageProps) {
 			</section>
 			<section class="my-6">
 				@components.SectionHeading("Recent Matches", &components.SecondaryLinkProps{
-					URL:  props.Game.Link() + "/matches",
+					URL:  props.Office.Link() + "/matches",
 					Name: "All Matches",
 				})
-				if len(props.Game.Matches) == 0 {
-					<p>No matches have been played yet. Go and play some { props.Game.Name }!</p>
+				if len(props.Office.Matches) == 0 {
+					<p>No matches have been played yet. Go and play some table tennis!</p>
 				} else {
 					<ul class="flex flex-col gap-2">
 						{{
 						nOfMatchesToShow := 5
 						matchesToShow := []db.Match{}
-						if len(props.Game.Matches) <= nOfMatchesToShow {
-							matchesToShow = props.Game.Matches
+						if len(props.Office.Matches) <= nOfMatchesToShow {
+							matchesToShow = props.Office.Matches
 						} else {
-							matchesToShow = props.Game.Matches[0:nOfMatchesToShow]
+							matchesToShow = props.Office.Matches[0:nOfMatchesToShow]
 						}
 						}}
 						for _, match := range matchesToShow {

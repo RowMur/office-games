@@ -12,13 +12,11 @@ import (
 templ StatsPage(game db.Game, office db.Office, user *db.User, processedGame gameprocessor.Game) {
 	@layout.Base(user) {
 		<main class="mx-6 my-8">
-			@components.Breadcrumbs([]components.Crumb{
-				{Name: office.Name, URL: office.Link()},
-				{Name: game.Name, URL: game.Link()},
-				{Name: "Stats"},
-			})
+			// @components.Breadcrumbs([]components.Crumb{
+			// 	{Name: office.Name, URL: office.Link()},
+			// 	{Name: "Stats"},
+			// })
 			@GamePageHeading(GamePageHeadingProps{
-				Game:   game,
 				Office: office,
 			})
 			<section class="my-6">
