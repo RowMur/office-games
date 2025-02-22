@@ -156,6 +156,8 @@ type Match struct {
 	gorm.Model
 	GameID       uint
 	Game         Game
+	OfficeID     uint
+	Office       Office
 	CreatorID    uint
 	Creator      User
 	Participants []MatchParticipant

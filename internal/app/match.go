@@ -27,6 +27,7 @@ func (a *App) LogMatch(creator *db.User, game *db.Game, note string, winners, lo
 
 	match := db.Match{
 		GameID:     game.ID,
+		OfficeID:   game.OfficeID,
 		CreatorID:  creator.ID,
 		Note:       note,
 		IsHandicap: isHandicap,
