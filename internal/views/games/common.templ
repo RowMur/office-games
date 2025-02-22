@@ -3,10 +3,9 @@ package games
 import "github.com/RowMur/office-games/internal/db"
 
 type GamePageHeadingProps struct {
-	Game   db.Game
 	Office db.Office
 }
 
 templ GamePageHeading(props GamePageHeadingProps) {
-	<h2 class="text-2xl font-semibold my-2 inline-block">{ props.Game.Name } &#64; { props.Office.Name }</h2>
+	<h2 class="text-2xl font-semibold my-2 inline-block">{ props.Office.Name }</h2>
 }

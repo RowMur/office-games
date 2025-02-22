@@ -15,6 +15,12 @@ func (a *App) GetOfficeByCode(code string) (*db.Office, error) {
 
 			return db.Order("LOWER(username)")
 		}).
+		Preload("Matches", func(db *gorm.DB) *gorm.DB {
+			return db.Order("created_at DESC")
+		}).
+		Preload("Matches.Participants.User").
+		Preload("Matches.Creator").
+		Preload("Matches.Approvals").
 		Preload(clause.Associations).
 		First(office).Error
 	if err != nil {

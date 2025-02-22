@@ -44,7 +44,6 @@ func (s *Server) gamesPageHandler(c echo.Context) error {
 		Count(&pendingMatchCount).Error
 
 	return render(c, http.StatusOK, games.GamePage(games.GamePageProps{
-		Game:              *game,
 		Office:            game.Office,
 		User:              user,
 		PendingMatchCount: int(pendingMatchCount),

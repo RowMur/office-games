@@ -62,7 +62,7 @@ func GameAdminPage(game db.Game, office db.Office, user *db.User) templ.Componen
 				return templ_7745c5c3_Err
 			}
 			templ_7745c5c3_Err = GamePageHeading(GamePageHeadingProps{
-				Game:   game,
+				// Game:   game,
 				Office: office,
 			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {

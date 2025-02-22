@@ -19,13 +19,12 @@ type MatchesPageProps struct {
 templ MatchesPage(props MatchesPageProps) {
 	@layout.Base(props.User) {
 		<main class="mx-6 my-8">
-			@components.Breadcrumbs([]components.Crumb{
-				{Name: props.Office.Name, URL: props.Office.Link()},
-				{Name: props.Game.Name, URL: props.Game.Link()},
-				{Name: "Matches"},
-			})
+			// @components.Breadcrumbs([]components.Crumb{
+			// 	{Name: props.Office.Name, URL: props.Office.Link()},
+			// 	{Name: props.Game.Name, URL: props.Game.Link()},
+			// 	{Name: "Matches"},
+			// })
 			@GamePageHeading(GamePageHeadingProps{
-				Game:   props.Game,
 				Office: props.Office,
 			})
 			<section class="my-6">

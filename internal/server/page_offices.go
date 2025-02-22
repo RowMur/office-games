@@ -4,7 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/RowMur/office-games/internal/db"
 	"github.com/RowMur/office-games/internal/views"
+	"github.com/RowMur/office-games/internal/views/games"
 	"github.com/labstack/echo/v4"
 )
 
@@ -23,7 +25,23 @@ func (s *Server) officeHandler(c echo.Context) error {
 		return c.Redirect(http.StatusTemporaryRedirect, "/sign-in")
 	}
 
-	return render(c, http.StatusOK, views.OfficePage(*office, user))
+	processedGame, err := s.gp.Process(office.ID)
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
+
+	var pendingMatchCount int64
+	err = s.db.C.
+		Model(&db.Match{}).
+		Where("office_id = ? AND state = ?", office.ID, db.MatchStatePending).
+		Count(&pendingMatchCount).Error
+
+	return render(c, http.StatusOK, games.GamePage(games.GamePageProps{
+		Office:            *office,
+		User:              user,
+		PendingMatchCount: int(pendingMatchCount),
+		ProcessedGame:     processedGame,
+	}))
 }
 
 func (s *Server) joinOfficeHandler(c echo.Context) error {

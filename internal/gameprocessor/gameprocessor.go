@@ -35,25 +35,25 @@ type ProcessedMatchParticipant struct {
 	PointsApplied int
 }
 
-func (gp *GameProcessor) Process(gameId uint) (*Game, error) {
+func (gp *GameProcessor) Process(officeId uint) (*Game, error) {
 	startTime := time.Now()
 	defer func() {
 		fmt.Printf("GetElos: %s\n", time.Now().Sub(startTime))
 	}()
 
 	if gp.cache != nil {
-		entry := gp.cache.getEntry(gameId)
+		entry := gp.cache.getEntry(officeId)
 		if entry != nil {
 			return entry, nil
 		}
 	}
 
-	return gp.process(gameId)
+	return gp.process(officeId)
 }
 
-func (gp *GameProcessor) process(gameId uint) (*Game, error) {
+func (gp *GameProcessor) process(officeId uint) (*Game, error) {
 	matches := []db.Match{}
-	err := gp.db.C.Where("game_id = ?", gameId).
+	err := gp.db.C.Where("office_id = ?", officeId).
 		Where("state NOT IN (?)", db.MatchStatePending).
 		Order("created_at").
 		Preload("Participants.User").
@@ -157,7 +157,7 @@ func (gp *GameProcessor) process(gameId uint) (*Game, error) {
 	}
 
 	g.players = players
-	gp.cache.setEntry(gameId, &g)
+	gp.cache.setEntry(officeId, &g)
 	return &g, nil
 }
 
