@@ -11,7 +11,6 @@ type MatchesPageProps struct {
 	User          *db.User
 	Matches       []db.Match
 	Office        db.Office
-	Game          db.Game
 	NextPage      string
 	ProcessedGame *gameprocessor.Game
 }
@@ -19,18 +18,13 @@ type MatchesPageProps struct {
 templ MatchesPage(props MatchesPageProps) {
 	@layout.Base(props.User) {
 		<main class="mx-6 my-8">
-			// @components.Breadcrumbs([]components.Crumb{
-			// 	{Name: props.Office.Name, URL: props.Office.Link()},
-			// 	{Name: props.Game.Name, URL: props.Game.Link()},
-			// 	{Name: "Matches"},
-			// })
 			@GamePageHeading(GamePageHeadingProps{
 				Office: props.Office,
 			})
 			<section class="my-6">
 				@components.SectionHeading("Matches", nil)
 				<ul class="flex flex-col gap-2">
-					@Matches(MatchesProps{Matches: props.Matches, Game: props.Game, NextPage: props.NextPage, ProcessedGame: props.ProcessedGame})
+					@Matches(MatchesProps{Matches: props.Matches, NextPage: props.NextPage, ProcessedGame: props.ProcessedGame, Office: props.Office})
 				</ul>
 			</section>
 		</main>
@@ -40,8 +34,8 @@ templ MatchesPage(props MatchesPageProps) {
 type MatchesProps struct {
 	Matches       []db.Match
 	NextPage      string
-	Game          db.Game
 	ProcessedGame *gameprocessor.Game
+	Office        db.Office
 }
 
 templ Matches(props MatchesProps) {
@@ -51,7 +45,7 @@ templ Matches(props MatchesProps) {
 		}}
 		<div
 			if shouldLoadNextPage {
-				hx-get={ props.Game.Link() + "/matches?page=" + props.NextPage }
+				hx-get={ props.Office.Link() + "/matches?page=" + props.NextPage }
 				hx-trigger="revealed"
 				hx-target="#matches-indicator"
 				hx-swap="outerHTML"

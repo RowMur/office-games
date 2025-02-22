@@ -17,7 +17,7 @@ import (
 	"strconv"
 )
 
-func PlayGamePage(game db.Game, office db.Office, players []db.User, endpoint string, user *db.User) templ.Component {
+func PlayGamePage(office db.Office, players []db.User, endpoint string, user *db.User) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -56,14 +56,7 @@ func PlayGamePage(game db.Game, office db.Office, players []db.User, endpoint st
 			}
 			templ_7745c5c3_Err = components.Breadcrumbs([]components.Crumb{
 				{Name: office.Name, URL: office.Link()},
-				{Name: game.Name, URL: game.Link()},
 				{Name: "Play"},
-			}).Render(ctx, templ_7745c5c3_Buffer)
-			if templ_7745c5c3_Err != nil {
-				return templ_7745c5c3_Err
-			}
-			templ_7745c5c3_Err = GamePageHeading(GamePageHeadingProps{
-				Office: office,
 			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -96,16 +89,21 @@ type PlayMatchFormData struct {
 	Losers  []string
 }
 
-func ValidatePlayMatchForm(game *db.Game, formData PlayMatchFormData) error {
+const (
+	MinParticipants = 2
+	MaxParticipants = 4
+)
+
+func ValidatePlayMatchForm(formData PlayMatchFormData) error {
 	participantCount := len(formData.Winners) + len(formData.Losers)
-	if participantCount < game.MinParticipants {
-		return errors.New(fmt.Sprintf("At least %d participants are required", game.MinParticipants))
+	if participantCount < MinParticipants {
+		return errors.New(fmt.Sprintf("At least %d participants are required", MinParticipants))
 	}
-	if participantCount > game.MaxParticipants {
-		return errors.New(fmt.Sprintf("At most %d participants are allowed", game.MaxParticipants))
+	if participantCount > MaxParticipants {
+		return errors.New(fmt.Sprintf("At most %d participants are allowed", MaxParticipants))
 	}
 
-	if game.GameType == db.GameTypeHeadToHead && len(formData.Winners) != len(formData.Losers) {
+	if len(formData.Winners) != len(formData.Losers) {
 		return errors.New("The number of winners and losers must be equal")
 	}
 
@@ -149,7 +147,7 @@ func PlayMatchForm(err error, players []db.User, endpoint string) templ.Componen
 		var templ_7745c5c3_Var4 string
 		templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(endpoint)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/play_game.templ`, Line: 63, Col: 25}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/play_game.templ`, Line: 64, Col: 25}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 		if templ_7745c5c3_Err != nil {
@@ -168,7 +166,7 @@ func PlayMatchForm(err error, players []db.User, endpoint string) templ.Componen
 		var templ_7745c5c3_Var5 string
 		templ_7745c5c3_Var5, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/play_game.templ`, Line: 74, Col: 13}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/play_game.templ`, Line: 75, Col: 13}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var5))
 		if templ_7745c5c3_Err != nil {
@@ -181,7 +179,7 @@ func PlayMatchForm(err error, players []db.User, endpoint string) templ.Componen
 		var templ_7745c5c3_Var6 string
 		templ_7745c5c3_Var6, templ_7745c5c3_Err = templ.JoinStringErrs(name)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/play_game.templ`, Line: 75, Col: 15}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/play_game.templ`, Line: 76, Col: 15}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var6))
 		if templ_7745c5c3_Err != nil {
@@ -239,7 +237,7 @@ func PlayerSelect(players []db.User, key string) templ.Component {
 		var templ_7745c5c3_Var8 string
 		templ_7745c5c3_Var8, templ_7745c5c3_Err = templ.JoinStringErrs(key)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/play_game.templ`, Line: 93, Col: 17}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/play_game.templ`, Line: 94, Col: 17}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var8))
 		if templ_7745c5c3_Err != nil {
@@ -252,7 +250,7 @@ func PlayerSelect(players []db.User, key string) templ.Component {
 		var templ_7745c5c3_Var9 string
 		templ_7745c5c3_Var9, templ_7745c5c3_Err = templ.JoinStringErrs(key)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/play_game.templ`, Line: 93, Col: 53}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/play_game.templ`, Line: 94, Col: 53}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var9))
 		if templ_7745c5c3_Err != nil {
@@ -265,7 +263,7 @@ func PlayerSelect(players []db.User, key string) templ.Component {
 		var templ_7745c5c3_Var10 string
 		templ_7745c5c3_Var10, templ_7745c5c3_Err = templ.JoinStringErrs(key)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/play_game.templ`, Line: 94, Col: 19}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/play_game.templ`, Line: 95, Col: 19}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var10))
 		if templ_7745c5c3_Err != nil {
@@ -278,7 +276,7 @@ func PlayerSelect(players []db.User, key string) templ.Component {
 		var templ_7745c5c3_Var11 string
 		templ_7745c5c3_Var11, templ_7745c5c3_Err = templ.JoinStringErrs(key)
 		if templ_7745c5c3_Err != nil {
-			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/play_game.templ`, Line: 94, Col: 30}
+			return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/play_game.templ`, Line: 95, Col: 30}
 		}
 		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var11))
 		if templ_7745c5c3_Err != nil {
@@ -297,7 +295,7 @@ func PlayerSelect(players []db.User, key string) templ.Component {
 				var templ_7745c5c3_Var12 string
 				templ_7745c5c3_Var12, templ_7745c5c3_Err = templ.JoinStringErrs(strconv.Itoa(int(player.ID)))
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/play_game.templ`, Line: 97, Col: 48}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/play_game.templ`, Line: 98, Col: 48}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var12))
 				if templ_7745c5c3_Err != nil {
@@ -310,7 +308,7 @@ func PlayerSelect(players []db.User, key string) templ.Component {
 				var templ_7745c5c3_Var13 string
 				templ_7745c5c3_Var13, templ_7745c5c3_Err = templ.JoinStringErrs(player.Username)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/play_game.templ`, Line: 97, Col: 68}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/play_game.templ`, Line: 98, Col: 68}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var13))
 				if templ_7745c5c3_Err != nil {
@@ -363,7 +361,7 @@ func PlayMatchFormErrors(err error) templ.Component {
 			var templ_7745c5c3_Var15 string
 			templ_7745c5c3_Var15, templ_7745c5c3_Err = templ.JoinStringErrs(err.Error())
 			if templ_7745c5c3_Err != nil {
-				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/play_game.templ`, Line: 106, Col: 40}
+				return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/play_game.templ`, Line: 107, Col: 40}
 			}
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var15))
 			if templ_7745c5c3_Err != nil {

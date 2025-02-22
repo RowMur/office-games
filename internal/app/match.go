@@ -10,7 +10,7 @@ import (
 
 func (a *App) GetMatchById(id string) (*db.Match, error) {
 	match := db.Match{}
-	err := a.db.C.Preload("Game.Office").
+	err := a.db.C.Preload("Office").
 		Preload("Participants.User").
 		Preload("Creator").
 		Preload("Approvals").
@@ -22,12 +22,11 @@ func (a *App) GetMatchById(id string) (*db.Match, error) {
 	return &match, nil
 }
 
-func (a *App) LogMatch(creator *db.User, game *db.Game, note string, winners, losers []string, isHandicap bool) (*db.Match, error) {
+func (a *App) LogMatch(creator *db.User, office *db.Office, note string, winners, losers []string, isHandicap bool) (*db.Match, error) {
 	tx := a.db.C.Begin()
 
 	match := db.Match{
-		GameID:     game.ID,
-		OfficeID:   game.OfficeID,
+		OfficeID:   office.ID,
 		CreatorID:  creator.ID,
 		Note:       note,
 		IsHandicap: isHandicap,
@@ -120,7 +119,7 @@ func (a *App) ApproveMatch(user *db.User, match *db.Match) error {
 }
 
 func (a *App) IsMatchApproved(tx *gorm.DB, match *db.Match) (bool, error) {
-	err := tx.Preload("Game.Office").
+	err := tx.Preload("Office").
 		Preload("Participants").
 		Preload("Approvals").
 		Find(&match, "id = ?", match.ID).Error
@@ -132,7 +131,7 @@ func (a *App) IsMatchApproved(tx *gorm.DB, match *db.Match) (bool, error) {
 }
 
 func (a *App) processApprovedMatch(tx *gorm.DB, match *db.Match) error {
-	err := tx.Preload("Game.Office").Find(&match, "id = ?", match.ID).Error
+	err := tx.Preload("Office").Find(&match, "id = ?", match.ID).Error
 	if err != nil {
 		return err
 	}
@@ -143,6 +142,6 @@ func (a *App) processApprovedMatch(tx *gorm.DB, match *db.Match) error {
 		return err
 	}
 
-	a.gp.InvalidateGameCache(match.GameID)
+	a.gp.InvalidateGameCache(match.OfficeID)
 	return nil
 }

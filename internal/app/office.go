@@ -12,11 +12,10 @@ func (a *App) GetOfficeByCode(code string) (*db.Office, error) {
 	office := &db.Office{}
 	err := a.db.C.Where("code = ?", code).
 		Preload("Players", func(db *gorm.DB) *gorm.DB {
-
 			return db.Order("LOWER(username)")
 		}).
 		Preload("Matches", func(db *gorm.DB) *gorm.DB {
-			return db.Order("created_at DESC")
+			return db.Where("state != ?", "pending").Order("created_at DESC")
 		}).
 		Preload("Matches.Participants.User").
 		Preload("Matches.Creator").
@@ -36,7 +35,7 @@ func (a *App) GetOfficeByCode(code string) (*db.Office, error) {
 
 func (a *App) JoinOffice(user *db.User, code string) (error, error) {
 	office := &db.Office{}
-	err := a.db.C.Where("code = ?", code).Preload("Players").Preload("Games").First(office).Error
+	err := a.db.C.Where("code = ?", code).Preload("Players").First(office).Error
 	if err != nil {
 		if db.IsRecordNotFoundError(err) {
 			return errors.New("Office not found"), nil
@@ -69,13 +68,6 @@ func (a *App) CreateOffice(admin *db.User, name string) (*db.Office, error) {
 
 	office := &db.Office{Name: name, AdminRefer: admin.ID}
 	err := tx.Create(office).Error
-	if err != nil {
-		tx.Rollback()
-		return nil, err
-	}
-
-	// Create the default game
-	err = tx.Model(&office).Association("Games").Append(&db.Game{Name: "Default Game"})
 	if err != nil {
 		tx.Rollback()
 		return nil, err

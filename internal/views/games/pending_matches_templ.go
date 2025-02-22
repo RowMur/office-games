@@ -16,7 +16,7 @@ import (
 	"strconv"
 )
 
-func PendingMatchesPage(game db.Game, office db.Office, pendingMatches []db.Match, user *db.User) templ.Component {
+func PendingMatchesPage(office db.Office, pendingMatches []db.Match, user *db.User) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -55,7 +55,6 @@ func PendingMatchesPage(game db.Game, office db.Office, pendingMatches []db.Matc
 			}
 			templ_7745c5c3_Err = components.Breadcrumbs([]components.Crumb{
 				{Name: office.Name, URL: office.Link()},
-				{Name: game.Name, URL: game.Link()},
 				{Name: "Pending Matches"},
 			}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
@@ -72,20 +71,7 @@ func PendingMatchesPage(game db.Game, office db.Office, pendingMatches []db.Matc
 				return templ_7745c5c3_Err
 			}
 			if len(pendingMatches) == 0 {
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<p>No matches are pending approval. Go and play some ")
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				var templ_7745c5c3_Var3 string
-				templ_7745c5c3_Var3, templ_7745c5c3_Err = templ.JoinStringErrs(game.Name)
-				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/pending_matches.templ`, Line: 25, Col: 69}
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var3))
-				if templ_7745c5c3_Err != nil {
-					return templ_7745c5c3_Err
-				}
-				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("!</p>")
+				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<p>No matches are pending approval. Go and play some table tennis!</p>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -99,8 +85,8 @@ func PendingMatchesPage(game db.Game, office db.Office, pendingMatches []db.Matc
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
-					var templ_7745c5c3_Var4 templ.SafeURL = templ.SafeURL(fmt.Sprintf("/offices/%s/games/%s/pending/%s", office.Code, strconv.Itoa(int(game.ID)), strconv.Itoa(int(match.ID))))
-					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var4)))
+					var templ_7745c5c3_Var3 templ.SafeURL = templ.SafeURL(fmt.Sprintf(office.Link()+"/pending/%s", strconv.Itoa(int(match.ID))))
+					_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(string(templ_7745c5c3_Var3)))
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
