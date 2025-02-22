@@ -16,14 +16,14 @@ type WinLosses struct {
 
 type UserWinLosses map[uint]WinLosses
 
-type GamePageProps struct {
+type OfficePageProps struct {
 	Office            db.Office
 	User              *db.User
 	PendingMatchCount int
 	ProcessedGame     *gameprocessor.Game
 }
 
-templ GamePage(props GamePageProps) {
+templ OfficePage(props OfficePageProps) {
 	@layout.Base(props.User) {
 		<main class="mx-6 my-8">
 			// @components.Breadcrumbs([]components.Crumb{
