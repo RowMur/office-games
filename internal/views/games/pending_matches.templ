@@ -8,12 +8,11 @@ import (
 	"strconv"
 )
 
-templ PendingMatchesPage(game db.Game, office db.Office, pendingMatches []db.Match, user *db.User) {
+templ PendingMatchesPage(office db.Office, pendingMatches []db.Match, user *db.User) {
 	@layout.Base(user) {
 		<main class="mx-6 my-8">
 			@components.Breadcrumbs([]components.Crumb{
 				{Name: office.Name, URL: office.Link()},
-				{Name: game.Name, URL: game.Link()},
 				{Name: "Pending Matches"},
 			})
 			@GamePageHeading(GamePageHeadingProps{
@@ -22,11 +21,11 @@ templ PendingMatchesPage(game db.Game, office db.Office, pendingMatches []db.Mat
 			<section class="my-6">
 				<h4 class="text-lg font-semibold mb-2">Pending Matches</h4>
 				if len(pendingMatches) == 0 {
-					<p>No matches are pending approval. Go and play some { game.Name }!</p>
+					<p>No matches are pending approval. Go and play some table tennis!</p>
 				} else {
 					<ul class="flex flex-col gap-2">
 						for _, match := range pendingMatches {
-							<a href={ templ.SafeURL(fmt.Sprintf("/offices/%s/games/%s/pending/%s", office.Code, strconv.Itoa(int(game.ID)), strconv.Itoa(int(match.ID)))) }>
+							<a href={ templ.SafeURL(fmt.Sprintf(office.Link()+"/pending/%s", strconv.Itoa(int(match.ID)))) }>
 								@components.Match(match, true, nil)
 							</a>
 						}

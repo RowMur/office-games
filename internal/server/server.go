@@ -36,7 +36,6 @@ func (s *Server) Run() {
 	signedIn := e.Group("", enforceSignedIn)
 	signedOut := e.Group("", enforceSignedOut)
 	officeMember := signedIn.Group("", s.enforceMember)
-	officeAdmin := signedIn.Group("", s.enforceAdmin)
 
 	e.GET("/", pageHandler)
 	e.GET("/faqs", faqPageHandler)
@@ -65,29 +64,24 @@ func (s *Server) Run() {
 	signedIn.POST("/offices/join", s.joinOfficeHandler)
 	signedIn.POST("/offices/create", s.createOfficeHandler)
 
-	officeMember.GET("/offices/:code/games/:id", s.gamesPageHandler)
-	officeAdmin.GET("/offices/:code/games/create", s.createGameHandler)
-	officeAdmin.POST("/offices/:code/games/create", s.createGameFormHandler)
+	officeMember.GET("/offices/:code/play", s.gamesPlayPageHandler)
+	officeMember.POST("/offices/:code/play", s.gamesPlayFormHandler)
 
-	officeAdmin.POST("/offices/:code/games/:id", s.editGameHandler)
-	officeAdmin.DELETE("/offices/:code/games/:id", s.deleteGameHandler)
+	officeMember.GET("/offices/:code/pending", s.gamePendingMatchesPage)
+	officeMember.GET("/offices/:code/pending/:matchId", s.pendingMatchPage)
+	officeMember.GET("/offices/:code/pending/:matchId/approve", s.pendingMatchApproveHandler)
+	officeMember.DELETE("/offices/:code/pending/:matchId/delete", s.pendingMatchDeleteHandler)
 
-	officeMember.GET("/offices/:code/games/:id/play", s.gamesPlayPageHandler)
-	officeMember.POST("/offices/:code/games/:id/play", s.gamesPlayFormHandler)
+	officeMember.GET("/offices/:code/matches", s.matchesPageHandler)
 
-	officeMember.GET("/offices/:code/games/:id/pending", s.gamePendingMatchesPage)
-	officeMember.GET("/offices/:code/games/:id/pending/:matchId", s.pendingMatchPage)
-	officeMember.GET("/offices/:code/games/:id/pending/:matchId/approve", s.pendingMatchApproveHandler)
-	officeMember.DELETE("/offices/:code/games/:id/pending/:matchId/delete", s.pendingMatchDeleteHandler)
-
-	officeAdmin.GET("/offices/:code/games/:id/admin", s.gameAdminPage)
-
-	officeMember.GET("/offices/:code/games/:id/matches", s.matchesPageHandler)
-
-	officeMember.GET("/offices/:code/games/:id/stats", s.gameStatsPageHandler)
-	officeMember.POST("/offices/:code/games/:id/stats", s.gamePlayerStatsPostHandler)
+	officeMember.GET("/offices/:code/stats", s.gameStatsPageHandler)
+	officeMember.POST("/offices/:code/stats", s.gamePlayerStatsPostHandler)
 
 	signedIn.GET("/elo", s.eloPageHandler)
+
+	e.Any("/offices/:code/games/*", func(c echo.Context) error {
+		return c.Redirect(301, "/offices/"+c.Param("code"))
+	})
 
 	e.Logger.Fatal(e.Start(":8080"))
 }

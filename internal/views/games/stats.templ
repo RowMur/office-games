@@ -9,13 +9,9 @@ import (
 	"strconv"
 )
 
-templ StatsPage(game db.Game, office db.Office, user *db.User, processedGame gameprocessor.Game) {
+templ StatsPage(office db.Office, user *db.User, processedGame gameprocessor.Game) {
 	@layout.Base(user) {
 		<main class="mx-6 my-8">
-			// @components.Breadcrumbs([]components.Crumb{
-			// 	{Name: office.Name, URL: office.Link()},
-			// 	{Name: "Stats"},
-			// })
 			@GamePageHeading(GamePageHeadingProps{
 				Office: office,
 			})
@@ -31,7 +27,7 @@ templ StatsPage(game db.Game, office db.Office, user *db.User, processedGame gam
 			<section class="my-6">
 				<div class="flex gap-4 mb-2 items-center">
 					<h3 class="text-lg font-semibold">Player Stats</h3>
-					<select name="player" class="bg-back px-2 py-1 rounded-md" hx-trigger="change" hx-post={ game.Link() + "/stats" } hx-swap="innerHTML" hx-target="#player-stats">
+					<select name="player" class="bg-back px-2 py-1 rounded-md" hx-trigger="change" hx-post={ office.Link() + "/stats" } hx-swap="innerHTML" hx-target="#player-stats">
 						for _, player := range office.Players {
 							if !player.NonPlayer {
 								<option

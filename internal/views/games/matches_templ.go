@@ -19,7 +19,6 @@ type MatchesPageProps struct {
 	User          *db.User
 	Matches       []db.Match
 	Office        db.Office
-	Game          db.Game
 	NextPage      string
 	ProcessedGame *gameprocessor.Game
 }
@@ -79,7 +78,7 @@ func MatchesPage(props MatchesPageProps) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = Matches(MatchesProps{Matches: props.Matches, Game: props.Game, NextPage: props.NextPage, ProcessedGame: props.ProcessedGame}).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = Matches(MatchesProps{Matches: props.Matches, NextPage: props.NextPage, ProcessedGame: props.ProcessedGame, Office: props.Office}).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -100,8 +99,8 @@ func MatchesPage(props MatchesPageProps) templ.Component {
 type MatchesProps struct {
 	Matches       []db.Match
 	NextPage      string
-	Game          db.Game
 	ProcessedGame *gameprocessor.Game
+	Office        db.Office
 }
 
 func Matches(props MatchesProps) templ.Component {
@@ -138,9 +137,9 @@ func Matches(props MatchesProps) templ.Component {
 					return templ_7745c5c3_Err
 				}
 				var templ_7745c5c3_Var4 string
-				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(props.Game.Link() + "/matches?page=" + props.NextPage)
+				templ_7745c5c3_Var4, templ_7745c5c3_Err = templ.JoinStringErrs(props.Office.Link() + "/matches?page=" + props.NextPage)
 				if templ_7745c5c3_Err != nil {
-					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/matches.templ`, Line: 54, Col: 66}
+					return templ.Error{Err: templ_7745c5c3_Err, FileName: `internal/views/games/matches.templ`, Line: 48, Col: 68}
 				}
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString(templ.EscapeString(templ_7745c5c3_Var4))
 				if templ_7745c5c3_Err != nil {

@@ -9,16 +9,12 @@ import (
 	"strconv"
 )
 
-templ PlayGamePage(game db.Game, office db.Office, players []db.User, endpoint string, user *db.User) {
+templ PlayGamePage(office db.Office, players []db.User, endpoint string, user *db.User) {
 	@layout.Base(user) {
 		<main class="mx-6 my-8">
 			@components.Breadcrumbs([]components.Crumb{
 				{Name: office.Name, URL: office.Link()},
-				{Name: game.Name, URL: game.Link()},
 				{Name: "Play"},
-			})
-			@GamePageHeading(GamePageHeadingProps{
-				Office: office,
 			})
 			<section class="my-6">
 				<h4 class="text-lg font-semibold mb-2">Play a Match</h4>
@@ -34,16 +30,21 @@ type PlayMatchFormData struct {
 	Losers  []string
 }
 
-func ValidatePlayMatchForm(game *db.Game, formData PlayMatchFormData) error {
+const (
+	MinParticipants = 2
+	MaxParticipants = 4
+)
+
+func ValidatePlayMatchForm(formData PlayMatchFormData) error {
 	participantCount := len(formData.Winners) + len(formData.Losers)
-	if participantCount < game.MinParticipants {
-		return errors.New(fmt.Sprintf("At least %d participants are required", game.MinParticipants))
+	if participantCount < MinParticipants {
+		return errors.New(fmt.Sprintf("At least %d participants are required", MinParticipants))
 	}
-	if participantCount > game.MaxParticipants {
-		return errors.New(fmt.Sprintf("At most %d participants are allowed", game.MaxParticipants))
+	if participantCount > MaxParticipants {
+		return errors.New(fmt.Sprintf("At most %d participants are allowed", MaxParticipants))
 	}
 
-	if game.GameType == db.GameTypeHeadToHead && len(formData.Winners) != len(formData.Losers) {
+	if len(formData.Winners) != len(formData.Losers) {
 		return errors.New("The number of winners and losers must be equal")
 	}
 

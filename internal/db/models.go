@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"math/rand"
-	"strconv"
 
 	"gorm.io/gorm"
 )
@@ -12,7 +11,6 @@ import (
 var Models = []interface{}{
 	&User{},
 	&Office{},
-	&Game{},
 	&Match{},
 	&MatchApproval{},
 	&MatchParticipant{},
@@ -25,7 +23,6 @@ type Office struct {
 	AdminRefer uint
 	Admin      User   `gorm:"foreignKey:AdminRefer"`
 	Players    []User `gorm:"many2many:user_offices;"`
-	Games      []Game
 	Matches    []Match
 }
 
@@ -59,58 +56,6 @@ func (o *Office) AfterCreate(tx *gorm.DB) (err error) {
 	if o.Code == "" {
 		// Generate a code for the office
 		err = tx.Model(&o).Update("Code", generateCode()).Error
-		if err != nil {
-			return
-		}
-	}
-
-	return
-}
-
-const (
-	GameTypeHeadToHead       = "head_to_head"
-	GameTypeWinnersAndLosers = "winners_and_losers"
-	// Need to add support for this
-	// GameTypeOrderedResult = "ordered_result"
-)
-
-type GameType struct {
-	Value   string
-	Display string
-}
-
-var GameTypes = []GameType{
-	{Value: GameTypeHeadToHead, Display: "Head to Head"},
-	{Value: GameTypeWinnersAndLosers, Display: "Winners and Losers"},
-}
-
-type Game struct {
-	gorm.Model
-	Name            string
-	OfficeID        uint
-	Office          Office
-	Matches         []Match
-	GameType        string `gorm:"default:'head_to_head'"`
-	MinParticipants int    `gorm:"default:2"`
-	MaxParticipants int    `gorm:"default:4"`
-}
-
-func (g *Game) Link() string {
-	return fmt.Sprintf("/offices/%s/games/%s", g.Office.Code, strconv.Itoa(int(g.ID)))
-}
-
-func (g *Game) BeforeDelete(tx *gorm.DB) (err error) {
-	if g.ID == 0 {
-		return errors.New("Game ID is 0")
-	}
-
-	matches := []Match{}
-	err = tx.Where("game_id = ?", g.ID).Find(&matches).Error
-	if err != nil {
-		return
-	}
-	if len(matches) != 0 {
-		err = tx.Delete(matches).Error
 		if err != nil {
 			return
 		}
@@ -155,8 +100,6 @@ const (
 
 type Match struct {
 	gorm.Model
-	GameID       uint
-	Game         Game
 	OfficeID     uint
 	Office       Office
 	CreatorID    uint
@@ -211,7 +154,7 @@ func (m *Match) IsApprovedByLosers() bool {
 }
 
 func (m *Match) IsAdminApproved() bool {
-	adminUserId := m.Game.Office.AdminRefer
+	adminUserId := m.Office.AdminRefer
 
 	// // Don't allow admin's to "super" approve their own matches
 	// for _, participant := range m.Participants {
