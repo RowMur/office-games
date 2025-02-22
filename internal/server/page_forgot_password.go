@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/RowMur/office-games/internal/views"
@@ -38,7 +37,6 @@ func (s *Server) forgotPasswordFormHandler(c echo.Context) error {
 
 	err = sendForgotPasswordEmail(c, user)
 	if err != nil {
-		fmt.Println("sendForgotPasswordEmail error", err.Error())
 		data := views.ForgotPasswordFormData{Username: username}
 		errs := views.ForgotPasswordFormErrors{Submit: "Failed to send recovery email"}
 		return render(c, http.StatusOK, views.ForgotPasswordForm(data, errs))

@@ -1,7 +1,6 @@
 package server
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/RowMur/office-games/internal/views"
@@ -9,7 +8,6 @@ import (
 )
 
 func signInHandler(c echo.Context) error {
-	fmt.Printf("%+v\n", c.QueryParams())
 	fromParam := c.QueryParam("from")
 	if fromParam != "" {
 		cookie := &http.Cookie{

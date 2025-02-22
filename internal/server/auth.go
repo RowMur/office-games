@@ -73,9 +73,7 @@ func (s *Server) authMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 
 func enforceSignedIn(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
-		fmt.Printf("enforceSignedIn: %+v\n", c.Request().Method)
 		if userFromContext(c) == nil {
-			fmt.Println("returning redirect in enforceSignedIn")
 			return c.Redirect(http.StatusTemporaryRedirect, "/sign-in")
 		}
 		return next(c)
@@ -91,7 +89,6 @@ func enforceSignedOut(next echo.HandlerFunc) echo.HandlerFunc {
 				return c.JSON(http.StatusOK, map[string]string{"token": token.String})
 
 			}
-			fmt.Println("returning redirect in enforceSignedOut")
 			return c.Redirect(http.StatusTemporaryRedirect, "/")
 		}
 		return next(c)
