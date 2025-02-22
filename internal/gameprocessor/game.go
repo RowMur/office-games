@@ -121,7 +121,9 @@ func (g *Game) GetPlayer(userId uint) *Player {
 func (g *Game) RankedPlayers() []Player {
 	players := []Player{}
 	for _, player := range g.players {
-		players = append(players, player)
+		if player.IsActive {
+			players = append(players, player)
+		}
 	}
 
 	sort.Slice(players, func(i, j int) bool {

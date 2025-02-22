@@ -38,7 +38,7 @@ type ProcessedMatchParticipant struct {
 func (gp *GameProcessor) Process(officeId uint) (*Game, error) {
 	startTime := time.Now()
 	defer func() {
-		fmt.Printf("GetElos: %s\n", time.Now().Sub(startTime))
+		fmt.Printf("GetElos: %s\n", time.Since(startTime))
 	}()
 
 	if gp.cache != nil {
@@ -71,14 +71,24 @@ func (gp *GameProcessor) process(officeId uint) (*Game, error) {
 			Participants: map[uint]*ProcessedMatchParticipant{},
 		}
 
+		timeSinceMatch := time.Since(match.CreatedAt)
+		activatePlayers := timeSinceMatch < 8*7*24*time.Hour // 8 weeks
+
 		winners := []Player{}
 		losers := []Player{}
 		for _, participant := range match.Participants {
-			if _, ok := players[participant.UserID]; !ok {
+
+			if player, ok := players[participant.UserID]; !ok {
 				players[participant.UserID] = Player{
-					User:   participant.User,
-					Points: eloStartingPoints,
+					User:     participant.User,
+					Points:   eloStartingPoints,
+					IsActive: activatePlayers,
 				}
+			} else {
+				if !player.IsActive && activatePlayers {
+					player.IsActive = true
+				}
+				players[participant.UserID] = player
 			}
 
 			if participant.Result == "win" {

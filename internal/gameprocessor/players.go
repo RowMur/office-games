@@ -8,6 +8,7 @@ import (
 
 type Player struct {
 	User      db.User
+	IsActive  bool
 	Points    int
 	WinCount  int
 	LossCount int
