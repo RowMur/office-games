@@ -1,9 +1,8 @@
-package gameprocessor
+package officeprocessor
 
 import (
 	"fmt"
 	"sort"
-	"strconv"
 )
 
 type playerCombination struct {
@@ -91,15 +90,15 @@ func (pcs *playerCombinations) orderedPlayerCombinationsForUser(userId uint) []p
 	return ret
 }
 
-func print(pcs []playerCombination) string {
-	str := ""
-	for _, pc := range pcs {
-		strMatchCount := strconv.Itoa(pc.MatchCount())
-		str += pc.Player1.User.Username + " and " + pc.Player2.User.Username + ": " + strMatchCount + "\n"
-	}
+// func print(pcs []playerCombination) string {
+// 	str := ""
+// 	for _, pc := range pcs {
+// 		strMatchCount := strconv.Itoa(pc.MatchCount())
+// 		str += pc.Player1.User.Username + " and " + pc.Player2.User.Username + ": " + strMatchCount + "\n"
+// 	}
 
-	return str
-}
+// 	return str
+// }
 
 func sortPlayerCombinations(pcs []playerCombination) {
 	sort.Slice(pcs, func(i, j int) bool {

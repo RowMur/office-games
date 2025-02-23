@@ -11,10 +11,10 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"fmt"
 	"github.com/RowMur/office-table-tennis/internal/db"
-	"github.com/RowMur/office-table-tennis/internal/gameprocessor"
+	"github.com/RowMur/office-table-tennis/internal/officeprocessor"
 )
 
-func Match(match db.Match, showApprovalState bool, g *gameprocessor.Game) templ.Component {
+func Match(match db.Match, showApprovalState bool, o *officeprocessor.Office) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -39,11 +39,11 @@ func Match(match db.Match, showApprovalState bool, g *gameprocessor.Game) templ.
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = MatchPlayerList(match.Winners(), true, g, match).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = MatchPlayerList(match.Winners(), true, o, match).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = MatchPlayerList(match.Losers(), false, g, match).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = MatchPlayerList(match.Losers(), false, o, match).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -136,7 +136,7 @@ func Match(match db.Match, showApprovalState bool, g *gameprocessor.Game) templ.
 	})
 }
 
-func MatchPlayerList(players []db.MatchParticipant, isWinners bool, g *gameprocessor.Game, match db.Match) templ.Component {
+func MatchPlayerList(players []db.MatchParticipant, isWinners bool, o *officeprocessor.Office, match db.Match) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -184,7 +184,7 @@ func MatchPlayerList(players []db.MatchParticipant, isWinners bool, g *gameproce
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
-		templ_7745c5c3_Err = ListOfUsers(players, g, match).Render(ctx, templ_7745c5c3_Buffer)
+		templ_7745c5c3_Err = ListOfUsers(players, o, match).Render(ctx, templ_7745c5c3_Buffer)
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}
@@ -240,7 +240,7 @@ func MatchApprovalState(isApproved bool) templ.Component {
 	})
 }
 
-func ListOfUsers(users []db.MatchParticipant, g *gameprocessor.Game, match db.Match) templ.Component {
+func ListOfUsers(users []db.MatchParticipant, g *officeprocessor.Office, match db.Match) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -274,7 +274,7 @@ func ListOfUsers(users []db.MatchParticipant, g *gameprocessor.Game, match db.Ma
 			}
 
 			dir := "+"
-			var mp *gameprocessor.ProcessedMatchParticipant
+			var mp *officeprocessor.ProcessedMatchParticipant
 			if g != nil {
 				m := g.GetMatch(match.ID)
 				if m != nil {

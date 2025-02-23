@@ -6,7 +6,7 @@ import (
 
 	"github.com/RowMur/office-table-tennis/internal/app"
 	"github.com/RowMur/office-table-tennis/internal/db"
-	"github.com/RowMur/office-table-tennis/internal/gameprocessor"
+	"github.com/RowMur/office-table-tennis/internal/officeprocessor"
 	"github.com/RowMur/office-table-tennis/internal/user"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -16,18 +16,18 @@ type Server struct {
 	us  *user.UserService
 	db  *db.Database
 	app *app.App
-	gp  *gameprocessor.GameProcessor
+	op  *officeprocessor.Officeprocessor
 }
 
 func NewServer() *Server {
 	database := db.Init()
-	gp := gameprocessor.NewGameProcessor(database)
-	app := app.NewApp(database, gp)
+	op := officeprocessor.Newofficeprocessor(database)
+	app := app.NewApp(database, op)
 	return &Server{
 		db:  &database,
 		us:  user.NewUserService(database),
 		app: app,
-		gp:  gp,
+		op:  op,
 	}
 }
 
@@ -48,6 +48,7 @@ func (s *Server) Run() {
 	signedIn := e.Group("", enforceSignedIn)
 	signedOut := e.Group("", enforceSignedOut)
 	officeMember := signedIn.Group("", s.enforceMember)
+	officeAdmin := signedIn.Group("", s.enforceAdmin)
 
 	e.GET("/", pageHandler)
 	e.GET("/faqs", faqPageHandler)
@@ -89,7 +90,8 @@ func (s *Server) Run() {
 	officeMember.GET("/offices/:code/stats", s.gameStatsPageHandler)
 	officeMember.POST("/offices/:code/stats", s.gamePlayerStatsPostHandler)
 
-	signedIn.GET("/elo", s.eloPageHandler)
+	officeMember.GET("/offices/:code/tournaments/:id", s.tournamentPageHandler)
+	officeAdmin.POST("/offices/:code/tournaments", s.createTournamentFormHandler)
 
 	e.Any("/offices/:code/games/*", func(c echo.Context) error {
 		return c.Redirect(301, "/offices/"+c.Param("code"))

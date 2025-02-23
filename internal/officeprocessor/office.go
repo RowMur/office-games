@@ -1,32 +1,34 @@
-package gameprocessor
+package officeprocessor
 
 import (
 	"sort"
 )
 
-type Game struct {
+type Office struct {
 	matches                map[uint]*processedMatch
 	players                map[uint]Player
 	playerPairings         *playerCombinations
 	playerOpposingPairings *playerCombinations
+	tournaments            map[uint]Tournament
 }
 
-func newGame() Game {
-	return Game{
+func newOffice() Office {
+	return Office{
 		matches:                map[uint]*processedMatch{},
 		players:                map[uint]Player{},
 		playerPairings:         newPlayerCombinations(),
 		playerOpposingPairings: newPlayerCombinations(),
+		tournaments:            map[uint]Tournament{},
 	}
 }
 
-func (g *Game) MatchesPlayed() int {
-	return len(g.matches)
+func (o *Office) MatchesPlayed() int {
+	return len(o.matches)
 }
 
-func (g *Game) RecordElo() (player *Player) {
+func (o *Office) RecordElo() (player *Player) {
 	recordHolder := &Player{}
-	for _, player := range g.players {
+	for _, player := range o.players {
 		if player.RecordPoints > recordHolder.RecordPoints {
 			recordHolder = &player
 		}
@@ -35,9 +37,9 @@ func (g *Game) RecordElo() (player *Player) {
 	return recordHolder
 }
 
-func (g *Game) MostPlayedPlayer() (player *Player) {
+func (o *Office) MostPlayedPlayer() (player *Player) {
 	mostPlayed := &Player{}
-	for _, player := range g.players {
+	for _, player := range o.players {
 		if player.MatchesPlayed() > mostPlayed.MatchesPlayed() {
 			mostPlayed = &player
 		}
@@ -46,8 +48,8 @@ func (g *Game) MostPlayedPlayer() (player *Player) {
 	return mostPlayed
 }
 
-func (g *Game) HighestRankedPlayer() (player *Player) {
-	rankedPlayers := g.RankedPlayers()
+func (o *Office) HighestRankedPlayer() (player *Player) {
+	rankedPlayers := o.RankedPlayers()
 	if len(rankedPlayers) > 0 {
 		return &rankedPlayers[0]
 	}
@@ -55,9 +57,9 @@ func (g *Game) HighestRankedPlayer() (player *Player) {
 	return nil
 }
 
-func (g *Game) PlayerCountCounts() map[int]int {
+func (o *Office) PlayerCountCounts() map[int]int {
 	counts := map[int]int{}
-	for _, match := range g.matches {
+	for _, match := range o.matches {
 		count := len(match.Participants)
 		if _, ok := counts[count]; !ok {
 			counts[count] = 0
@@ -69,8 +71,8 @@ func (g *Game) PlayerCountCounts() map[int]int {
 	return counts
 }
 
-func (g *Game) MostCommonPairing() *playerCombination {
-	pairings := g.playerPairings.orderedPlayerCombinations()
+func (o *Office) MostCommonPairing() *playerCombination {
+	pairings := o.playerPairings.orderedPlayerCombinations()
 	if len(pairings) > 0 {
 		return &pairings[0]
 	}
@@ -78,8 +80,8 @@ func (g *Game) MostCommonPairing() *playerCombination {
 	return nil
 }
 
-func (g *Game) MostCommonOpposingPairing() *playerCombination {
-	pairings := g.playerOpposingPairings.orderedPlayerCombinations()
+func (o *Office) MostCommonOpposingPairing() *playerCombination {
+	pairings := o.playerOpposingPairings.orderedPlayerCombinations()
 	if len(pairings) > 0 {
 		return &pairings[0]
 	}
@@ -87,8 +89,8 @@ func (g *Game) MostCommonOpposingPairing() *playerCombination {
 	return nil
 }
 
-func (g *Game) MostCommonPairingForPlayer(p Player) *playerCombination {
-	pairings := g.playerPairings.orderedPlayerCombinationsForUser(p.User.ID)
+func (o *Office) MostCommonPairingForPlayer(p Player) *playerCombination {
+	pairings := o.playerPairings.orderedPlayerCombinationsForUser(p.User.ID)
 	if len(pairings) > 0 {
 		return &pairings[0]
 	}
@@ -96,8 +98,8 @@ func (g *Game) MostCommonPairingForPlayer(p Player) *playerCombination {
 	return nil
 }
 
-func (g *Game) MostCommonOpponentForPlayer(p Player) *playerCombination {
-	pairings := g.playerOpposingPairings.orderedPlayerCombinationsForUser(p.User.ID)
+func (o *Office) MostCommonOpponentForPlayer(p Player) *playerCombination {
+	pairings := o.playerOpposingPairings.orderedPlayerCombinationsForUser(p.User.ID)
 	if len(pairings) > 0 {
 		return &pairings[0]
 	}
@@ -105,12 +107,12 @@ func (g *Game) MostCommonOpponentForPlayer(p Player) *playerCombination {
 	return nil
 }
 
-func (g *Game) GetMatch(matchId uint) *processedMatch {
-	return g.matches[matchId]
+func (o *Office) GetMatch(matchId uint) *processedMatch {
+	return o.matches[matchId]
 }
 
-func (g *Game) GetPlayer(userId uint) *Player {
-	player, ok := g.players[userId]
+func (o *Office) GetPlayer(userId uint) *Player {
+	player, ok := o.players[userId]
 	if !ok {
 		return nil
 	}
@@ -118,9 +120,9 @@ func (g *Game) GetPlayer(userId uint) *Player {
 	return &player
 }
 
-func (g *Game) RankedPlayers() []Player {
+func (o *Office) RankedPlayers() []Player {
 	players := []Player{}
-	for _, player := range g.players {
+	for _, player := range o.players {
 		if player.IsActive {
 			players = append(players, player)
 		}
@@ -142,4 +144,24 @@ func (g *Game) RankedPlayers() []Player {
 	})
 
 	return players
+}
+
+func (o *Office) ActiveTournaments() []Tournament {
+	tournaments := []Tournament{}
+	for _, t := range o.tournaments {
+		if t.IsActive {
+			tournaments = append(tournaments, t)
+		}
+	}
+
+	return tournaments
+}
+
+func (o *Office) GetTournament(tournamentId uint) *Tournament {
+	t, ok := o.tournaments[tournamentId]
+	if !ok {
+		return nil
+	}
+
+	return &t
 }

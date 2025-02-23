@@ -3,18 +3,18 @@ package components
 import (
 	"fmt"
 	"github.com/RowMur/office-table-tennis/internal/db"
-	"github.com/RowMur/office-table-tennis/internal/gameprocessor"
+	"github.com/RowMur/office-table-tennis/internal/officeprocessor"
 )
 
-templ Match(match db.Match, showApprovalState bool, g *gameprocessor.Game) {
+templ Match(match db.Match, showApprovalState bool, o *officeprocessor.Office) {
 	<li class="bg-light rounded p-4">
 		<div class="flex gap-3">
 			<div class="text-center">
 				<p class="font-semibold">W</p>
 			</div>
 			<div class="min-w-0 grow">
-				@MatchPlayerList(match.Winners(), true, g, match)
-				@MatchPlayerList(match.Losers(), false, g, match)
+				@MatchPlayerList(match.Winners(), true, o, match)
+				@MatchPlayerList(match.Losers(), false, o, match)
 			</div>
 			if showApprovalState {
 				<div>
@@ -42,7 +42,7 @@ templ Match(match db.Match, showApprovalState bool, g *gameprocessor.Game) {
 	</li>
 }
 
-templ MatchPlayerList(players []db.MatchParticipant, isWinners bool, g *gameprocessor.Game, match db.Match) {
+templ MatchPlayerList(players []db.MatchParticipant, isWinners bool, o *officeprocessor.Office, match db.Match) {
 	{{
 		class := "text-ellipsis text-nowrap overflow-hidden"
 		if isWinners {
@@ -50,7 +50,7 @@ templ MatchPlayerList(players []db.MatchParticipant, isWinners bool, g *gameproc
 		}
 	}}
 	<p class={ class }>
-		@ListOfUsers(players, g, match)
+		@ListOfUsers(players, o, match)
 	</p>
 }
 
@@ -64,14 +64,14 @@ templ MatchApprovalState(isApproved bool) {
 	</p>
 }
 
-templ ListOfUsers(users []db.MatchParticipant, g *gameprocessor.Game, match db.Match) {
+templ ListOfUsers(users []db.MatchParticipant, g *officeprocessor.Office, match db.Match) {
 	for i, user := range users {
 		if i > 0 {
 			, 
 		}
 		{{
 			dir := "+"
-			var mp *gameprocessor.ProcessedMatchParticipant
+			var mp *officeprocessor.ProcessedMatchParticipant
 			if g != nil {
 				m := g.GetMatch(match.ID)
 				if m != nil {

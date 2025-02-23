@@ -2,17 +2,17 @@ package app
 
 import (
 	"github.com/RowMur/office-table-tennis/internal/db"
-	"github.com/RowMur/office-table-tennis/internal/gameprocessor"
+	"github.com/RowMur/office-table-tennis/internal/officeprocessor"
 )
 
 type App struct {
 	db db.Database
-	gp *gameprocessor.GameProcessor
+	op *officeprocessor.Officeprocessor
 }
 
-func NewApp(db db.Database, gp *gameprocessor.GameProcessor) *App {
+func NewApp(db db.Database, op *officeprocessor.Officeprocessor) *App {
 	return &App{
 		db: db,
-		gp: gp,
+		op: op,
 	}
 }

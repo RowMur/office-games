@@ -37,7 +37,7 @@ func (s *Server) authMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		startTime := time.Now()
 		defer func() {
-			fmt.Printf("Req: %s | Auth middleware: %s\n", c.Request().URL.Path, time.Now().Sub(startTime))
+			fmt.Printf("Req: %s | Auth middleware: %s\n", c.Request().URL.Path, time.Since(startTime))
 		}()
 
 		authCookie, err := c.Request().Cookie("auth")
@@ -110,6 +110,31 @@ func (s *Server) enforceMember(next echo.HandlerFunc) echo.HandlerFunc {
 		}
 
 		return echo.NewHTTPError(http.StatusForbidden, "You are not a member of this office")
+	}
+}
+
+func (s *Server) enforceAdmin(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		user := userFromContext(c)
+		if user == nil {
+			return echo.NewHTTPError(http.StatusUnauthorized, "unauthorized")
+		}
+
+		officeCode := c.Param("code")
+		var office *db.Office
+		for _, o := range user.Offices {
+			if o.Code == officeCode {
+				office = &o
+			}
+		}
+		if office == nil {
+			return echo.NewHTTPError(http.StatusNotFound, "Office not found")
+		}
+		if office.AdminRefer != user.ID {
+			return echo.NewHTTPError(http.StatusForbidden, "You are not the admin of this office")
+		}
+
+		return next(c)
 	}
 }
 

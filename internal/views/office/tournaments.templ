@@ -1,0 +1,54 @@
+package office
+
+import (
+	"github.com/RowMur/office-table-tennis/internal/db"
+	"github.com/RowMur/office-table-tennis/internal/officeprocessor"
+	"github.com/RowMur/office-table-tennis/internal/views/components"
+	"github.com/RowMur/office-table-tennis/internal/views/layout"
+)
+
+type TournamentPageProps struct {
+	User       *db.User
+	Office     db.Office
+	Tournament officeprocessor.Tournament
+}
+
+templ TournamentPage(props TournamentPageProps) {
+	@layout.Base(props.User) {
+		<main class="mx-6 my-8">
+			@components.Breadcrumbs([]components.Crumb{
+				{Name: props.Office.Name, URL: props.Office.Link()},
+				{Name: props.Tournament.Name()},
+			})
+			<h2 class="text-2xl font-semibold my-2 inline-block">{ props.Tournament.Name() }</h2>
+			<section class="my-6">
+				@components.SectionHeading("Bracket", nil)
+				<div class="overflow-x-auto flex gap-4">
+					for _, round := range props.Tournament.Rounds() {
+						<div class="basis-0 grow flex flex-col justify-evenly gap-2">
+							for _, match := range round {
+								<div class="rounded bg-light p-4">
+									<p class="text-center">
+										if len(match.Winners()) == 0 {
+											TBD
+										} else {
+											{ match.Winners()[0].User.Username }
+										}
+									</p>
+									<p class="text-center">VS</p>
+									<p class="text-center">
+										if len(match.Losers()) == 0 {
+											TBD
+										} else {
+											{ match.Losers()[0].User.Username }
+										}
+									</p>
+								</div>
+							}
+						</div>
+					}
+				</div>
+			</section>
+		</main>
+	}
+}
