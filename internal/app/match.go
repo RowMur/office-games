@@ -72,6 +72,49 @@ func (a *App) LogMatch(creator *db.User, office *db.Office, note string, winners
 	return &match, nil
 }
 
+func (a *App) ScheduleMatch(tx *gorm.DB, creator *db.User, office db.Office, tournament *db.Tournament, firstSideParticipants, secondSideParticipants []uint, nextMatch *db.Match) (*db.Match, error) {
+	match := db.Match{
+		CreatorID:  creator.ID,
+		State:      db.MatchStateScheduled,
+		Office:     office,
+		Tournament: tournament,
+		NextMatch:  nextMatch,
+	}
+	err := tx.Create(&match).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	participants := []db.MatchParticipant{}
+	for _, firstSideParticipant := range firstSideParticipants {
+		participants = append(participants, db.MatchParticipant{
+			UserID:  firstSideParticipant,
+			MatchID: match.ID,
+			Result:  db.MatchResultWin,
+		})
+	}
+	for _, secondSideParticipant := range secondSideParticipants {
+		participants = append(participants, db.MatchParticipant{
+			UserID:  secondSideParticipant,
+			MatchID: match.ID,
+			Result:  db.MatchResultLoss,
+		})
+	}
+
+	if len(participants) == 0 {
+		return &match, nil
+	}
+
+	err = tx.Create(&participants).Error
+	if err != nil {
+		tx.Rollback()
+		return nil, err
+	}
+
+	return &match, nil
+}
+
 func (a *App) ApproveMatch(user *db.User, match *db.Match) error {
 	if match.State != db.MatchStatePending {
 		return errors.New("match is not pending")

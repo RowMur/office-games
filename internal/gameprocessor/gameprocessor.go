@@ -54,7 +54,7 @@ func (gp *GameProcessor) Process(officeId uint) (*Game, error) {
 func (gp *GameProcessor) process(officeId uint) (*Game, error) {
 	matches := []db.Match{}
 	err := gp.db.C.Where("office_id = ?", officeId).
-		Where("state NOT IN (?)", db.MatchStatePending).
+		Where("state = ?", db.MatchStateApproved).
 		Order("created_at").
 		Preload("Participants.User").
 		Find(&matches).Error

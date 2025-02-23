@@ -14,8 +14,8 @@ func (a *App) GetOfficeByCode(code string) (*db.Office, error) {
 		Preload("Players", func(db *gorm.DB) *gorm.DB {
 			return db.Order("LOWER(username)")
 		}).
-		Preload("Matches", func(db *gorm.DB) *gorm.DB {
-			return db.Where("state != ?", "pending").Order("created_at DESC")
+		Preload("Matches", func(d *gorm.DB) *gorm.DB {
+			return d.Where("state = ?", db.MatchStateApproved).Order("created_at DESC")
 		}).
 		Preload("Matches.Participants.User").
 		Preload("Matches.Creator").

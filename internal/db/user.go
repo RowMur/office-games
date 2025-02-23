@@ -17,7 +17,8 @@ type User struct {
 	Offices             []Office `gorm:"many2many:user_offices;"`
 	MatchParticipations []MatchParticipant
 	Approvals           []MatchApproval
-	NonPlayer           bool `default:"false"`
+	NonPlayer           bool         `default:"false"`
+	Tournaments         []Tournament `gorm:"many2many:user_tournaments;"`
 }
 
 type CreateUserErrors struct {

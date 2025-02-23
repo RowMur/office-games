@@ -18,12 +18,13 @@ var Models = []interface{}{
 
 type Office struct {
 	gorm.Model
-	Name       string
-	Code       string `gorm:"unique"`
-	AdminRefer uint
-	Admin      User   `gorm:"foreignKey:AdminRefer"`
-	Players    []User `gorm:"many2many:user_offices;"`
-	Matches    []Match
+	Name        string
+	Code        string `gorm:"unique"`
+	AdminRefer  uint
+	Admin       User   `gorm:"foreignKey:AdminRefer"`
+	Players     []User `gorm:"many2many:user_offices;"`
+	Matches     []Match
+	Tournaments []Tournament
 }
 
 func (o *Office) Link() string {
@@ -94,8 +95,9 @@ func (mp *MatchParticipant) AfterCreate(tx *gorm.DB) (err error) {
 }
 
 const (
-	MatchStatePending  = "pending"
-	MatchStateApproved = "approved"
+	MatchStatePending   = "pending"
+	MatchStateApproved  = "approved"
+	MatchStateScheduled = "scheduled"
 )
 
 type Match struct {
@@ -109,6 +111,10 @@ type Match struct {
 	Approvals    []MatchApproval
 	Note         string
 	IsHandicap   bool
+	TournamentID *uint
+	Tournament   *Tournament
+	NextMatchID  *uint
+	NextMatch    *Match
 }
 
 func (m *Match) BeforeDelete(tx *gorm.DB) (err error) {
@@ -202,4 +208,13 @@ type MatchApproval struct {
 	Match   Match `gorm:"foreignKey:MatchID"`
 	UserID  uint
 	User    User
+}
+
+type Tournament struct {
+	gorm.Model
+	Name         string
+	OfficeID     uint
+	Office       Office
+	Participants []User `gorm:"many2many:user_tournaments;"`
+	Matches      []Match
 }

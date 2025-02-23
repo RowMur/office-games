@@ -113,6 +113,31 @@ func (s *Server) enforceMember(next echo.HandlerFunc) echo.HandlerFunc {
 	}
 }
 
+func (s *Server) enforceAdmin(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		user := userFromContext(c)
+		if user == nil {
+			return echo.NewHTTPError(http.StatusUnauthorized, "unauthorized")
+		}
+
+		officeCode := c.Param("code")
+		var office *db.Office
+		for _, o := range user.Offices {
+			if o.Code == officeCode {
+				office = &o
+			}
+		}
+		if office == nil {
+			return echo.NewHTTPError(http.StatusNotFound, "Office not found")
+		}
+		if office.AdminRefer != user.ID {
+			return echo.NewHTTPError(http.StatusForbidden, "You are not the admin of this office")
+		}
+
+		return next(c)
+	}
+}
+
 func sendForgotPasswordEmail(c echo.Context, user *db.User) error {
 	token, err := token.GenerateToken(user.ID, token.ForgotPasswordToken)
 	if err != nil {

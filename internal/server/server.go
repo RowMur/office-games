@@ -48,6 +48,7 @@ func (s *Server) Run() {
 	signedIn := e.Group("", enforceSignedIn)
 	signedOut := e.Group("", enforceSignedOut)
 	officeMember := signedIn.Group("", s.enforceMember)
+	officeAdmin := signedIn.Group("", s.enforceAdmin)
 
 	e.GET("/", pageHandler)
 	e.GET("/faqs", faqPageHandler)
@@ -88,6 +89,8 @@ func (s *Server) Run() {
 
 	officeMember.GET("/offices/:code/stats", s.gameStatsPageHandler)
 	officeMember.POST("/offices/:code/stats", s.gamePlayerStatsPostHandler)
+
+	officeAdmin.POST("/offices/:code/tournaments", s.createTournamentFormHandler)
 
 	signedIn.GET("/elo", s.eloPageHandler)
 
