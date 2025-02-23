@@ -9,8 +9,8 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/RowMur/office-games/internal/db"
-	"github.com/RowMur/office-games/internal/views/layout"
+	"github.com/RowMur/office-table-tennis/internal/db"
+	"github.com/RowMur/office-table-tennis/internal/views/layout"
 )
 
 func FaqPage(user *db.User) templ.Component {
@@ -46,7 +46,7 @@ func FaqPage(user *db.User) templ.Component {
 				}()
 			}
 			ctx = templ.InitializeContext(ctx)
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<main class=\"mx-6 my-8\"><h2 class=\"text-2xl font-bold\">FAQs</h2><section class=\"my-4\"><h3 class=\"text-lg font-semibold\">What is office games?</h3><p>An online tracker for games. You can create an office which is a space you can invite others to. You can then create multiple games for an office which each have their own ranking systems.</p></section><section class=\"my-4\"><h3 class=\"text-lg font-semibold\">How our ELOs calculated?</h3><p>Every player starts on 400 ELO points. When a match is played, an expected score is calculated with the two players ELOs (in the case of a team game, the team's ELO is the average of each of the players)...</p><div class=\"flex justify-center items-center gap-2 my-4\"><span>Expected=</span><div><p class=\"text-center mx-auto\">1</p><hr><p class=\"text-center mx-auto\">1 + 10<sup>(loserElo-winnerElo)/400</sup></p></div></div><p>...then the ELO gained/lost can be calculated with the following...</p><div class=\"flex justify-center my-4\">&pm; ELO = 32 * (1 - Expected)</div><p>Before applying ELO to the participants, there are a couple of checks:</p><ul class=\"list-disc my-4\"><li>Minimum ELO is 200. If applying the ELO puts a player below that, they just stay at 200.</li><li>A players first 20 matches are double points (gain and loss) to move them more quickly to their proper ranking.</li></ul></section></main>")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<main class=\"mx-6 my-8\"><h2 class=\"text-2xl font-bold\">FAQs</h2><section class=\"my-4\"><h3 class=\"text-lg font-semibold\">What is Office Table Tennis?</h3><p>An online tracker for table tennis. You can create an office which is a space you can invite others to. Each office has it's own ranking system.</p></section><section class=\"my-4\"><h3 class=\"text-lg font-semibold\">How our ELOs calculated?</h3><p>Every player starts on 400 ELO points. When a match is played, an expected score is calculated with the two players ELOs (in the case of a team game, the team's ELO is the average of each of the players)...</p><div class=\"flex justify-center items-center gap-2 my-4\"><span>Expected=</span><div><p class=\"text-center mx-auto\">1</p><hr><p class=\"text-center mx-auto\">1 + 10<sup>(loserElo-winnerElo)/400</sup></p></div></div><p>...then the ELO gained/lost can be calculated with the following...</p><div class=\"flex justify-center my-4\">&pm; ELO = 32 * (1 - Expected)</div><p>Before applying ELO to the participants, there are a couple of checks:</p><ul class=\"list-disc my-4\"><li>Minimum ELO is 200. If applying the ELO puts a player below that, they just stay at 200.</li><li>A players first 20 matches are double points (gain and loss) to move them more quickly to their proper ranking.</li></ul></section></main>")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

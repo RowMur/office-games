@@ -4,7 +4,7 @@ import (
 	"errors"
 	"strconv"
 
-	"github.com/RowMur/office-games/internal/db"
+	"github.com/RowMur/office-table-tennis/internal/db"
 	"gorm.io/gorm"
 )
 

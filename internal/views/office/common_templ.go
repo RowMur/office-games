@@ -8,7 +8,7 @@ package games
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/RowMur/office-games/internal/db"
+import "github.com/RowMur/office-table-tennis/internal/db"
 
 type GamePageHeadingProps struct {
 	Office db.Office

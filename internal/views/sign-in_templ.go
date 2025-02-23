@@ -9,8 +9,8 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/RowMur/office-games/internal/views/components"
-	"github.com/RowMur/office-games/internal/views/layout"
+	"github.com/RowMur/office-table-tennis/internal/views/components"
+	"github.com/RowMur/office-table-tennis/internal/views/layout"
 )
 
 func SignInPage() templ.Component {

@@ -1,7 +1,7 @@
 package user
 
 import (
-	"github.com/RowMur/office-games/internal/token"
+	"github.com/RowMur/office-table-tennis/internal/token"
 	"golang.org/x/crypto/bcrypt"
 )
 

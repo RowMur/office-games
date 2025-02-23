@@ -3,7 +3,7 @@ package app
 import (
 	"errors"
 
-	"github.com/RowMur/office-games/internal/db"
+	"github.com/RowMur/office-table-tennis/internal/db"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )

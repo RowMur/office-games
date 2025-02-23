@@ -10,8 +10,8 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"fmt"
-	"github.com/RowMur/office-games/internal/db"
-	"github.com/RowMur/office-games/internal/gameprocessor"
+	"github.com/RowMur/office-table-tennis/internal/db"
+	"github.com/RowMur/office-table-tennis/internal/gameprocessor"
 )
 
 func Match(match db.Match, showApprovalState bool, g *gameprocessor.Game) templ.Component {

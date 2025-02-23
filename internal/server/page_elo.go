@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strconv"
 
-	"github.com/RowMur/office-games/internal/db"
+	"github.com/RowMur/office-table-tennis/internal/db"
 	"github.com/labstack/echo/v4"
 )
 

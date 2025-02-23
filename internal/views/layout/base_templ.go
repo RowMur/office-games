@@ -10,7 +10,7 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"fmt"
-	"github.com/RowMur/office-games/internal/db"
+	"github.com/RowMur/office-table-tennis/internal/db"
 	"github.com/google/uuid"
 )
 
@@ -37,7 +37,7 @@ func Base(user *db.User) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><script defer src=\"https://unpkg.com/htmx.org@2.0.2\" integrity=\"sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ\" crossorigin=\"anonymous\"></script><title>Office Games</title><meta name=\"description\" content=\"Office Games - A platform to play and manage office games with your colleagues.\"><style>\n\t\t\t\thtml {\n\t\t\t\t\tscrollbar-gutter: stable;\n\t\t\t\t}\n\t\t\t</style><script defer src=\"/static/multiselect.js\"></script>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<!doctype html><html lang=\"en\"><head><meta charset=\"UTF-8\"><meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\"><script defer src=\"https://unpkg.com/htmx.org@2.0.2\" integrity=\"sha384-Y7hw+L/jvKeWIRRkqWYfPcvVxHzVzn5REgzbawhxAuQGwX1XWe70vji+VSeHOThJ\" crossorigin=\"anonymous\"></script><title>Office Table Tennis</title><meta name=\"description\" content=\"Office Table Tennis - A platform to play and manage office table tennis with your colleagues.\"><style>\n\t\t\t\thtml {\n\t\t\t\t\tscrollbar-gutter: stable;\n\t\t\t\t}\n\t\t\t</style><script defer src=\"/static/multiselect.js\"></script>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

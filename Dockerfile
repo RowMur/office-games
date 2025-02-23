@@ -24,6 +24,6 @@ COPY internal/assets/ ./internal/assets/
 FROM golang:1.23-alpine AS go-runner
 
 COPY --from=asset-builder /app/internal/assets/ ./internal/assets/
-COPY --from=go-builder /app/office-games ./
-CMD ["./office-games"]
+COPY --from=go-builder /app/office-table-tennis ./
+CMD ["./office-table-tennis"]
 EXPOSE 8080

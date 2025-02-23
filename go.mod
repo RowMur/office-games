@@ -1,4 +1,4 @@
-module github.com/RowMur/office-games
+module github.com/RowMur/office-table-tennis
 
 go 1.22.3
 

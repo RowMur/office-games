@@ -1,8 +1,8 @@
 package app
 
 import (
-	"github.com/RowMur/office-games/internal/db"
-	"github.com/RowMur/office-games/internal/gameprocessor"
+	"github.com/RowMur/office-table-tennis/internal/db"
+	"github.com/RowMur/office-table-tennis/internal/gameprocessor"
 )
 
 type App struct {

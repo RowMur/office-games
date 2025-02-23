@@ -1,10 +1,10 @@
 package server
 
 import (
-	"github.com/RowMur/office-games/internal/app"
-	"github.com/RowMur/office-games/internal/db"
-	"github.com/RowMur/office-games/internal/gameprocessor"
-	"github.com/RowMur/office-games/internal/user"
+	"github.com/RowMur/office-table-tennis/internal/app"
+	"github.com/RowMur/office-table-tennis/internal/db"
+	"github.com/RowMur/office-table-tennis/internal/gameprocessor"
+	"github.com/RowMur/office-table-tennis/internal/user"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 )

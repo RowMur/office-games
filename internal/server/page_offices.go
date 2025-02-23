@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/RowMur/office-games/internal/db"
-	"github.com/RowMur/office-games/internal/views"
-	officeViews "github.com/RowMur/office-games/internal/views/office"
+	"github.com/RowMur/office-table-tennis/internal/db"
+	"github.com/RowMur/office-table-tennis/internal/views"
+	officeViews "github.com/RowMur/office-table-tennis/internal/views/office"
 	"github.com/labstack/echo/v4"
 )
 

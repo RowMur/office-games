@@ -3,7 +3,7 @@ package gameprocessor
 import (
 	"time"
 
-	"github.com/RowMur/office-games/internal/db"
+	"github.com/RowMur/office-table-tennis/internal/db"
 )
 
 type Player struct {

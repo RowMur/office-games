@@ -10,8 +10,8 @@ import templruntime "github.com/a-h/templ/runtime"
 
 import (
 	"fmt"
-	"github.com/RowMur/office-games/internal/views/components"
-	"github.com/RowMur/office-games/internal/views/layout"
+	"github.com/RowMur/office-table-tennis/internal/views/components"
+	"github.com/RowMur/office-table-tennis/internal/views/layout"
 )
 
 func ResetPasswordPage(token string) templ.Component {

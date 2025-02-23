@@ -3,8 +3,8 @@ package server
 import (
 	"net/http"
 
-	t "github.com/RowMur/office-games/internal/token"
-	"github.com/RowMur/office-games/internal/views"
+	t "github.com/RowMur/office-table-tennis/internal/token"
+	"github.com/RowMur/office-table-tennis/internal/views"
 	"github.com/labstack/echo/v4"
 )
 

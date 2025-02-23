@@ -11,9 +11,9 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"errors"
 	"fmt"
-	"github.com/RowMur/office-games/internal/db"
-	"github.com/RowMur/office-games/internal/views/components"
-	"github.com/RowMur/office-games/internal/views/layout"
+	"github.com/RowMur/office-table-tennis/internal/db"
+	"github.com/RowMur/office-table-tennis/internal/views/components"
+	"github.com/RowMur/office-table-tennis/internal/views/layout"
 	"strconv"
 )
 

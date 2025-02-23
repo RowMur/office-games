@@ -3,7 +3,7 @@ package server
 import (
 	"net/http"
 
-	"github.com/RowMur/office-games/internal/views"
+	"github.com/RowMur/office-table-tennis/internal/views"
 	"github.com/labstack/echo/v4"
 )
 

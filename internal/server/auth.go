@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/RowMur/office-games/internal/db"
-	"github.com/RowMur/office-games/internal/email"
-	"github.com/RowMur/office-games/internal/token"
+	"github.com/RowMur/office-table-tennis/internal/db"
+	"github.com/RowMur/office-table-tennis/internal/email"
+	"github.com/RowMur/office-table-tennis/internal/token"
 	"github.com/labstack/echo/v4"
 )
 
@@ -122,5 +122,5 @@ func sendForgotPasswordEmail(c echo.Context, user *db.User) error {
 	host := c.Request().Host
 	emailBody := fmt.Sprintf("Click <a href=\"http://%s/reset-password?token=%s\">here</a> to reset your password", host, token)
 
-	return email.SendEmail([]string{user.Email}, "Office Games - Password Recovery", emailBody)
+	return email.SendEmail([]string{user.Email}, "Office Table Tennis - Password Recovery", emailBody)
 }

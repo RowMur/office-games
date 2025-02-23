@@ -9,9 +9,9 @@ import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
 import (
-	"github.com/RowMur/office-games/internal/db"
-	"github.com/RowMur/office-games/internal/views/components"
-	"github.com/RowMur/office-games/internal/views/layout"
+	"github.com/RowMur/office-table-tennis/internal/db"
+	"github.com/RowMur/office-table-tennis/internal/views/components"
+	"github.com/RowMur/office-table-tennis/internal/views/layout"
 )
 
 func MainPage(currentUser *db.User, hasOffice bool, offices []db.Office) templ.Component {
@@ -290,7 +290,7 @@ func LoggedOutHomepage() templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<p class=\"text-lg mt-4\">Office Games is a platform for tracking games with your coworkers</p><a href=\"/create-account\" class=\"bg-accent text-light block w-fit rounded px-4 py-1 mt-4\">Get started</a></section><section class=\"w-full my-8\">")
+			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<p class=\"text-lg mt-4\">Office Table Tennis is a platform for tracking table tennis matches with your coworkers</p><a href=\"/create-account\" class=\"bg-accent text-light block w-fit rounded px-4 py-1 mt-4\">Get started</a></section><section class=\"w-full my-8\">")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}

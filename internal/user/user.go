@@ -1,7 +1,7 @@
 package user
 
 import (
-	"github.com/RowMur/office-games/internal/db"
+	"github.com/RowMur/office-table-tennis/internal/db"
 )
 
 type UserService struct {

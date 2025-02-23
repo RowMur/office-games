@@ -8,7 +8,7 @@ package layout
 import "github.com/a-h/templ"
 import templruntime "github.com/a-h/templ/runtime"
 
-import "github.com/RowMur/office-games/internal/db"
+import "github.com/RowMur/office-table-tennis/internal/db"
 
 func heading(user *db.User) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
@@ -31,7 +31,7 @@ func heading(user *db.User) templ.Component {
 			templ_7745c5c3_Var1 = templ.NopComponent
 		}
 		ctx = templ.ClearChildren(ctx)
-		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<nav class=\"bg-light p-6 rounded-b-3xl flex justify-between items-center\"><h1 class=\"text-2xl font-bold\"><a href=\"/\">Office Games</a></h1>")
+		_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<nav class=\"bg-light p-6 rounded-b-3xl flex justify-between items-center\"><h1 class=\"text-2xl font-bold\"><a href=\"/\">Office Table Tennis</a></h1>")
 		if templ_7745c5c3_Err != nil {
 			return templ_7745c5c3_Err
 		}

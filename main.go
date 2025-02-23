@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/RowMur/office-games/internal/server"
+	"github.com/RowMur/office-table-tennis/internal/server"
 	_ "github.com/joho/godotenv/autoload"
 )
 
