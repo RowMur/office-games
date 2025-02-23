@@ -1,6 +1,9 @@
 package server
 
 import (
+	"fmt"
+	"strings"
+
 	"github.com/RowMur/office-table-tennis/internal/app"
 	"github.com/RowMur/office-table-tennis/internal/db"
 	"github.com/RowMur/office-table-tennis/internal/gameprocessor"
@@ -31,8 +34,17 @@ func NewServer() *Server {
 func (s *Server) Run() {
 	e := echo.New()
 
+	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			if strings.Contains(c.Request().Host, "office-games") {
+				return c.Redirect(301, fmt.Sprintf("https://www.office-table-tennis.rowmur.dev%s", c.Request().URL.Path))
+			}
+			return next(c)
+		}
+	})
 	e.Use(middleware.CORS())
 	e.Use(s.authMiddleware)
+
 	signedIn := e.Group("", enforceSignedIn)
 	signedOut := e.Group("", enforceSignedOut)
 	officeMember := signedIn.Group("", s.enforceMember)
