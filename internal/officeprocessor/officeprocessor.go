@@ -73,17 +73,17 @@ func (op *Officeprocessor) process(officeId uint) (*Office, error) {
 	o := newOffice()
 
 	for _, t := range tournaments {
-		o.tournaments[t.ID] = tournament{
-			tournament: t,
-		}
+		o.tournaments[t.ID] = *newTournament(t)
 	}
 
 	players := map[uint]Player{}
 	for _, match := range matches {
-		var t tournament
+		var t Tournament
 		var tournamentOk bool
 		if match.TournamentID != nil {
 			t, tournamentOk = o.tournaments[*match.TournamentID]
+			t.matches[match.ID] = match
+			o.tournaments[*match.TournamentID] = t
 		}
 
 		if match.State == db.MatchStateScheduled && match.TournamentID != nil {
@@ -200,6 +200,11 @@ func (op *Officeprocessor) process(officeId uint) (*Office, error) {
 		}
 
 		o.matches[match.ID] = &cachedMatch
+	}
+
+	for _, t := range o.tournaments {
+		t.ConstructRounds()
+		o.tournaments[t.tournament.ID] = t
 	}
 
 	o.players = players

@@ -90,6 +90,7 @@ func (s *Server) Run() {
 	officeMember.GET("/offices/:code/stats", s.gameStatsPageHandler)
 	officeMember.POST("/offices/:code/stats", s.gamePlayerStatsPostHandler)
 
+	officeMember.GET("/offices/:code/tournaments/:id", s.tournamentPageHandler)
 	officeAdmin.POST("/offices/:code/tournaments", s.createTournamentFormHandler)
 
 	e.Any("/offices/:code/games/*", func(c echo.Context) error {
