@@ -37,7 +37,7 @@ func (s *Server) Run() {
 	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			if strings.Contains(c.Request().Host, "office-games") {
-				return c.Redirect(301, fmt.Sprintf("https://www.office-table-tennis.rowmur.dev%s", c.Request().URL.Path))
+				return c.Redirect(301, fmt.Sprintf("https://office-table-tennis.rowmur.dev%s", c.Request().URL.Path))
 			}
 			return next(c)
 		}
