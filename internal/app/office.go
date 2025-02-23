@@ -38,7 +38,7 @@ func (a *App) JoinOffice(user *db.User, code string) (error, error) {
 	err := a.db.C.Where("code = ?", code).Preload("Players").First(office).Error
 	if err != nil {
 		if db.IsRecordNotFoundError(err) {
-			return errors.New("Office not found"), nil
+			return errors.New("office not found"), nil
 		}
 
 		return nil, err

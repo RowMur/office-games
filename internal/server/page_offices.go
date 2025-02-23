@@ -36,6 +36,9 @@ func (s *Server) officeHandler(c echo.Context) error {
 		Model(&db.Match{}).
 		Where("office_id = ? AND state = ?", office.ID, db.MatchStatePending).
 		Count(&pendingMatchCount).Error
+	if err != nil {
+		return c.String(http.StatusInternalServerError, err.Error())
+	}
 
 	return render(c, http.StatusOK, officeViews.OfficePage(officeViews.OfficePageProps{
 		Office:            *office,

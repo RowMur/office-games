@@ -45,14 +45,14 @@ func ValidatePlayMatchForm(formData PlayMatchFormData) error {
 	}
 
 	if len(formData.Winners) != len(formData.Losers) {
-		return errors.New("The number of winners and losers must be equal")
+		return errors.New("the number of winners and losers must be equal")
 	}
 
 	players := append(formData.Winners, formData.Losers...)
 	playersMap := map[string]bool{}
 	for _, player := range players {
 		if playersMap[player] {
-			return errors.New("A player can only be in one team")
+			return errors.New("a player can only be in one team")
 		}
 		playersMap[player] = true
 	}

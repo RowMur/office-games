@@ -17,7 +17,7 @@ func (c *cache) setEntry(officeId uint, newEntry *Office) {
 func (c *cache) getEntry(officeId uint) *Office {
 	if c == nil {
 		c = newCache()
-		return nil
+		return c.getEntry(officeId)
 	}
 
 	return (*c)[officeId]

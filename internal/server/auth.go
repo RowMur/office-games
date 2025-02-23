@@ -37,7 +37,7 @@ func (s *Server) authMiddleware(next echo.HandlerFunc) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		startTime := time.Now()
 		defer func() {
-			fmt.Printf("Req: %s | Auth middleware: %s\n", c.Request().URL.Path, time.Now().Sub(startTime))
+			fmt.Printf("Req: %s | Auth middleware: %s\n", c.Request().URL.Path, time.Since(startTime))
 		}()
 
 		authCookie, err := c.Request().Cookie("auth")

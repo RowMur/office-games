@@ -87,7 +87,7 @@ func (mp *MatchParticipant) AfterCreate(tx *gorm.DB) (err error) {
 	}
 
 	if user.NonPlayer {
-		err = errors.New("Non-players cannot play matches")
+		err = errors.New("non-players cannot play matches")
 		return
 	}
 
