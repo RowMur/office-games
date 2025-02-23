@@ -31,18 +31,15 @@ func (s *Server) createTournamentFormHandler(c echo.Context) error {
 	}
 
 	participantUintIds := []uint{}
-	fmt.Printf("Participants: %+v\n", participants)
 	for _, participant := range participants {
 		id, err := strconv.ParseInt(participant, 10, 64)
 		if err != nil {
-			fmt.Printf("Error parsing participant: %s\n", participant)
 			return c.String(http.StatusBadRequest, "Invalid participant")
 		}
 
 		participantUintIds = append(participantUintIds, uint(id))
 	}
 
-	fmt.Printf("Trying to create tournament from user: %s, office: %s, name: %s, participants: %+v\n", user.Username, office.Name, name, participantUintIds)
 	tournament, err := s.app.CreateTournament(user, name, *office, participantUintIds)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())

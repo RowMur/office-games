@@ -54,19 +54,55 @@ func (op *Officeprocessor) Process(officeId uint) (*Office, error) {
 func (op *Officeprocessor) process(officeId uint) (*Office, error) {
 	matches := []db.Match{}
 	err := op.db.C.Where("office_id  = ?", officeId).
-		Where("state = ?", db.MatchStateApproved).
 		Order("created_at").
 		Preload("Participants.User").
 		Find(&matches).Error
+	if err != nil {
+		return nil, err
+	}
 
+	tournaments := []db.Tournament{}
+	err = op.db.C.Where("office_id = ?", officeId).
+		Preload("Office").
+		Preload("Participants").
+		Find(&tournaments).Error
 	if err != nil {
 		return nil, err
 	}
 
 	o := newOffice()
 
+	for _, t := range tournaments {
+		o.tournaments[t.ID] = tournament{
+			tournament: t,
+		}
+	}
+
 	players := map[uint]Player{}
 	for _, match := range matches {
+		var t tournament
+		var tournamentOk bool
+		if match.TournamentID != nil {
+			t, tournamentOk = o.tournaments[*match.TournamentID]
+		}
+
+		if match.State == db.MatchStateScheduled && match.TournamentID != nil {
+			if tournamentOk {
+				t.IsActive = true
+				t.scheduledCount++
+				o.tournaments[*match.TournamentID] = t
+			}
+		}
+
+		if match.State != db.MatchStateApproved {
+			continue
+		}
+
+		if tournamentOk {
+			t.playedCount++
+			o.tournaments[*match.TournamentID] = t
+		}
+
 		cachedMatch := processedMatch{
 			Participants: map[uint]*ProcessedMatchParticipant{},
 		}

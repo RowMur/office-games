@@ -9,6 +9,7 @@ type Office struct {
 	players                map[uint]Player
 	playerPairings         *playerCombinations
 	playerOpposingPairings *playerCombinations
+	tournaments            map[uint]tournament
 }
 
 func newOffice() Office {
@@ -17,6 +18,7 @@ func newOffice() Office {
 		players:                map[uint]Player{},
 		playerPairings:         newPlayerCombinations(),
 		playerOpposingPairings: newPlayerCombinations(),
+		tournaments:            map[uint]tournament{},
 	}
 }
 
@@ -142,4 +144,15 @@ func (o *Office) RankedPlayers() []Player {
 	})
 
 	return players
+}
+
+func (o *Office) ActiveTournaments() []tournament {
+	tournaments := []tournament{}
+	for _, t := range o.tournaments {
+		if t.IsActive {
+			tournaments = append(tournaments, t)
+		}
+	}
+
+	return tournaments
 }

@@ -55,6 +55,33 @@ templ OfficePage(props OfficePageProps) {
 				@components.SectionHeading("Rankings", nil)
 				@OfficeRankings(props.ProcessedOffice.RankedPlayers())
 			</section>
+			if len(props.ProcessedOffice.ActiveTournaments()) != 0 {
+				<section class="my-6">
+					@components.SectionHeading("Active Tournaments", nil)
+					<ul class="flex flex-col gap-2">
+						for _, tournament := range props.ProcessedOffice.ActiveTournaments() {
+							<a href={ templ.SafeURL(tournament.Link()) }>
+								<li class="bg-light rounded p-4">
+									<div>
+										{ tournament.Name() }
+									</div>
+									<p class="opacity-70 mt-2 flex flex-wrap gap-2 text-xs">
+										<span>
+											Started: { tournament.StartDate() }
+										</span>
+										<span>
+											{ fmt.Sprintf("%d",tournament.PlayerCount()) } players
+										</span>
+										<span>
+											Completed { fmt.Sprintf("%.2f", tournament.Progress()) }%
+										</span>
+									</p>
+								</li>
+							</a>
+						}
+					</ul>
+				</section>
+			}
 			<section class="my-6">
 				@components.SectionHeading("Stats", &components.SecondaryLinkProps{
 					URL:  props.Office.Link() + "/stats",

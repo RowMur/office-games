@@ -2,7 +2,6 @@ package app
 
 import (
 	"errors"
-	"fmt"
 	"math"
 
 	"math/rand/v2"
@@ -36,12 +35,9 @@ func (a *App) CreateTournament(creator *db.User, name string, office db.Office, 
 		validParticipants[participant.ID] = true
 	}
 
-	fmt.Printf("validParticipants: %+v\n", validParticipants)
-
 	uniqueParticipants := make(map[uint]bool)
 	for _, participant := range participants {
 		if _, ok := validParticipants[participant]; !ok {
-			fmt.Printf("participant: %d\n", participant)
 			return nil, ErrTournamentInvalidParticipant
 		}
 		if _, ok := uniqueParticipants[participant]; ok {
