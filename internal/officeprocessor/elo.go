@@ -1,4 +1,4 @@
-package gameprocessor
+package officeprocessor
 
 import (
 	"math"

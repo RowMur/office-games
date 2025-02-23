@@ -3,13 +3,13 @@ package games
 import (
 	"fmt"
 	"github.com/RowMur/office-table-tennis/internal/db"
-	"github.com/RowMur/office-table-tennis/internal/gameprocessor"
+	"github.com/RowMur/office-table-tennis/internal/officeprocessor"
 	"github.com/RowMur/office-table-tennis/internal/views/components"
 	"github.com/RowMur/office-table-tennis/internal/views/layout"
 	"strconv"
 )
 
-templ StatsPage(office db.Office, user *db.User, processedGame gameprocessor.Game) {
+templ StatsPage(office db.Office, user *db.User, processedOffice officeprocessor.Office) {
 	@layout.Base(user) {
 		<main class="mx-6 my-8">
 			@GamePageHeading(GamePageHeadingProps{
@@ -18,11 +18,11 @@ templ StatsPage(office db.Office, user *db.User, processedGame gameprocessor.Gam
 			<section class="my-6">
 				@components.SectionHeading("Game Stats", nil)
 				<ul class="flex flex-col gap-2">
-					@gameStats(processedGame)
+					@gameStats(processedOffice)
 				</ul>
 			</section>
 			{{
-	thisPlayer := processedGame.GetPlayer(user.ID)
+	thisPlayer := processedOffice.GetPlayer(user.ID)
 			}}
 			<section class="my-6">
 				<div class="flex gap-4 mb-2 items-center">
@@ -42,7 +42,7 @@ templ StatsPage(office db.Office, user *db.User, processedGame gameprocessor.Gam
 				</div>
 				<div id="player-stats">
 					if thisPlayer != nil {
-						@PlayerStats(processedGame, *thisPlayer)
+						@PlayerStats(processedOffice, *thisPlayer)
 					} else {
 						@PlayerHasntPlayedYet()
 					}
@@ -52,7 +52,7 @@ templ StatsPage(office db.Office, user *db.User, processedGame gameprocessor.Gam
 	}
 }
 
-templ gameStats(game gameprocessor.Game) {
+templ gameStats(game officeprocessor.Office) {
 	@statRow("Games played", strconv.Itoa(game.MatchesPlayed()))
 	@statRow("Most games played by player", strconv.Itoa(game.MostPlayedPlayer().MatchesPlayed())+" ("+game.MostPlayedPlayer().User.Username+")")
 	@statRow("Highest points (current)", game.HighestRankedPlayer().User.Username+" ("+strconv.Itoa(game.HighestRankedPlayer().Points)+")")
@@ -61,7 +61,7 @@ templ gameStats(game gameprocessor.Game) {
 	@statRow("Most common opponents", game.MostCommonOpposingPairing().Print())
 }
 
-templ PlayerStats(game gameprocessor.Game, player gameprocessor.Player) {
+templ PlayerStats(game officeprocessor.Office, player officeprocessor.Player) {
 	<ul class="flex flex-col gap-2">
 		@statRow("Games played", strconv.Itoa(player.MatchesPlayed()))
 		@statRow("Wins", strconv.Itoa(player.WinCount))

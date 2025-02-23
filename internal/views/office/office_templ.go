@@ -11,7 +11,7 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"fmt"
 	"github.com/RowMur/office-table-tennis/internal/db"
-	"github.com/RowMur/office-table-tennis/internal/gameprocessor"
+	"github.com/RowMur/office-table-tennis/internal/officeprocessor"
 	"github.com/RowMur/office-table-tennis/internal/views/components"
 	"github.com/RowMur/office-table-tennis/internal/views/layout"
 	"strconv"
@@ -28,7 +28,7 @@ type OfficePageProps struct {
 	Office            db.Office
 	User              *db.User
 	PendingMatchCount int
-	ProcessedGame     *gameprocessor.Game
+	ProcessedOffice   *officeprocessor.Office
 }
 
 func OfficePage(props OfficePageProps) templ.Component {
@@ -143,7 +143,7 @@ func OfficePage(props OfficePageProps) templ.Component {
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = OfficeRankings(props.ProcessedGame.RankedPlayers()).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = OfficeRankings(props.ProcessedOffice.RankedPlayers()).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -214,7 +214,7 @@ func OfficePage(props OfficePageProps) templ.Component {
 					return templ_7745c5c3_Err
 				}
 
-				recordElo := props.ProcessedGame.RecordElo()
+				recordElo := props.ProcessedOffice.RecordElo()
 				_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<b>")
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
@@ -294,7 +294,7 @@ func OfficePage(props OfficePageProps) templ.Component {
 					matchesToShow = props.Office.Matches[0:nOfMatchesToShow]
 				}
 				for _, match := range matchesToShow {
-					templ_7745c5c3_Err = components.Match(match, false, props.ProcessedGame).Render(ctx, templ_7745c5c3_Buffer)
+					templ_7745c5c3_Err = components.Match(match, false, props.ProcessedOffice).Render(ctx, templ_7745c5c3_Buffer)
 					if templ_7745c5c3_Err != nil {
 						return templ_7745c5c3_Err
 					}
@@ -401,7 +401,7 @@ func StatCard() templ.Component {
 	})
 }
 
-func OfficeRankings(players []gameprocessor.Player) templ.Component {
+func OfficeRankings(players []officeprocessor.Player) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {

@@ -26,7 +26,7 @@ func (s *Server) officeHandler(c echo.Context) error {
 		return c.Redirect(http.StatusTemporaryRedirect, "/sign-in")
 	}
 
-	processedGame, err := s.gp.Process(office.ID)
+	processedOffice, err := s.op.Process(office.ID)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
@@ -41,7 +41,7 @@ func (s *Server) officeHandler(c echo.Context) error {
 		Office:            *office,
 		User:              user,
 		PendingMatchCount: int(pendingMatchCount),
-		ProcessedGame:     processedGame,
+		ProcessedOffice:   processedOffice,
 	}))
 }
 
@@ -273,7 +273,7 @@ func (s *Server) matchesPageHandler(c echo.Context) error {
 		nextPage = strconv.Itoa(pageInt + 1)
 	}
 
-	processedGame, err := s.gp.Process(office.ID)
+	processedOffice, err := s.op.Process(office.ID)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
@@ -282,17 +282,17 @@ func (s *Server) matchesPageHandler(c echo.Context) error {
 		// full page
 		return render(c, http.StatusOK, officeViews.MatchesPage(
 			officeViews.MatchesPageProps{
-				User:          user,
-				Matches:       matchesToReturn,
-				Office:        *office,
-				NextPage:      nextPage,
-				ProcessedGame: processedGame,
+				User:            user,
+				Matches:         matchesToReturn,
+				Office:          *office,
+				NextPage:        nextPage,
+				ProcessedOffice: processedOffice,
 			},
 		))
 	}
 
 	// partial page
-	return render(c, http.StatusOK, officeViews.Matches(officeViews.MatchesProps{Matches: matchesToReturn, NextPage: nextPage, ProcessedGame: processedGame, Office: *office}))
+	return render(c, http.StatusOK, officeViews.Matches(officeViews.MatchesProps{Matches: matchesToReturn, NextPage: nextPage, ProcessedOffice: processedOffice, Office: *office}))
 }
 
 func (s *Server) gameStatsPageHandler(c echo.Context) error {
@@ -304,12 +304,12 @@ func (s *Server) gameStatsPageHandler(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	processedGame, err := s.gp.Process(office.ID)
+	processedOffice, err := s.op.Process(office.ID)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	return render(c, http.StatusOK, officeViews.StatsPage(*office, user, *processedGame))
+	return render(c, http.StatusOK, officeViews.StatsPage(*office, user, *processedOffice))
 }
 
 func (s *Server) gamePlayerStatsPostHandler(c echo.Context) error {
@@ -326,15 +326,15 @@ func (s *Server) gamePlayerStatsPostHandler(c echo.Context) error {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	processedGame, err := s.gp.Process(office.ID)
+	processedOffice, err := s.op.Process(office.ID)
 	if err != nil {
 		return c.String(http.StatusInternalServerError, err.Error())
 	}
 
-	player := processedGame.GetPlayer(uint(playerId))
+	player := processedOffice.GetPlayer(uint(playerId))
 	if player == nil {
 		return render(c, http.StatusOK, officeViews.PlayerHasntPlayedYet())
 	}
 
-	return render(c, http.StatusOK, officeViews.PlayerStats(*processedGame, *player))
+	return render(c, http.StatusOK, officeViews.PlayerStats(*processedOffice, *player))
 }

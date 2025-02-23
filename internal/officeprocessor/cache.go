@@ -1,12 +1,12 @@
-package gameprocessor
+package officeprocessor
 
-type cache map[uint]*Game
+type cache map[uint]*Office
 
 func newCache() *cache {
 	return &cache{}
 }
 
-func (c *cache) setEntry(officeId uint, newEntry *Game) {
+func (c *cache) setEntry(officeId uint, newEntry *Office) {
 	if c == nil {
 		c = newCache()
 	}
@@ -14,7 +14,7 @@ func (c *cache) setEntry(officeId uint, newEntry *Game) {
 	(*c)[officeId] = newEntry
 }
 
-func (c *cache) getEntry(officeId uint) *Game {
+func (c *cache) getEntry(officeId uint) *Office {
 	if c == nil {
 		c = newCache()
 		return nil

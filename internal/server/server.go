@@ -6,7 +6,7 @@ import (
 
 	"github.com/RowMur/office-table-tennis/internal/app"
 	"github.com/RowMur/office-table-tennis/internal/db"
-	"github.com/RowMur/office-table-tennis/internal/gameprocessor"
+	"github.com/RowMur/office-table-tennis/internal/officeprocessor"
 	"github.com/RowMur/office-table-tennis/internal/user"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
@@ -16,18 +16,18 @@ type Server struct {
 	us  *user.UserService
 	db  *db.Database
 	app *app.App
-	gp  *gameprocessor.GameProcessor
+	op  *officeprocessor.Officeprocessor
 }
 
 func NewServer() *Server {
 	database := db.Init()
-	gp := gameprocessor.NewGameProcessor(database)
-	app := app.NewApp(database, gp)
+	op := officeprocessor.Newofficeprocessor(database)
+	app := app.NewApp(database, op)
 	return &Server{
 		db:  &database,
 		us:  user.NewUserService(database),
 		app: app,
-		gp:  gp,
+		op:  op,
 	}
 }
 
@@ -91,8 +91,6 @@ func (s *Server) Run() {
 	officeMember.POST("/offices/:code/stats", s.gamePlayerStatsPostHandler)
 
 	officeAdmin.POST("/offices/:code/tournaments", s.createTournamentFormHandler)
-
-	signedIn.GET("/elo", s.eloPageHandler)
 
 	e.Any("/offices/:code/games/*", func(c echo.Context) error {
 		return c.Redirect(301, "/offices/"+c.Param("code"))

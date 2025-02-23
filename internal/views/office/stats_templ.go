@@ -11,13 +11,13 @@ import templruntime "github.com/a-h/templ/runtime"
 import (
 	"fmt"
 	"github.com/RowMur/office-table-tennis/internal/db"
-	"github.com/RowMur/office-table-tennis/internal/gameprocessor"
+	"github.com/RowMur/office-table-tennis/internal/officeprocessor"
 	"github.com/RowMur/office-table-tennis/internal/views/components"
 	"github.com/RowMur/office-table-tennis/internal/views/layout"
 	"strconv"
 )
 
-func StatsPage(office db.Office, user *db.User, processedGame gameprocessor.Game) templ.Component {
+func StatsPage(office db.Office, user *db.User, processedOffice officeprocessor.Office) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -72,7 +72,7 @@ func StatsPage(office db.Office, user *db.User, processedGame gameprocessor.Game
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
-			templ_7745c5c3_Err = gameStats(processedGame).Render(ctx, templ_7745c5c3_Buffer)
+			templ_7745c5c3_Err = gameStats(processedOffice).Render(ctx, templ_7745c5c3_Buffer)
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
 			}
@@ -81,7 +81,7 @@ func StatsPage(office db.Office, user *db.User, processedGame gameprocessor.Game
 				return templ_7745c5c3_Err
 			}
 
-			thisPlayer := processedGame.GetPlayer(user.ID)
+			thisPlayer := processedOffice.GetPlayer(user.ID)
 			_, templ_7745c5c3_Err = templ_7745c5c3_Buffer.WriteString("<section class=\"my-6\"><div class=\"flex gap-4 mb-2 items-center\"><h3 class=\"text-lg font-semibold\">Player Stats</h3><select name=\"player\" class=\"bg-back px-2 py-1 rounded-md\" hx-trigger=\"change\" hx-post=\"")
 			if templ_7745c5c3_Err != nil {
 				return templ_7745c5c3_Err
@@ -148,7 +148,7 @@ func StatsPage(office db.Office, user *db.User, processedGame gameprocessor.Game
 				return templ_7745c5c3_Err
 			}
 			if thisPlayer != nil {
-				templ_7745c5c3_Err = PlayerStats(processedGame, *thisPlayer).Render(ctx, templ_7745c5c3_Buffer)
+				templ_7745c5c3_Err = PlayerStats(processedOffice, *thisPlayer).Render(ctx, templ_7745c5c3_Buffer)
 				if templ_7745c5c3_Err != nil {
 					return templ_7745c5c3_Err
 				}
@@ -172,7 +172,7 @@ func StatsPage(office db.Office, user *db.User, processedGame gameprocessor.Game
 	})
 }
 
-func gameStats(game gameprocessor.Game) templ.Component {
+func gameStats(game officeprocessor.Office) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {
@@ -221,7 +221,7 @@ func gameStats(game gameprocessor.Game) templ.Component {
 	})
 }
 
-func PlayerStats(game gameprocessor.Game, player gameprocessor.Player) templ.Component {
+func PlayerStats(game officeprocessor.Office, player officeprocessor.Player) templ.Component {
 	return templruntime.GeneratedTemplate(func(templ_7745c5c3_Input templruntime.GeneratedComponentInput) (templ_7745c5c3_Err error) {
 		templ_7745c5c3_W, ctx := templ_7745c5c3_Input.Writer, templ_7745c5c3_Input.Context
 		if templ_7745c5c3_CtxErr := ctx.Err(); templ_7745c5c3_CtxErr != nil {

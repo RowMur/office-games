@@ -2,17 +2,17 @@ package games
 
 import (
 	"github.com/RowMur/office-table-tennis/internal/db"
-	"github.com/RowMur/office-table-tennis/internal/gameprocessor"
+	"github.com/RowMur/office-table-tennis/internal/officeprocessor"
 	"github.com/RowMur/office-table-tennis/internal/views/components"
 	"github.com/RowMur/office-table-tennis/internal/views/layout"
 )
 
 type MatchesPageProps struct {
-	User          *db.User
-	Matches       []db.Match
-	Office        db.Office
-	NextPage      string
-	ProcessedGame *gameprocessor.Game
+	User            *db.User
+	Matches         []db.Match
+	Office          db.Office
+	NextPage        string
+	ProcessedOffice *officeprocessor.Office
 }
 
 templ MatchesPage(props MatchesPageProps) {
@@ -24,7 +24,7 @@ templ MatchesPage(props MatchesPageProps) {
 			<section class="my-6">
 				@components.SectionHeading("Matches", nil)
 				<ul class="flex flex-col gap-2">
-					@Matches(MatchesProps{Matches: props.Matches, NextPage: props.NextPage, ProcessedGame: props.ProcessedGame, Office: props.Office})
+					@Matches(MatchesProps{Matches: props.Matches, NextPage: props.NextPage, ProcessedOffice: props.ProcessedOffice, Office: props.Office})
 				</ul>
 			</section>
 		</main>
@@ -32,10 +32,10 @@ templ MatchesPage(props MatchesPageProps) {
 }
 
 type MatchesProps struct {
-	Matches       []db.Match
-	NextPage      string
-	ProcessedGame *gameprocessor.Game
-	Office        db.Office
+	Matches         []db.Match
+	NextPage        string
+	ProcessedOffice *officeprocessor.Office
+	Office          db.Office
 }
 
 templ Matches(props MatchesProps) {
@@ -52,7 +52,7 @@ templ Matches(props MatchesProps) {
 				hx-indicator="#matches-indicator"
 			}
 		>
-			@components.Match(match, false, props.ProcessedGame)
+			@components.Match(match, false, props.ProcessedOffice)
 		</div>
 		if shouldLoadNextPage {
 			<div id="matches-indicator" class="htmx-indicator">Loading...</div>

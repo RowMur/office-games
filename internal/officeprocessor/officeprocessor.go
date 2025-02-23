@@ -1,4 +1,4 @@
-package gameprocessor
+package officeprocessor
 
 import (
 	"fmt"
@@ -13,13 +13,13 @@ const (
 	eloLowerBound           = 200
 )
 
-type GameProcessor struct {
+type Officeprocessor struct {
 	db    db.Database
 	cache *cache
 }
 
-func NewGameProcessor(db db.Database) *GameProcessor {
-	return &GameProcessor{
+func Newofficeprocessor(db db.Database) *Officeprocessor {
+	return &Officeprocessor{
 		db:    db,
 		cache: newCache(),
 	}
@@ -35,25 +35,25 @@ type ProcessedMatchParticipant struct {
 	PointsApplied int
 }
 
-func (gp *GameProcessor) Process(officeId uint) (*Game, error) {
+func (op *Officeprocessor) Process(officeId uint) (*Office, error) {
 	startTime := time.Now()
 	defer func() {
 		fmt.Printf("GetElos: %s\n", time.Since(startTime))
 	}()
 
-	if gp.cache != nil {
-		entry := gp.cache.getEntry(officeId)
+	if op.cache != nil {
+		entry := op.cache.getEntry(officeId)
 		if entry != nil {
 			return entry, nil
 		}
 	}
 
-	return gp.process(officeId)
+	return op.process(officeId)
 }
 
-func (gp *GameProcessor) process(officeId uint) (*Game, error) {
+func (op *Officeprocessor) process(officeId uint) (*Office, error) {
 	matches := []db.Match{}
-	err := gp.db.C.Where("office_id = ?", officeId).
+	err := op.db.C.Where("office_id  = ?", officeId).
 		Where("state = ?", db.MatchStateApproved).
 		Order("created_at").
 		Preload("Participants.User").
@@ -63,7 +63,7 @@ func (gp *GameProcessor) process(officeId uint) (*Game, error) {
 		return nil, err
 	}
 
-	g := newGame()
+	o := newOffice()
 
 	players := map[uint]Player{}
 	for _, match := range matches {
@@ -106,11 +106,11 @@ func (gp *GameProcessor) process(officeId uint) (*Game, error) {
 		for _, winner := range winners {
 			for _, w := range winners {
 				if w.User.ID > winner.User.ID {
-					g.playerPairings.addMatch(match.ID, winner, w)
+					o.playerPairings.addMatch(match.ID, winner, w)
 				}
 			}
 			for _, l := range losers {
-				g.playerOpposingPairings.addMatch(match.ID, winner, l)
+				o.playerOpposingPairings.addMatch(match.ID, winner, l)
 			}
 
 			winner.WinCount++
@@ -135,7 +135,7 @@ func (gp *GameProcessor) process(officeId uint) (*Game, error) {
 		for _, loser := range losers {
 			for _, l := range losers {
 				if l.User.ID > loser.User.ID {
-					g.playerPairings.addMatch(match.ID, loser, l)
+					o.playerPairings.addMatch(match.ID, loser, l)
 				}
 			}
 
@@ -163,14 +163,14 @@ func (gp *GameProcessor) process(officeId uint) (*Game, error) {
 			players[loser.User.ID] = loser
 		}
 
-		g.matches[match.ID] = &cachedMatch
+		o.matches[match.ID] = &cachedMatch
 	}
 
-	g.players = players
-	gp.cache.setEntry(officeId, &g)
-	return &g, nil
+	o.players = players
+	op.cache.setEntry(officeId, &o)
+	return &o, nil
 }
 
-func (gp GameProcessor) InvalidateGameCache(gameId uint) {
-	(*gp.cache)[gameId] = nil
+func (op Officeprocessor) InvalidateOfficeCache(officeId uint) {
+	(*op.cache)[officeId] = nil
 }

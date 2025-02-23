@@ -185,6 +185,6 @@ func (a *App) processApprovedMatch(tx *gorm.DB, match *db.Match) error {
 		return err
 	}
 
-	a.gp.InvalidateGameCache(match.OfficeID)
+	a.op.InvalidateOfficeCache(match.OfficeID)
 	return nil
 }

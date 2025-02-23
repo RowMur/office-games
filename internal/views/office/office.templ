@@ -3,7 +3,7 @@ package games
 import (
 	"fmt"
 	"github.com/RowMur/office-table-tennis/internal/db"
-	"github.com/RowMur/office-table-tennis/internal/gameprocessor"
+	"github.com/RowMur/office-table-tennis/internal/officeprocessor"
 	"github.com/RowMur/office-table-tennis/internal/views/components"
 	"github.com/RowMur/office-table-tennis/internal/views/layout"
 	"strconv"
@@ -20,7 +20,7 @@ type OfficePageProps struct {
 	Office            db.Office
 	User              *db.User
 	PendingMatchCount int
-	ProcessedGame     *gameprocessor.Game
+	ProcessedOffice   *officeprocessor.Office
 }
 
 templ OfficePage(props OfficePageProps) {
@@ -53,7 +53,7 @@ templ OfficePage(props OfficePageProps) {
 			</ul>
 			<section class="my-6">
 				@components.SectionHeading("Rankings", nil)
-				@OfficeRankings(props.ProcessedGame.RankedPlayers())
+				@OfficeRankings(props.ProcessedOffice.RankedPlayers())
 			</section>
 			<section class="my-6">
 				@components.SectionHeading("Stats", &components.SecondaryLinkProps{
@@ -75,7 +75,7 @@ templ OfficePage(props OfficePageProps) {
 						<div class="flex flex-col gap-2">
 							<div class="min-w-12 min-h-12 grid place-items-center text-center rounded-full mx-auto">
 								{{
-									recordElo := props.ProcessedGame.RecordElo()
+									recordElo := props.ProcessedOffice.RecordElo()
 								}}
 								<b>{ strconv.Itoa(recordElo.RecordPoints) }</b>
 								{ recordElo.User.Username } - 
@@ -105,7 +105,7 @@ templ OfficePage(props OfficePageProps) {
 						}
 						}}
 						for _, match := range matchesToShow {
-							@components.Match(match, false, props.ProcessedGame)
+							@components.Match(match, false, props.ProcessedOffice)
 						}
 					</ul>
 				}
@@ -128,7 +128,7 @@ templ StatCard() {
 	</div>
 }
 
-templ OfficeRankings(players []gameprocessor.Player) {
+templ OfficeRankings(players []officeprocessor.Player) {
 	<table id="office-ranking" class="w-full">
 		<thead class="border-b-[1px] border-accent">
 			<tr>
